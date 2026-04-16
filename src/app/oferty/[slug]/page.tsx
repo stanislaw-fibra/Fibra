@@ -18,7 +18,12 @@ export const revalidate = 60;
 
 export async function generateStaticParams() {
   const offers = await getAllOffers();
-  return offers.map((o) => ({ slug: o.slug }));
+  const params: { slug: string }[] = [];
+  for (const o of offers) {
+    const offer = await getOfferBySlug(o.slug);
+    if (offer) params.push({ slug: o.slug });
+  }
+  return params;
 }
 
 export async function generateMetadata({
