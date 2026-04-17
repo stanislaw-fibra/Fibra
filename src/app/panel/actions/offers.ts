@@ -292,7 +292,7 @@ function streamVideoIdOrRedirect(offerId: string, label: string, raw: string | n
   if (!/^[a-zA-Z0-9_-]+$/.test(raw)) {
     redirect(
       `/panel/oferty/${offerId}?error=${encodeURIComponent(
-        `Nieprawidłowy format ID (${label}) — dozwolone są tylko litery, cyfry, myślnik i podkreślenie.`,
+        `Nieprawidłowy format ID (${label}) - dozwolone są tylko litery, cyfry, myślnik i podkreślenie.`,
       )}`,
     );
   }

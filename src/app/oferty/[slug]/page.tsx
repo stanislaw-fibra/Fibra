@@ -35,7 +35,7 @@ export async function generateMetadata({
   const offer = await getOfferBySlug(slug);
   if (!offer) return { title: "Oferta niedostępna" };
   return {
-    title: `${offer.title} — Fibra Nieruchomości`,
+    title: `${offer.title} - Fibra Nieruchomości`,
     description: offer.excerpt,
   };
 }
@@ -126,7 +126,7 @@ export default async function OfferPage({
                   </div>
                 </div>
                 <p className="mt-4 text-center lg:text-left text-[12px] text-ink-500 max-w-[520px] mx-auto lg:mx-0">
-                  Film orientacyjny — pełna dokumentacja i rzuty wysyłamy po pierwszym kontakcie.
+                  Film orientacyjny - pełna dokumentacja i rzuty wysyłamy po pierwszym kontakcie.
                 </p>
               </div>
 
@@ -220,7 +220,7 @@ export default async function OfferPage({
           <div className="container-xl grid gap-10 lg:grid-cols-12 lg:items-center">
             <div className="lg:col-span-5">
               <h2 className="font-display text-[clamp(1.6rem,3vw,2.25rem)] leading-tight text-ink-950 max-w-[22ch]">
-                Masz pytania? Zadzwoń bezpośrednio lub zostaw numer — oddzwonimy.
+                Masz pytania? Zadzwoń bezpośrednio lub zostaw numer - oddzwonimy.
               </h2>
               <p className="mt-4 text-[15px] text-ink-600 max-w-md leading-relaxed">
                 Chętnie doprecyzujemy warunki, terminy oglądania i komplet dokumentów do tej oferty.
@@ -254,7 +254,7 @@ export default async function OfferPage({
                 Wnętrza, detale, kontekst miejsca.
               </h2>
               <p className="mt-4 text-[15px] text-ink-600 max-w-2xl">
-                Zdjęcia poglądowe — docelowo zastąpi je zestaw z sesji i materiałów z systemu (Galactica + Stream).
+                Zdjęcia poglądowe - docelowo zastąpi je zestaw z sesji i materiałów z systemu (Galactica + Stream).
               </p>
             </Reveal>
             <Reveal delay={120}>
@@ -280,7 +280,7 @@ export default async function OfferPage({
                   <ul className="space-y-5">
                     {[
                       ["Karta oferty PDF", "Parametry techniczne, rzuty 2D, opis prawny."],
-                      ["Spacer wideo / 3D", "Matterport lub dodatkowe ujęcia — na życzenie."],
+                      ["Spacer wideo / 3D", "Matterport lub dodatkowe ujęcia - na życzenie."],
                       ["Harmonogram prezentacji", "Stacjonarnie, zdalnie lub dla doradcy B2B."],
                       ["Źródło danych", "Docelowo synchronizacja z Galacticą (jedna prawda)."],
                     ].map(([t, d]) => (

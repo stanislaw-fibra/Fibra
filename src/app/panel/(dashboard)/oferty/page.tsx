@@ -250,9 +250,9 @@ export default async function PanelOffersPage({ searchParams }: Props) {
                             href={`/panel/oferty/${row.id}`}
                             className="font-medium text-white hover:text-accent-400 transition-colors line-clamp-2"
                           >
-                            {row.title ?? "—"}
+                            {row.title ?? "-"}
                           </Link>
-                          <p className="text-ink-500 mt-0.5">{row.city ?? "—"}</p>
+                          <p className="text-ink-500 mt-0.5">{row.city ?? "-"}</p>
                         </div>
                         <Link
                           href={`/panel/oferty/${row.id}`}
@@ -269,7 +269,7 @@ export default async function PanelOffersPage({ searchParams }: Props) {
                       <span className="text-ink-600"> · </span>
                       {LIST_LABEL[row.listing_type] ?? row.listing_type}
                     </td>
-                    <td className="px-4 py-3 align-middle text-ink-200 tabular-nums">{row.price != null ? priceFormat(row.price) : "—"}</td>
+                    <td className="px-4 py-3 align-middle text-ink-200 tabular-nums">{row.price != null ? priceFormat(row.price) : "-"}</td>
                     <td className="px-4 py-3 align-middle">
                       <span
                         className={
@@ -295,8 +295,8 @@ export default async function PanelOffersPage({ searchParams }: Props) {
                           </svg>
                         </span>
                       ) : (
-                        <span className="text-ink-600 text-[11px]" title="Brak krótkiego filmu — nie widać na stronie głównej">
-                          —
+                        <span className="text-ink-600 text-[11px]" title="Brak krótkiego filmu - nie widać na stronie głównej">
+                          -
                         </span>
                       )}
                     </td>

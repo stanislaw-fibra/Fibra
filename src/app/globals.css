@@ -198,7 +198,7 @@ body {
 }
 
 /* -----------------------------------------------------------
-   Reveal on scroll (CSS fallback — framer-motion preferred)
+   Reveal on scroll (CSS fallback - framer-motion preferred)
    ----------------------------------------------------------- */
 .reveal {
   opacity: 0;
@@ -295,7 +295,7 @@ body {
 }
 
 /* -----------------------------------------------------------
-   Panel admin — form controls (native, styled)
+   Panel admin - form controls (native, styled)
    ----------------------------------------------------------- */
 .panel-select {
   appearance: none;
@@ -369,6 +369,26 @@ body {
   background-size: 11px 9px;
   background-position: center;
   background-repeat: no-repeat;
+}
+
+/* Legal / policy pages (treść w LegalArticleShell) */
+.legal-doc-inner {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.68;
+  color: var(--color-ink-800);
+}
+
+.legal-doc-inner a {
+  color: var(--color-brand-600);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(0, 90, 148, 0.35);
+}
+
+.legal-doc-inner a:hover {
+  color: var(--color-brand-500);
+  text-decoration-color: var(--color-brand-400);
 }
 
 /* Reduced motion */

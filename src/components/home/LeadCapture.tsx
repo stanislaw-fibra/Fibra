@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
@@ -41,7 +42,7 @@ export function LeadCapture() {
               Porozmawiajmy <em className="italic text-accent-400">o nieruchomości</em>.
             </h2>
             <p className="mt-8 text-[16px] text-white/60 max-w-[42ch] leading-relaxed">
-              Jeśli chcesz sprzedać, wynająć albo po prostu sprawdzić możliwości — zacznijmy od krótkiej rozmowy.
+              Jeśli chcesz sprzedać, wynająć albo po prostu sprawdzić możliwości - zacznijmy od krótkiej rozmowy.
             </p>
             <div className="mt-8 text-[13px] text-white/45 leading-relaxed">
               <p className="text-white/70 font-medium">Grupa Fibra Sp. z o.o.</p>
@@ -106,7 +107,7 @@ export function LeadCapture() {
                 </motion.div>
               ) : (
                 <>
-                  <p className="eyebrow text-ink-500 mb-6">Krótka wiadomość — 60 sekund</p>
+                  <p className="eyebrow text-ink-500 mb-6">Krótka wiadomość - 60 sekund</p>
 
                   <div className="grid sm:grid-cols-2 gap-4">
                     <Field label="Imię" name="name" required placeholder="Anna" />
@@ -156,7 +157,11 @@ export function LeadCapture() {
 
                   <div className="mt-8 flex flex-wrap items-center gap-4 justify-between">
                     <p className="text-[11.5px] text-ink-400 max-w-md">
-                      Wysyłając zgadzasz się na przetwarzanie danych zgodnie z polityką prywatności.
+                      Wysyłając zgadzasz się na przetwarzanie danych zgodnie z{" "}
+                      <Link href="/polityka-prywatnosci" className="underline underline-offset-2 hover:text-ink-600">
+                        polityką prywatności
+                      </Link>
+                      .
                     </p>
                     <button
                       type="submit"

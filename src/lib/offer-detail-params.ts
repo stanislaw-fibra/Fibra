@@ -18,7 +18,7 @@ function addBool(out: OfferParamItem[], label: string, v: boolean | undefined) {
 }
 
 /**
- * Parametry na ciemną sekcję strony oferty — tylko to, czego nie ma w górnych
+ * Parametry na ciemną sekcję strony oferty - tylko to, czego nie ma w górnych
  * kartach SpecCard (cena, powierzchnia podstawowa, pokoje, piętro, rok, parking, działka, energetyka).
  * Uzupełniane w miarę rozwoju eksportu z Galactiki.
  */

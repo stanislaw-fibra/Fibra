@@ -51,7 +51,7 @@ export function HomeIntro() {
               variants={fadeUp}
               className="mt-8 max-w-[48ch] text-[17px] md:text-[18px] leading-[1.6] text-ink-700"
             >
-              Fibra to specjaliści od obrotu nieruchomościami, budownictwa, architektury i finansowania — zebrani w
+              Fibra to specjaliści od obrotu nieruchomościami, budownictwa, architektury i finansowania - zebrani w
               jednym miejscu. Działamy w powiecie rybnickim i wodzisławskim od ponad 15 lat.
             </motion.p>
             <motion.p
@@ -92,11 +92,39 @@ export function HomeIntro() {
                 „Interesy robi się z ludźmi, a nie na ludziach.”
               </p>
               <p className="mt-6 text-[14px] text-ink-600 leading-relaxed">
-                Tak pracujemy z klientami i z rynkiem — bez presji, z pełną transparentnością i jednym opiekunem przy
+                Tak pracujemy z klientami i z rynkiem - bez presji, z pełną transparentnością i jednym opiekunem przy
                 transakcji.
               </p>
             </div>
           </motion.div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-70px" }}
+          transition={{ duration: 0.9, ease }}
+          className="relative mt-20 w-screen max-w-none left-1/2 -translate-x-1/2 md:mt-28 lg:mt-32"
+        >
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-ink-200/80 to-transparent" aria-hidden />
+          <div className="bg-gradient-to-b from-paper-cream/50 via-paper-warm/30 to-transparent px-5 pb-16 pt-14 sm:px-8 md:pb-20 md:pt-16">
+            <div className="mx-auto max-w-[40rem] text-center">
+              <div className="mb-8 flex items-center justify-center gap-3 sm:gap-4">
+                <span className="h-px w-8 bg-ink-200/90 sm:w-12" aria-hidden />
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-500">Po ludzku</p>
+                <span className="h-px w-8 bg-ink-200/90 sm:w-12" aria-hidden />
+              </div>
+              <p className="font-display text-[clamp(1.4rem,3.4vw,1.95rem)] leading-[1.42] tracking-[-0.02em] text-ink-900 text-balance">
+                W Fibrze każdą nieruchomość pokazuje Ci konkretna osoba - na filmie, na spacerze 3D, na żywo przy kawie.
+                Ktoś, kto tam był, widział okolicę rano i wieczorem, rozmawiał z sąsiadami i wie, gdzie jest najbliższy
+                plac zabaw.
+              </p>
+              <p className="mx-auto mt-9 max-w-[36rem] text-[15px] leading-[1.72] text-ink-600 md:text-[16px] text-pretty">
+                Kupno albo sprzedaż mieszkania to jedna z największych decyzji w życiu. Uważamy, że zasługujesz na
+                człowieka po drugiej stronie, nie na kolejny ekran z checkboxami.
+              </p>
+            </div>
+          </div>
         </motion.div>
       </div>
     </section>

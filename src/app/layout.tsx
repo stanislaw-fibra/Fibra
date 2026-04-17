@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Instrument_Serif } from "next/font/google";
+import { AnalyticsScripts } from "@/components/consent/AnalyticsScripts";
+import { CookieConsent } from "@/components/consent/CookieConsent";
 import "./globals.css";
 
 const inter = Inter({
@@ -16,14 +18,14 @@ const instrument = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Fibra Nieruchomości — Rybnik, Radlin, region",
+  title: "Fibra Nieruchomości - Rybnik, Radlin, region",
   description:
-    "Fibra Nieruchomości — wideo, wirtualny spacer 3D i pełna obsługa transakcji. Powiat rybnicki i wodzisławski, biuro w Radlinie.",
+    "Fibra Nieruchomości - wideo, wirtualny spacer 3D i pełna obsługa transakcji. Powiat rybnicki i wodzisławski, biuro w Radlinie.",
   metadataBase: new URL("https://fibranieruchomosci.pl"),
   openGraph: {
     title: "Fibra Nieruchomości",
     description:
-      "Znajdź swoje miejsce — zobaczysz je w wideo i spacerze 3D, zanim tam wejdziesz. Radlin, Rybnik i okolice.",
+      "Znajdź swoje miejsce - zobaczysz je w wideo i spacerze 3D, zanim tam wejdziesz. Radlin, Rybnik i okolice.",
     type: "website",
     locale: "pl_PL",
   },
@@ -39,6 +41,8 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-[var(--color-paper)] text-ink-900">
         {children}
+        <CookieConsent />
+        <AnalyticsScripts />
       </body>
     </html>
   );

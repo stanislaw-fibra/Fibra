@@ -5,16 +5,16 @@ import { LeadCapture } from "@/components/home/LeadCapture";
 import { Reveal } from "@/components/ui/Reveal";
 
 export const metadata = {
-  title: "O Fibrze — Fibra Nieruchomości",
+  title: "O Fibrze - Fibra Nieruchomości",
   description:
-    "Fibra Nieruchomości — zespół z Radlina: obrót nieruchomościami, budownictwo, architektura i finansowanie. Powiat rybnicki i wodzisławski.",
+    "Fibra Nieruchomości - zespół z Radlina: obrót nieruchomościami, budownictwo, architektura i finansowanie. Powiat rybnicki i wodzisławski.",
 };
 
 const TEAM = [
   {
     name: "Zespół sprzedaży",
     role: "Rybnik · Radlin · region",
-    bio: "Doradcy, którzy znają lokalny rynek — od Zalewu po Rydułtowy. Prowadzą klienta od pierwszego kontaktu po akt.",
+    bio: "Doradcy, którzy znają lokalny rynek - od Zalewu po Rydułtowy. Prowadzą klienta od pierwszego kontaktu po akt.",
   },
   {
     name: "Media i prezentacja",
@@ -24,12 +24,12 @@ const TEAM = [
   {
     name: "Finansowanie",
     role: "Kredyty · formalności",
-    bio: "Współpraca z doradcami kredytowymi i przygotowanie dokumentów pod transakcję — bez chaosu po stronie klienta.",
+    bio: "Współpraca z doradcami kredytowymi i przygotowanie dokumentów pod transakcję - bez chaosu po stronie klienta.",
   },
   {
     name: "Biuro i obsługa",
     role: "Radlin · ul. Rymera 177",
-    bio: "Pierwsza linia kontaktu, umawianie oglądań i dopilnowanie terminów — żebyś czuł się zaopiekowany.",
+    bio: "Pierwsza linia kontaktu, umawianie oglądań i dopilnowanie terminów - żebyś czuł się zaopiekowany.",
   },
 ];
 
@@ -81,7 +81,7 @@ export default function ONasPage() {
                 Wartości
               </p>
               <ul className="grid sm:grid-cols-2 gap-4">
-                {["Uczciwość", "Zaufanie", "Koncentracja na potrzebach klienta", "Bezpieczeństwo — bez stresu, bez chaosu"].map(
+                {["Uczciwość", "Zaufanie", "Koncentracja na potrzebach klienta", "Bezpieczeństwo - bez stresu, bez chaosu"].map(
                   (v) => (
                     <li
                       key={v}

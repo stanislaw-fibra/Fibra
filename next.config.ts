@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /** Na Vercel `cwd` to katalog repozytorium — wycisza błędny root Turbopack przy wielu lockfile’ach poza repo. */
+  /** Na Vercel `cwd` to katalog repozytorium - wycisza błędny root Turbopack przy wielu lockfile’ach poza repo. */
   turbopack: {
     root: process.cwd(),
   },

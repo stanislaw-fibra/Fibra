@@ -11,7 +11,7 @@ export function parseHumanNumber(v: FormDataEntryValue | null): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-/** Integer-ish fields (pokoje, rok…) — zaokrąglenie po parsowaniu. */
+/** Integer-ish fields (pokoje, rok…) - zaokrąglenie po parsowaniu. */
 export function intFromHumanOrNull(v: FormDataEntryValue | null): number | null {
   const n = parseHumanNumber(v);
   if (n === null) return null;

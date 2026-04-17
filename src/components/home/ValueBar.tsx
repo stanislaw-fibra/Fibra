@@ -9,7 +9,7 @@ const VALUES = [
   {
     num: "01",
     title: "Video-first",
-    body: "Każda nieruchomość prezentowana w dedykowanym, pionowym filmie — tak, jak oglądasz treści na co dzień.",
+    body: "Każda nieruchomość prezentowana w dedykowanym, pionowym filmie - tak, jak oglądasz treści na co dzień.",
   },
   {
     num: "02",
@@ -19,7 +19,7 @@ const VALUES = [
   {
     num: "03",
     title: "Pełny kontekst",
-    body: "Spacery 3D, rzuty, mapy, pełna dokumentacja prawna — wszystko w jednym panelu oferty.",
+    body: "Spacery 3D, rzuty, mapy, pełna dokumentacja prawna - wszystko w jednym panelu oferty.",
   },
 ];
 

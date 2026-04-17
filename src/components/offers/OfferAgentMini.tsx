@@ -8,7 +8,7 @@ export function OfferAgentMini({ offerTitle }: { offerTitle: string }) {
   if (sent) {
     return (
       <p className="text-[15px] text-ink-600">
-        Dziękujemy — oddzwonimy lub odezwiemy się mailowo wkrótce.
+        Dziękujemy - oddzwonimy lub odezwiemy się mailowo wkrótce.
       </p>
     );
   }

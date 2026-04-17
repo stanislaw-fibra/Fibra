@@ -6,7 +6,7 @@ import type { Offer } from "@/lib/offers";
 import { VideoCard } from "@/components/home/VideoCard";
 import { ListVideoPlaybackProvider } from "@/components/media/ListVideoPlayback";
 
-/** Maks. liczba kafelków w hero — wyłącznie unikalne oferty (bez powtórki 1–4 jako 5–8). */
+/** Maks. liczba kafelków w hero - wyłącznie unikalne oferty (bez powtórki 1–4 jako 5–8). */
 const HERO_MAX = 8;
 
 export function OpeningReelsGrid({ offers }: { offers: Offer[] }) {

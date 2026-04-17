@@ -1,5 +1,5 @@
 /**
- * Cloudflare Stream — publiczny embed (subdomena customer).
+ * Cloudflare Stream - publiczny embed (subdomena customer).
  * Kod klienta: Stream → Dashboard → wybrany film → „Embed” (subdomena w URL).
  */
 export function getCloudflareStreamCustomerCode(): string | null {
@@ -24,14 +24,29 @@ export function cloudflareStreamIframeUrl(videoId: string): string | null {
   return `https://customer-${code}.cloudflarestream.com/${encodeURIComponent(id)}/iframe`;
 }
 
+/**
+ * Miniatura z `videodelivery.net` - działa bez `NEXT_PUBLIC_CLOUDFLARE_STREAM_CUSTOMER_CODE`
+ * (ten sam host co w publicznych URL z panelu Stream / kart ofert).
+ */
+export function cloudflareStreamThumbnailViaDeliveryNet(
+  videoId: string,
+  opts?: CloudflareThumbnailOpts,
+): string | null {
+  const id = sanitizeCloudflareVideoId(videoId);
+  if (!id) return null;
+  const time = opts?.time ?? "1s";
+  const height = opts?.height ?? 1200;
+  return `https://videodelivery.net/${encodeURIComponent(id)}/thumbnails/thumbnail.jpg?time=${encodeURIComponent(time)}&height=${height}`;
+}
+
 export type CloudflareThumbnailOpts = {
-  /** Domyślnie `1s` — klatka z treści, nie czarny start. */
+  /** Domyślnie `1s` - klatka z treści, nie czarny start. */
   time?: string;
   /** Domyślnie 720. */
   height?: number;
 };
 
-/** Miniatura (poster) — ten sam host co embed; na listach pod wideo. */
+/** Miniatura (poster) - ten sam host co embed; na listach pod wideo. */
 export function cloudflareStreamThumbnailUrl(
   videoId: string,
   opts?: CloudflareThumbnailOpts,

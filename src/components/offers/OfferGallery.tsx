@@ -99,7 +99,7 @@ export function OfferGallery({ images, title }: Props) {
           >
             <motion.button
               type="button"
-              aria-label="Zamknij podgląd — kliknij w tło"
+              aria-label="Zamknij podgląd - kliknij w tło"
               className="absolute inset-0 bg-ink-950/90 backdrop-blur-md"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -181,7 +181,7 @@ export function OfferGallery({ images, title }: Props) {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={images[open]}
-                      alt={`${title} — zdjęcie ${open + 1} z ${images.length}`}
+                      alt={`${title} - zdjęcie ${open + 1} z ${images.length}`}
                       className="max-h-[min(78vh,760px)] w-auto max-w-full object-contain rounded-[var(--radius-md)] shadow-[0_24px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/10"
                       draggable={false}
                     />

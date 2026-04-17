@@ -184,7 +184,7 @@ export default async function PanelOfferEditPage({ params, searchParams }: Props
       <section className="rounded-[var(--radius-md)] border border-white/10 bg-white/[0.04] p-6 md:p-8">
         <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500 mb-2">Zdjęcia oferty</h2>
         <p className="text-[13px] text-ink-400 mb-6">
-          Galeria na stronie www — pliki w Supabase (<code className="text-ink-200">offer-images</code>), powiązane z tą ofertą.
+          Galeria na stronie www - pliki w Supabase (<code className="text-ink-200">offer-images</code>), powiązane z tą ofertą.
         </p>
 
         <OfferImageUploadForm offerId={row.id} galacticaOfferId={row.galactica_offer_id} />

@@ -8,9 +8,9 @@ import { OfertyCatalogGrid } from "@/app/oferty/OfertyCatalogGrid";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "Oferty Fibry — Fibra Nieruchomości",
+  title: "Oferty Fibry - Fibra Nieruchomości",
   description:
-    "Aktualne oferty z powiatu rybnickiego i wodzisławskiego — wideo, wirtualny spacer 3D i pełna obsługa od pierwszego kontaktu do aktu.",
+    "Aktualne oferty z powiatu rybnickiego i wodzisławskiego - wideo, wirtualny spacer 3D i pełna obsługa od pierwszego kontaktu do aktu.",
 };
 
 function FilterChip({ children }: { children: ReactNode }) {

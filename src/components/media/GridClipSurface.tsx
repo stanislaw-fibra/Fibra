@@ -8,7 +8,7 @@ type Props = {
   streamId?: string;
   videoSrc?: string;
   posterUrl: string;
-  /** W obrębie „ringu” max 3 slotów — wtedy `<video>` zostaje w DOM (HLS nie niszczony przy pauzie). */
+  /** W obrębie „ringu” max 3 slotów - wtedy `<video>` zostaje w DOM (HLS nie niszczony przy pauzie). */
   mounted: boolean;
   /** Odtwarzaj / pauzuj (bez odmontowywania przy `mounted`). */
   playing: boolean;
@@ -42,7 +42,7 @@ function destroyHls(hlsRef: { current: Hls | null }, video: HTMLVideoElement | n
 
 /**
  * Klip na karcie listy: poster zawsze pod wideo; wideo z fade dopiero po `onPlaying`.
- * Przy `mounted` i `!playing` — pauza zamiast niszczenia HLS (sąsiednie karty preloadują segmenty).
+ * Przy `mounted` i `!playing` - pauza zamiast niszczenia HLS (sąsiednie karty preloadują segmenty).
  */
 export function GridClipSurface({
   title,

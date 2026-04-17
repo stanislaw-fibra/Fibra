@@ -21,7 +21,7 @@ type Props = {
   /** Początkowe wyciszenie, gdy `muted` nie jest przekazywane */
   defaultMuted?: boolean;
   onMutedChange?: (muted: boolean) => void;
-  /** Ukrywa ikonę w komponencie — rodzic pokazuje własną kontrolkę zsynchronizowaną przez `muted` / `onMutedChange` */
+  /** Ukrywa ikonę w komponencie - rodzic pokazuje własną kontrolkę zsynchronizowaną przez `muted` / `onMutedChange` */
   hideSoundButton?: boolean;
 };
 

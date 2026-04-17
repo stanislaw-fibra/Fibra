@@ -1,12 +1,12 @@
 /**
- * Oferty — dane demonstracyjne dla regionu Fibry (powiat rybnicki / wodzisławski).
+ * Oferty - dane demonstracyjne dla regionu Fibry (powiat rybnicki / wodzisławski).
  * Docelowo: Galactica + Cloudflare Stream.
  */
 
 export type OfferKind = "apartament" | "dom" | "penthouse" | "lokal" | "grunt";
 
 export interface Offer {
-  /** Gdy oferta z Supabase — ten sam co `slug` w URL (uuid). */
+  /** Gdy oferta z Supabase - ten sam co `slug` w URL (uuid). */
   id?: string;
   slug: string;
   title: string;
@@ -21,15 +21,15 @@ export interface Offer {
   priceLabel?: string;
   tagline: string;
   excerpt: string;
-  /** Krótkie punkty (np. mocki) — gdy brak parametrów z bazy, sekcja na stronie oferty może je pokazać jako fallback. */
+  /** Krótkie punkty (np. mocki) - gdy brak parametrów z bazy, sekcja na stronie oferty może je pokazać jako fallback. */
   highlights?: string[];
-  /** Pełny opis z CRM / Supabase (`description`) — wyświetlany jako jeden blok, bez dzielenia na zdania. */
+  /** Pełny opis z CRM / Supabase (`description`) - wyświetlany jako jeden blok, bez dzielenia na zdania. */
   fullDescription?: string;
   poster: string;
   videoSrc?: string;
-  /** Cloudflare Stream — krótki klip (karty, hero). */
+  /** Cloudflare Stream - krótki klip (karty, hero). */
   streamId?: string;
-  /** Cloudflare Stream — dłuższy klip na stronie oferty, jeśli jest w bazie. */
+  /** Cloudflare Stream - dłuższy klip na stronie oferty, jeśli jest w bazie. */
   streamIdLong?: string;
   gallery?: string[];
   isNew?: boolean;
@@ -114,7 +114,7 @@ export const OFFERS: Offer[] = [
     statusOferty: "wolna",
     body: [
       "Układ: salon z aneksem kuchennym, dwie sypialnie, łazienka z oknem. Stolarka trzyszybowa, ogrzewanie miejskie.",
-      "W okolicy sklepy, przedszkole i ścieżki spacerowe wzdłuż zalewu — idealne dla rodziny lub pod wynajem krótkoterminowy.",
+      "W okolicy sklepy, przedszkole i ścieżki spacerowe wzdłuż zalewu - idealne dla rodziny lub pod wynajem krótkoterminowy.",
     ],
     gallery: streamGallery("81b5480a03a58f68e910e288a96cc76a", [u("photo-1600585154340-be6161a56a0c")]),
   },
@@ -177,7 +177,7 @@ export const OFFERS: Offer[] = [
     statusOferty: "wolna",
     body: [
       "Mieszkanie po generalnym remoncie: nowe instalacje, podłogi, stolarka wewnętrzna. Gotowe do wprowadzenia.",
-      "Doskonała baza pod pierwsze M lub inwestycję pod wynajem — popyt na mieszkania w Radlinie stabilny.",
+      "Doskonała baza pod pierwsze M lub inwestycję pod wynajem - popyt na mieszkania w Radlinie stabilny.",
     ],
     gallery: streamGallery("52a76a2f3f9c848bec73c445954f8322", [u("photo-1507089947368-19c1da9775ae")]),
   },
@@ -196,7 +196,7 @@ export const OFFERS: Offer[] = [
     excerpt:
       "Kompaktowe mieszkanie z oddzielną kuchnią i łazienką z oknem. Świetne pod wynajem dla studentów lub singla.",
     highlights: ["Niski czynsz", "Winda w budynku", "Odświeżone", "Blisko dworca"],
-    /** Ten sam clip Stream co pierwsza oferta — demo hero (karty 04 / 08). */
+    /** Ten sam clip Stream co pierwsza oferta - demo hero (karty 04 / 08). */
     streamId: "81b5480a03a58f68e910e288a96cc76a",
     poster: streamPoster("81b5480a03a58f68e910e288a96cc76a"),
     videoSrc: "https://cdn.pixabay.com/video/2020/05/25/39680-424166318_large.mp4",
@@ -208,7 +208,7 @@ export const OFFERS: Offer[] = [
     statusOferty: "wolna",
     body: [
       "Na podłodze panele, ściany po gładzi. Wymiana okien w 2021 r.",
-      "Typowa lokalizacja „pod klucz” dla inwestora — dobra stopa zwrotu przy niewielkim nakładzie.",
+      "Typowa lokalizacja „pod klucz” dla inwestora - dobra stopa zwrotu przy niewielkim nakładzie.",
     ],
     gallery: streamGallery("81b5480a03a58f68e910e288a96cc76a", [
       u("photo-1522708323590-d24dbb6b0267"),
@@ -273,7 +273,7 @@ export const OFFERS: Offer[] = [
     statusOferty: "wolna",
     body: [
       "Rozkład: pokój z aneksem kuchennym, sypialnia, łazienka z kabiną. Loggia z zachodu.",
-      "Dojazd do Rybnika ok. 12 minut — spokojna dzielnica zamknięta dla tranzytu.",
+      "Dojazd do Rybnika ok. 12 minut - spokojna dzielnica zamknięta dla tranzytu.",
     ],
     gallery: interiors(
       "photo-1600607687939-ce8a6c25118c",

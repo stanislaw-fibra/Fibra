@@ -4,9 +4,9 @@ import { Process } from "@/components/home/Process";
 import { Reveal } from "@/components/ui/Reveal";
 
 export const metadata = {
-  title: "Jak działamy — Fibra Nieruchomości",
+  title: "Jak działamy - Fibra Nieruchomości",
   description:
-    "Wideo zamiast zdjęć, wirtualny spacer 3D w standardzie i jeden opiekun od pierwszego kontaktu do aktu — Fibra, powiat rybnicki i wodzisławski.",
+    "Wideo zamiast zdjęć, wirtualny spacer 3D w standardzie i jeden opiekun od pierwszego kontaktu do aktu - Fibra, powiat rybnicki i wodzisławski.",
 };
 
 export default function JakDzialamyPage() {
@@ -26,7 +26,7 @@ export default function JakDzialamyPage() {
               </h1>
               <p className="mt-8 max-w-2xl text-[17px] text-ink-700 leading-relaxed">
                 Działamy lokalnie w powiecie rybnickim i wodzisławskim. Każdą ofertę pokazujemy wideo i w wirtualnym
-                spacerze 3D — żebyś wiedział, czego się spodziewać, zanim umówisz się na oglądanie.
+                spacerze 3D - żebyś wiedział, czego się spodziewać, zanim umówisz się na oglądanie.
               </p>
             </Reveal>
           </div>

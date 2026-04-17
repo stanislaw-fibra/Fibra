@@ -68,9 +68,15 @@ export function Footer() {
         <div className="mt-20 pt-8 hairline-dark-t flex flex-col md:flex-row justify-between gap-4 text-[12px] text-ink-500">
           <p>&copy; {new Date().getFullYear()} Fibra Nieruchomości. Wszelkie prawa zastrzeżone.</p>
           <div className="flex gap-6">
-            <Link href="#" className="hover:text-white transition-colors">Polityka prywatności</Link>
-            <Link href="#" className="hover:text-white transition-colors">Regulamin</Link>
-            <Link href="#" className="hover:text-white transition-colors">Cookies</Link>
+            <Link href="/polityka-prywatnosci" className="hover:text-white transition-colors">
+              Polityka prywatności
+            </Link>
+            <Link href="/regulamin" className="hover:text-white transition-colors">
+              Regulamin
+            </Link>
+            <Link href="/cookies" className="hover:text-white transition-colors">
+              Cookies
+            </Link>
           </div>
         </div>
       </div>

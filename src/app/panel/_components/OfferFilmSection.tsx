@@ -213,7 +213,7 @@ function FilmSlot({ offerId, slot, heading, caption, videoId, previewSrc }: Film
             </div>
           ) : (
             <p className="text-[12px] text-ink-500 leading-relaxed">
-              Film jest zapisany. Podgląd w panelu nie jest dostępny — możesz sprawdzić odtwarzanie na publicznej stronie oferty.
+              Film jest zapisany. Podgląd w panelu nie jest dostępny - możesz sprawdzić odtwarzanie na publicznej stronie oferty.
             </p>
           )}
           <button
@@ -353,12 +353,12 @@ export function OfferFilmSection({
         ) : (
           <div className="space-y-4">
             <p className="text-[12px] text-ink-500 leading-relaxed">
-              Tylko dla administratora technicznego — gdy nie korzystasz z przesyłania pliku powyżej.
+              Tylko dla administratora technicznego - gdy nie korzystasz z przesyłania pliku powyżej.
             </p>
             <form key={`${shortVideoId ?? ""}-${longVideoId ?? ""}`} action={upsertOfferMediaAction} className="space-y-4 max-w-xl">
               <input type="hidden" name="offer_id" value={offerId} />
               <label className="block">
-                <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500">ID — krótki film</span>
+                <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500">ID - krótki film</span>
                 <input
                   name="cloudflare_video_short_id"
                   type="text"
@@ -368,7 +368,7 @@ export function OfferFilmSection({
                 />
               </label>
               <label className="block">
-                <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500">ID — długi film</span>
+                <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500">ID - długi film</span>
                 <input
                   name="cloudflare_video_long_id"
                   type="text"
@@ -378,7 +378,7 @@ export function OfferFilmSection({
                 />
               </label>
               <p className="text-[12px] text-ink-500">
-                Oba pola można wyczyścić i zapisać — usuniesz powiązanie z filmami dla tej oferty.
+                Oba pola można wyczyścić i zapisać - usuniesz powiązanie z filmami dla tej oferty.
               </p>
               <div className="flex flex-wrap gap-3">
                 <button

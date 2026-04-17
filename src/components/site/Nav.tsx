@@ -49,7 +49,7 @@ export function Nav() {
         ].join(" ")}
       >
         <div className="container-xl flex items-center justify-between h-[72px]">
-          <Logo variant={solid ? "ink" : "paper"} />
+          <Logo variant={solid ? "ink" : "paper"} onNavigate={() => setOpen(false)} />
 
           <nav className="hidden lg:flex items-center gap-10">
             {LINKS.map((l) => (

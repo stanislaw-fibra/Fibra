@@ -1,0 +1,467 @@
+import Image from "next/image";
+import Link from "next/link";
+import { Reveal } from "@/components/ui/Reveal";
+
+const MATTERPORT_IMAGE =
+  "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1400&q=82";
+
+/** Wnętrze / detal - hero po prawej (bez stockowych ludzi w garniturach). */
+const HERO_SIDE_IMAGE =
+  "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1100&q=82";
+
+const STEPS: { n: string; title: string; body: string }[] = [
+  {
+    n: "01",
+    title: "Wycena i strategia",
+    body: "Oglądamy nieruchomość, analizujemy rynek i ustalamy strategię cenową. Nie „widełki 400–500 tysięcy\" - konkretna cena z uzasadnieniem.",
+  },
+  {
+    n: "02",
+    title: "Film i spacer 3D",
+    body: "Nagrywamy profesjonalny film i robimy wirtualny spacer Matterport. Kupujący zobaczą każdy pokój, każdy kąt, każdy widok z okna - zanim umówią się na wizytę. Do Twoich drzwi trafiają tylko poważni ludzie.",
+  },
+  {
+    n: "03",
+    title: "Oferta, nie ogłoszenie",
+    body: "Tworzymy materiały, które wyglądają jak katalog, nie jak tablica ogłoszeń. Profesjonalne zdjęcia, przemyślany opis, rzuty 2D, karta oferty PDF. Wszystko spójne, wszystko dopracowane.",
+  },
+  {
+    n: "04",
+    title: "Promocja, nie publikacja",
+    body: "Oferta trafia na portale, do naszych baz, kampanii reklamowych i sieci kontaktów. Nie czekamy - aktywnie szukamy kupującego.",
+  },
+  {
+    n: "05",
+    title: "Finalizacja",
+    body: "Prowadzimy formalną stronę transakcji. Kredyt, umowy, notariusz - jeśli chcesz, robimy to za Ciebie. Ty podpisujesz, my ogarniamy resztę.",
+  },
+];
+
+const CLIENT_QUOTES: { quote: string; name: string; context: string }[] = [
+  {
+    quote:
+      "Pomogli w sprzedaży mieszkania. Temat był niełatwy ze względu na sytuację rodzinną, ale transakcja przebiegła bezproblemowo. Zawsze byli na wyciągnięciu ręki i podchodzili do tematu z empatią.",
+    name: "Asia M.",
+    context: "Sprzedaż mieszkania",
+  },
+  {
+    quote:
+      "Już po pierwszej rozmowie telefonicznej narodziło się we mnie zaufanie, a po spotkaniu i omówieniu mojej zawiłej sytuacji nabrałem przekonania - ta pani to załatwi.",
+    name: "Viktor B.",
+    context: "Sprzedaż domu",
+  },
+];
+
+const COMPARE: { left: string; right: string }[] = [
+  { left: "Zdjęcia telefonem", right: "Profesjonalna sesja + film" },
+  { left: "Opis z szablonu", right: "Przemyślany tekst pod kupującego" },
+  { left: "Ogłoszenie na portalu", right: "Strategia promocji na wielu kanałach" },
+  { left: "Czekanie na telefon", right: "Aktywne dotarcie do kupujących" },
+  { left: "„Zadzwoń po szczegóły\"", right: "Spacer 3D, rzuty, karta PDF - wszystko online" },
+  { left: "Cena „widełki\"", right: "Konkretna wycena z analizą rynku" },
+];
+
+function IconX({ className }: { className?: string }) {
+  return (
+    <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-500/12 text-red-600 ${className ?? ""}`} aria-hidden>
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    </span>
+  );
+}
+
+function IconCheck({ className }: { className?: string }) {
+  return (
+    <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-500/15 text-accent-500 ${className ?? ""}`} aria-hidden>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+        <path d="M1.5 6l4.5 4L14.5 1" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  );
+}
+
+export function SprzedajZFibraLanding({
+  filmEmbedSrc,
+  filmPosterSrc,
+}: {
+  filmEmbedSrc: string | null;
+  filmPosterSrc: string | null;
+}) {
+  const filmSrc =
+    filmEmbedSrc &&
+    `${filmEmbedSrc}${filmEmbedSrc.includes("?") ? "&" : "?"}muted=true&autoplay=true&loop=true&controls=true&preload=metadata`;
+
+  return (
+    <>
+      {/* 1 - Hero */}
+      <section className="relative min-h-[100dvh] flex flex-col justify-center pt-[calc(72px+1.75rem)] md:pt-[calc(72px+2.5rem)] lg:pt-[calc(72px+3rem)] pb-16 md:pb-24 bg-ink-950 text-ink-100 overflow-hidden">
+        <div className="absolute inset-0 grad-radial-brand opacity-70" aria-hidden />
+        <div className="absolute inset-0 grain grain-on-dark" aria-hidden />
+        <div className="container-xl relative w-full">
+          <div className="grid lg:grid-cols-12 gap-12 lg:gap-10 xl:gap-14 items-center">
+            <div className="lg:col-span-6 xl:col-span-5">
+              <h1 className="font-display text-white tracking-tight leading-[0.98]" style={{ fontSize: "clamp(2.35rem, 6.2vw, 4.75rem)" }}>
+                <Reveal as="span" className="block" delay={0}>
+                  Twoja nieruchomość
+                </Reveal>
+                <Reveal as="span" className="block" delay={90}>
+                  zasługuje na więcej
+                </Reveal>
+                <Reveal as="span" className="block" delay={180}>
+                  niż zdjęcie i ogłoszenie.
+                </Reveal>
+              </h1>
+              <Reveal delay={260} className="mt-8 md:mt-10 max-w-xl">
+                <p className="text-lg md:text-xl text-ink-400 leading-relaxed">
+                  Fibra to nie biuro ogłoszeń. To zespół, który pokaże Twoją nieruchomość tak, że kupujący poczują ją,
+                  zanim przekroczą próg.
+                </p>
+              </Reveal>
+              <Reveal delay={340} className="mt-10 md:mt-12 flex flex-col sm:flex-row flex-wrap gap-4">
+                <Link
+                  href="/kontakt"
+                  className="inline-flex w-full sm:w-auto min-h-[52px] items-center justify-center gap-2 rounded-full bg-accent-500 px-8 py-3.5 text-[15px] font-medium text-white hover:bg-accent-400 transition-colors"
+                >
+                  Porozmawiajmy →
+                </Link>
+                <a
+                  href="#jak-dzialamy"
+                  className="inline-flex w-full sm:w-auto min-h-[52px] items-center justify-center gap-2 rounded-full border border-white/35 px-8 py-3.5 text-[15px] font-medium text-white/95 hover:bg-white/10 transition-colors"
+                >
+                  Zobacz, jak działamy →
+                </a>
+              </Reveal>
+            </div>
+            <Reveal delay={120} className="lg:col-span-6 xl:col-span-7">
+              <div className="relative mx-auto w-full max-w-[440px] lg:max-w-none lg:ml-auto aspect-[4/5] max-h-[min(72vh,620px)] rounded-[var(--radius-lg)] overflow-hidden border border-white/[0.12] shadow-[0_40px_100px_-28px_rgba(0,0,0,0.65)] ring-1 ring-white/[0.06]">
+                <Image
+                  src={HERO_SIDE_IMAGE}
+                  alt="Przestrzeń mieszkalna - jakość prezentacji nieruchomości"
+                  fill
+                  className="object-cover"
+                  sizes="(min-width: 1280px) 40vw, (min-width: 1024px) 50vw, 100vw"
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink-950/50 via-transparent to-ink-950/20 pointer-events-none" aria-hidden />
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* 2 - Problem */}
+      <section className="relative py-24 md:py-32 bg-paper-warm" aria-labelledby="sprzedaj-problem-heading">
+        <div className="container-xl">
+          <h2 id="sprzedaj-problem-heading" className="eyebrow mb-14 md:mb-20 max-w-3xl">
+            DLACZEGO ZWYKŁE OGŁOSZENIE NIE WYSTARCZA
+          </h2>
+          <div className="grid md:grid-cols-3 gap-12 md:gap-0 md:divide-x md:divide-ink-200/80">
+            <Reveal className="md:pr-10 lg:pr-14" delay={0}>
+              <p className="font-display text-ink-950 text-2xl md:text-[1.65rem] leading-snug tracking-tight mb-4">Zdjęcia telefonem, opis z szablonu</p>
+              <p className="text-ink-600 text-[17px] leading-relaxed max-w-md">
+                Większość ogłoszeń wygląda tak samo. Kupujący przewija setki identycznych ofert i nie zatrzymuje się na żadnej. Twoja
+                nieruchomość ginie w tłumie - nawet jeśli jest wyjątkowa.
+              </p>
+            </Reveal>
+            <Reveal className="md:px-10 lg:px-14" delay={100}>
+              <p className="font-display text-ink-950 text-2xl md:text-[1.65rem] leading-snug tracking-tight mb-4">Strategia „czekamy na klienta”</p>
+              <p className="text-ink-600 text-[17px] leading-relaxed max-w-md">
+                Tradycyjne biuro wrzuca ogłoszenie i czeka. Nikt nie zastanawia się, kto jest idealnym kupującym, jak do niego dotrzeć i co
+                go przekona. To loteria, nie sprzedaż.
+              </p>
+            </Reveal>
+            <Reveal className="md:pl-10 lg:pl-14" delay={200}>
+              <p className="font-display text-ink-950 text-2xl md:text-[1.65rem] leading-snug tracking-tight mb-4">Miesiące na rynku, obniżki ceny</p>
+              <p className="text-ink-600 text-[17px] leading-relaxed max-w-md">
+                Im dłużej nieruchomość stoi na portalu, tym gorzej wygląda w oczach kupujących. Każda obniżka to sygnał: „coś jest nie
+                tak”. A wystarczyło dobrze zacząć.
+              </p>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* 3 - Jak działa Fibra */}
+      <section id="jak-dzialamy" className="relative py-24 md:py-32 bg-ink-950 text-ink-100 overflow-hidden scroll-mt-[88px]">
+        <div className="absolute inset-0 grad-radial-brand opacity-50" aria-hidden />
+        <div className="absolute inset-0 grain grain-on-dark" aria-hidden />
+        <div className="container-xl relative">
+          <div className="grid lg:grid-cols-12 gap-14 lg:gap-20">
+            <div className="lg:col-span-5 lg:sticky lg:top-28 lg:self-start">
+              <Reveal>
+                <h2 className="font-display text-white tracking-tight leading-[0.98]" style={{ fontSize: "clamp(2rem, 4vw, 3.25rem)" }}>
+                  Nie wrzucamy ogłoszenia.
+                  <br />
+                  Budujemy ofertę.
+                </h2>
+              </Reveal>
+              <Reveal delay={80} className="mt-6">
+                <p className="text-ink-400 text-lg md:text-xl leading-relaxed max-w-md">
+                  Każda nieruchomość przechodzi u nas ten sam proces - bo to on sprawia, że kupujący dzwonią w pierwszym tygodniu, a nie po
+                  trzech miesiącach.
+                </p>
+              </Reveal>
+            </div>
+            <div className="lg:col-span-7">
+              <ol className="space-y-0">
+                {STEPS.map((step, i) => {
+                  const isLast = i === STEPS.length - 1;
+                  return (
+                    <Reveal key={step.n} as="li" delay={i * 60} className="flex gap-5 md:gap-7 list-none pb-12 md:pb-14 last:pb-0">
+                      <div className="relative flex w-11 shrink-0 flex-col items-center pt-0.5">
+                        <span className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/20 bg-ink-950 text-[11px] font-semibold tracking-wide text-accent-400 shadow-[0_0_0_4px_rgba(7,9,12,0.85)]">
+                          {step.n}
+                        </span>
+                        {!isLast ? (
+                          <div
+                            className="absolute left-1/2 top-8 bottom-0 w-px -translate-x-1/2 bg-white/12"
+                            aria-hidden
+                          />
+                        ) : null}
+                      </div>
+                      <div className="min-w-0 flex-1 pt-0.5">
+                        <p className="font-display text-xl md:text-2xl text-white tracking-tight mb-3">{step.title}</p>
+                        <p className="text-ink-400 text-[16px] md:text-[17px] leading-relaxed max-w-2xl">{step.body}</p>
+                      </div>
+                    </Reveal>
+                  );
+                })}
+              </ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4 - Wirtualny spacer */}
+      <section className="relative py-24 md:py-32 bg-paper-warm border-y border-ink-200/50">
+        <div className="container-xl">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            <div>
+              <Reveal>
+                <h2 className="font-display text-ink-950 tracking-tight leading-[0.98] max-w-[18ch]" style={{ fontSize: "clamp(2rem, 4vw, 3.15rem)" }}>
+                  Wirtualny spacer 3D
+                  <br />
+                  to u nas standard.
+                  <br />
+                  Nie opcja premium.
+                </h2>
+              </Reveal>
+              <Reveal delay={90} className="mt-8 space-y-5 text-ink-600 text-[17px] md:text-lg leading-relaxed max-w-xl">
+                <p>
+                  Kupujący wchodzą do środka nieruchomości przed przyjazdem. Widzą rzeczywisty układ, mierzą ściany do centymetra,
+                  sprawdzają czy sofa zmieści się w salonie.
+                </p>
+                <p>
+                  Efekt: do Twoich drzwi trafiają ludzie, którzy już wiedzą, że chcą tę nieruchomość. Nie turyści, nie ciekawscy -
+                  konkretni kupujący.
+                </p>
+              </Reveal>
+              <Reveal delay={160} className="mt-10 max-w-xl">
+                <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-500 mb-4">Po spacerze 3D online</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="rounded-[var(--radius-md)] border border-ink-200/90 bg-white/60 px-5 py-4 shadow-[var(--shadow-soft)]">
+                    <p className="font-display text-ink-950 leading-none" style={{ fontSize: "clamp(2.25rem, 5vw, 3rem)" }}>
+                      73%
+                    </p>
+                    <p className="mt-2 text-[14px] md:text-[15px] text-ink-600 leading-snug">średnio deklaruje wizytę w nieruchomości</p>
+                  </div>
+                  <div className="rounded-[var(--radius-md)] border border-ink-200/90 bg-paper-warm/95 px-5 py-4">
+                    <p className="font-display text-ink-700 leading-none" style={{ fontSize: "clamp(2.25rem, 5vw, 3rem)" }}>
+                      12%
+                    </p>
+                    <p className="mt-2 text-[14px] md:text-[15px] text-ink-600 leading-snug">gdy nie ma wirtualnego spaceru</p>
+                  </div>
+                </div>
+                <p className="mt-4 text-[13px] text-ink-500 leading-relaxed">
+                  Statystyki orientacyjne - pokazują różnicę w zaangażowaniu kupujących.
+                </p>
+              </Reveal>
+            </div>
+            <Reveal delay={80}>
+              <div className="relative aspect-[4/3] lg:aspect-[5/4] w-full overflow-hidden rounded-[var(--radius-lg)] border border-ink-200/80 shadow-[var(--shadow-cinematic)] ring-1 ring-ink-200/40">
+                <Image src={MATTERPORT_IMAGE} alt="Wnętrze nieruchomości - wizualizacja spaceru 3D" fill className="object-cover" sizes="(min-width: 1024px) 42vw, 100vw" priority={false} />
+                <div className="absolute inset-0 bg-gradient-to-tr from-ink-950/25 via-transparent to-transparent pointer-events-none" aria-hidden />
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* 5 - Film */}
+      <section className="relative py-24 md:py-32 bg-ink-950 text-ink-100 overflow-x-clip">
+        <div className="absolute inset-0 grad-radial-brand opacity-45" aria-hidden />
+        <div className="absolute inset-0 grain grain-on-dark" aria-hidden />
+        <div className="container-xl relative max-w-full">
+          <div className="flex w-full max-w-full flex-col gap-10 md:gap-12 lg:flex-row lg:items-center lg:justify-between lg:gap-8 xl:gap-10">
+            <div className="min-w-0 w-full max-w-xl shrink lg:pr-2">
+              <Reveal>
+                <h2 className="font-display text-white tracking-tight leading-[0.98] break-words" style={{ fontSize: "clamp(2rem, 4.5vw, 3.5rem)" }}>
+                  30 sekund filmu
+                  <br />
+                  mówi więcej niż
+                  <br />
+                  30 zdjęć.
+                </h2>
+              </Reveal>
+              <Reveal delay={90} className="mt-8 space-y-5 text-ink-400 text-[17px] md:text-lg leading-relaxed">
+                <p>
+                  Każda nieruchomość w Fibrze ma swój krótki film. Nie slideshow ze zdjęć z muzyką - prawdziwe wideo, które oddaje klimat,
+                  przestrzeń i światło.
+                </p>
+                <p>Kupujący przewijają oferty jak stories. Film zatrzymuje ich palec. Zdjęcie - nie.</p>
+              </Reveal>
+            </div>
+            <div className="flex w-full shrink-0 justify-center lg:w-[clamp(300px,32vw,420px)] lg:justify-end">
+              <Reveal delay={60} className="block w-full max-w-[300px] sm:max-w-[320px] lg:max-w-none lg:w-full">
+                <div className="relative mx-auto w-full rounded-[2.5rem] border-[10px] border-ink-700 bg-ink-900 p-2 shadow-[0_40px_100px_-24px_rgba(0,0,0,0.75)] ring-1 ring-white/10 lg:mx-0">
+                  <div className="relative aspect-[9/16] w-full min-h-[240px] overflow-hidden rounded-[1.65rem] bg-ink-800">
+                    {filmSrc ? (
+                      <iframe
+                        title="Przykładowy film z oferty Fibry"
+                        src={filmSrc}
+                        className="absolute inset-0 h-full w-full"
+                        allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                        allowFullScreen
+                      />
+                    ) : filmPosterSrc ? (
+                      <>
+                        <Image
+                          src={filmPosterSrc}
+                          alt="Klatka z przykładowego filmu oferty Fibry"
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 1023px) 90vw, 400px"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-ink-950/70 via-ink-950/10 to-transparent pointer-events-none" aria-hidden />
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden>
+                          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/92 text-ink-950 shadow-lg ring-4 ring-black/15">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="ml-1">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </span>
+                        </div>
+                        <p className="absolute bottom-3 left-2 right-2 text-center text-[11px] leading-snug text-white/85 drop-shadow-sm">
+                          Klatka z demo oferty. Pełny odtwarzacz po ustawieniu{" "}
+                          <span className="whitespace-nowrap">NEXT_PUBLIC_CLOUDFLARE_STREAM_CUSTOMER_CODE</span>.
+                        </p>
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-ink-800 p-6 text-center">
+                        <span className="text-white/90 text-sm font-medium">Brak podglądu filmu</span>
+                        <span className="text-ink-400 text-xs leading-relaxed">Skonfiguruj zmienne Stream lub identyfikator demo.</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6 - Liczby: <SprzedajZFibraStats /> - wyłączone do czasu potwierdzenia liczb z klientem */}
+
+      {/* 7 - Porównanie */}
+      <section className="relative py-24 md:py-32 bg-paper-warm" aria-labelledby="sprzedaj-compare-heading">
+        <div className="container-xl max-w-4xl">
+          <Reveal>
+            <h2 id="sprzedaj-compare-heading" className="font-display text-ink-950 tracking-tight" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
+              Widzisz różnicę?
+            </h2>
+          </Reveal>
+          <ul className="mt-14 md:mt-16 divide-y divide-ink-200/90">
+            {COMPARE.map((row, i) => (
+              <Reveal key={row.left} delay={i * 45} as="li" className="list-none py-6 md:py-7">
+                <div className="grid sm:grid-cols-2 gap-6 sm:gap-8">
+                  <div className="flex gap-4 items-start">
+                    <IconX />
+                    <div>
+                      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500 mb-1.5">Zwykłe biuro</p>
+                      <p className="text-ink-800 text-[16px] leading-snug">{row.left}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4 items-start rounded-lg bg-emerald-50/30 px-3.5 py-3.5 sm:px-5 sm:py-3.5">
+                    <IconCheck className="!bg-emerald-500/12 !text-emerald-700" />
+                    <div>
+                      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-emerald-800/85 mb-1.5">Fibra</p>
+                      <p className="text-ink-900 text-[16px] font-medium leading-snug">{row.right}</p>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </ul>
+          <Reveal delay={120} className="mt-12 md:mt-14 max-w-2xl">
+            <p className="text-ink-600 text-[16px] md:text-[17px] leading-relaxed">
+              To nie jest kwestia budżetu. To kwestia podejścia. Nasze wynagrodzenie ustalamy indywidualnie - porozmawiaj z nami.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* 8 - Klienci */}
+      <section className="relative py-28 md:py-36 bg-ink-950 text-ink-100 overflow-hidden" aria-labelledby="sprzedaj-clients-heading">
+        <div className="absolute inset-0 grad-radial-brand opacity-40" aria-hidden />
+        <div className="absolute inset-0 grain grain-on-dark" aria-hidden />
+        <div className="container-xl relative px-4">
+          <Reveal>
+            <h2 id="sprzedaj-clients-heading" className="font-display text-white text-center tracking-tight mb-14 md:mb-16" style={{ fontSize: "clamp(1.75rem, 3.5vw, 2.35rem)" }}>
+              Głos klientów
+            </h2>
+          </Reveal>
+          <div className="mx-auto grid max-w-5xl gap-10 md:gap-12 lg:grid-cols-2 lg:gap-10 xl:gap-12">
+            {CLIENT_QUOTES.map((item, i) => (
+              <Reveal key={item.name} delay={i * 80} className="h-full">
+                <figure className="flex h-full flex-col rounded-[var(--radius-lg)] border border-white/[0.1] bg-white/[0.04] p-8 md:p-9 shadow-[0_24px_60px_-32px_rgba(0,0,0,0.55)] backdrop-blur-sm">
+                  <blockquote className="font-display text-white/95 italic leading-[1.35] tracking-tight text-[1.2rem] md:text-[1.35rem] grow">
+                    „{item.quote}”
+                  </blockquote>
+                  <figcaption className="mt-8 pt-6 border-t border-white/[0.08]">
+                    <p className="text-[15px] md:text-base font-medium text-white">{item.name}</p>
+                    <p className="mt-1 text-[13px] md:text-sm text-ink-400">{item.context}</p>
+                  </figcaption>
+                </figure>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 9 - CTA końcowe */}
+      <section className="relative min-h-[85dvh] flex flex-col justify-center py-24 md:py-32 bg-ink-950 text-ink-100 overflow-hidden border-t border-white/[0.06]">
+        <div className="absolute inset-0 grad-radial-brand opacity-55" aria-hidden />
+        <div className="absolute inset-0 grain grain-on-dark" aria-hidden />
+        <div className="container-xl relative text-center max-w-3xl mx-auto">
+          <Reveal>
+            <h2 className="font-display text-white tracking-tight leading-[0.98]" style={{ fontSize: "clamp(2.25rem, 6vw, 4.25rem)" }}>
+              Zacznijmy od rozmowy.
+              <br />
+              Bez zobowiązań, bez kosztów.
+            </h2>
+          </Reveal>
+          <Reveal delay={100} className="mt-8">
+            <p className="text-ink-400 text-lg md:text-xl leading-relaxed">
+              Opowiedz nam o swojej nieruchomości. Powiemy Ci, ile jest warta, jak ją pokażemy i ile czasu zajmie sprzedaż. Jeśli uznasz, że
+              to ma sens - działamy.
+            </p>
+          </Reveal>
+          <Reveal delay={180} className="mt-12 md:mt-14 flex flex-col sm:flex-row flex-wrap justify-center gap-4">
+            <Link
+              href="/kontakt"
+              className="inline-flex w-full sm:w-auto min-h-[56px] items-center justify-center gap-2 rounded-full bg-accent-500 px-10 py-4 text-[16px] font-medium text-white hover:bg-accent-400 transition-colors"
+            >
+              Umów rozmowę →
+            </Link>
+            <a
+              href="tel:+48510777200"
+              className="inline-flex w-full sm:w-auto min-h-[56px] items-center justify-center gap-2 rounded-full border border-white/35 px-10 py-4 text-[16px] font-medium text-white/95 hover:bg-white/10 transition-colors"
+            >
+              Zadzwoń: 510 777 200
+            </a>
+          </Reveal>
+        </div>
+      </section>
+    </>
+  );
+}

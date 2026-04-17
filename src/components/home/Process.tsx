@@ -9,12 +9,12 @@ const CARDS = [
   {
     num: "01",
     title: "Wideo zamiast zdjęć",
-    body: "Każda oferta ma krótki pionowy film — tak jak oglądasz treści na co dzień. Widzisz układ, przestrzeń, światło. Nie interpretację fotografa.",
+    body: "Każda oferta ma krótki pionowy film - tak jak oglądasz treści na co dzień. Widzisz układ, przestrzeń, światło. Nie interpretację fotografa.",
   },
   {
     num: "02",
     title: "Wirtualny spacer 3D w standardzie",
-    body: "Przejdź przez każde pomieszczenie jeszcze przed wyjazdem. Zmierz ściany do centymetra. Sprawdź, czy sofa zmieści się w salonie. To nie opcja premium — to nasz standard.",
+    body: "Przejdź przez każde pomieszczenie jeszcze przed wyjazdem. Zmierz ściany do centymetra. Sprawdź, czy sofa zmieści się w salonie. To nie opcja premium - to nasz standard.",
   },
   {
     num: "03",

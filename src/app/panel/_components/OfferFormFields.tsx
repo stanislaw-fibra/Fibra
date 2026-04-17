@@ -83,7 +83,7 @@ function inp(
     required?: boolean;
     rows?: number;
     step?: string;
-    /** Liczby z przecinkiem/kropką — pole tekstowe, parsowanie po stronie serwera */
+    /** Liczby z przecinkiem/kropką - pole tekstowe, parsowanie po stronie serwera */
     humanDecimal?: boolean;
     /** Liczby całkowite (pokoje itd.) */
     humanInt?: boolean;
@@ -240,7 +240,7 @@ export function OfferFormFields({ action, agents, defaults, submitLabel }: Props
       <label className="block max-w-md">
         <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500">Agent</span>
         <select name="agent_id" defaultValue={d.agent_id ?? ""} className={selectLight}>
-          <option value="">— brak —</option>
+          <option value="">- brak -</option>
           {agents.map((a) => (
             <option key={a.id} value={a.id}>
               {a.name}

@@ -18,7 +18,7 @@ interface VideoCardProps {
   showCardFooter?: boolean;
   showPrice?: boolean;
   visualOnly?: boolean;
-  /** Hero strony głównej — typografia i obramowanie jak w sekcji „Aktualne oferty” */
+  /** Hero strony głównej - typografia i obramowanie jak w sekcji „Aktualne oferty” */
   surfaceTheme?: "default" | "hero";
 }
 

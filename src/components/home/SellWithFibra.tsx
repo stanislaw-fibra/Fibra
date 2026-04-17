@@ -8,9 +8,9 @@ const ease = [0.22, 1, 0.36, 1] as const;
 
 const ITEMS: [string, string][] = [
   ["Wycena i strategia", "Oceniamy nieruchomość, ustalamy cenę i plan komunikacji."],
-  ["Wideo i spacer 3D", "Nagrywamy krótki film i robimy wirtualny spacer. Kupujący zobaczą wszystko, zanim do Ciebie zadzwonią — do Twoich drzwi trafiają tylko poważni klienci."],
+  ["Wideo i spacer 3D", "Nagrywamy krótki film i robimy wirtualny spacer. Kupujący zobaczą wszystko, zanim do Ciebie zadzwonią - do Twoich drzwi trafiają tylko poważni klienci."],
   ["Promocja, nie tylko publikacja", "Twoja oferta trafia na portale, do naszych kampanii reklamowych i do bazy zainteresowanych. Nie czekamy."],
-  ["Finalizacja", "Prowadzimy formalną stronę transakcji. Kredyt, umowy, notariusz — jeśli chcesz, robimy to za Ciebie."],
+  ["Finalizacja", "Prowadzimy formalną stronę transakcji. Kredyt, umowy, notariusz - jeśli chcesz, robimy to za Ciebie."],
 ];
 
 export function SellWithFibra() {
@@ -46,7 +46,7 @@ export function SellWithFibra() {
                 Wirtualny spacer 3D
               </p>
               <p className="text-[15px] text-ink-800 leading-relaxed">
-                Standard u nas — nie dodatek za dopłatą. Kupujący mierzą ściany, widzą rzeczywisty układ i wracają do
+                Standard u nas - nie dodatek za dopłatą. Kupujący mierzą ściany, widzą rzeczywisty układ i wracają do
                 Ciebie już po świadomym „tak”.
               </p>
             </div>

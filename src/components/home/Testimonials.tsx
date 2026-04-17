@@ -8,13 +8,13 @@ const ease = [0.22, 1, 0.36, 1] as const;
 const TESTIMONIALS = [
   {
     quote:
-      "Szukaliśmy penthouse'u prawie rok. Fibra pokazała nam trzy konkretne oferty — drugi, który zobaczyliśmy, okazał się domem, o którym marzyliśmy.",
+      "Szukaliśmy penthouse'u prawie rok. Fibra pokazała nam trzy konkretne oferty - drugi, który zobaczyliśmy, okazał się domem, o którym marzyliśmy.",
     author: "Anna i Marek",
     role: "Warszawa · Powiśle",
   },
   {
     quote:
-      "Forma filmu zrobiła różnicę. Zobaczyłam moje przyszłe mieszkanie pierwszy raz z innego kontynentu — i wiedziałam, że to to.",
+      "Forma filmu zrobiła różnicę. Zobaczyłam moje przyszłe mieszkanie pierwszy raz z innego kontynentu - i wiedziałam, że to to.",
     author: "Julia K.",
     role: "Sopot · Dolny",
   },
