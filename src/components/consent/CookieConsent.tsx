@@ -1,12 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { notifyFibraConsentUpdated, readFibraConsent, writeFibraConsent } from "@/lib/fibra-consent";
 
 type Choice = "all" | "essential";
 
+/** Na tych trasach nie pokazujemy banera - użytkownik czyta dokument bez nakładki i bez „szarego” tła. */
+const LEGAL_ROUTES = new Set(["/cookies", "/polityka-prywatnosci", "/regulamin"]);
+
 export function CookieConsent() {
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [choice, setChoice] = useState<Choice>("all");
@@ -17,6 +22,7 @@ export function CookieConsent() {
   }, []);
 
   if (!mounted || !open) return null;
+  if (LEGAL_ROUTES.has(pathname)) return null;
 
   function confirm() {
     writeFibraConsent(choice);
@@ -26,16 +32,12 @@ export function CookieConsent() {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="cookie-consent-title"
-      aria-describedby="cookie-consent-desc"
+      className="fixed inset-x-0 bottom-0 z-[60] flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-4 sm:pb-4 sm:pt-4"
+      role="region"
+      aria-label="Ustawienia plików cookies"
       aria-live="polite"
     >
-      <div className="absolute inset-0 bg-ink-900/45 backdrop-blur-[3px]" aria-hidden />
-
-      <div className="relative w-full max-w-[420px] rounded-2xl border border-ink-200/90 bg-white p-6 shadow-[0_24px_64px_-16px_rgba(11,15,20,0.25),0_0_0_1px_rgba(11,15,20,0.04)] sm:p-8">
+      <div className="w-full max-w-[420px] rounded-2xl border border-ink-200/90 bg-white p-6 shadow-[0_-8px_40px_-8px_rgba(11,15,20,0.12),0_24px_48px_-20px_rgba(11,15,20,0.18)] sm:p-8">
         <p className="text-center font-display text-xl text-ink-950 sm:text-2xl" id="cookie-consent-title">
           Pliki cookies
         </p>
