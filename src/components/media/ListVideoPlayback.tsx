@@ -62,7 +62,8 @@ export function ListVideoPlaybackProvider({
   children: ReactNode;
 }) {
   const isDesktop = useIsDesktopMd();
-  const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
+  const [hoverSlug, setHoverSlug] = useState<string | null>(null);
+  const [debouncedHoverSlug, setDebouncedHoverSlug] = useState<string | null>(null);
   const [mobilePick, setMobilePick] = useState<string | null>(() => orderedSlugs[0] ?? null);
   const ratiosRef = useRef<Map<string, number>>(new Map());
   const rafRef = useRef<number | null>(null);
@@ -74,8 +75,22 @@ export function ListVideoPlaybackProvider({
   }, [slugOrderKey, orderedSlugs]);
 
   useEffect(() => {
-    setHoveredSlug(null);
+    setHoverSlug(null);
+    setDebouncedHoverSlug(null);
   }, [isDesktop]);
+
+  useEffect(() => {
+    if (!isDesktop) {
+      setDebouncedHoverSlug(null);
+      return;
+    }
+    if (!hoverSlug) {
+      setDebouncedHoverSlug(null);
+      return;
+    }
+    const t = window.setTimeout(() => setDebouncedHoverSlug(hoverSlug), 100);
+    return () => window.clearTimeout(t);
+  }, [hoverSlug, isDesktop]);
 
   const schedulePick = useCallback(() => {
     if (rafRef.current != null) return;
@@ -105,20 +120,20 @@ export function ListVideoPlaybackProvider({
   );
 
   const onCardEnter = useCallback((slug: string) => {
-    setHoveredSlug(slug);
+    setHoverSlug(slug);
   }, []);
 
   const onCardLeave = useCallback(() => {
-    setHoveredSlug(null);
+    setHoverSlug(null);
   }, []);
 
   const activeSlug = useMemo(() => {
     const first = orderedSlugs[0] ?? null;
     if (isDesktop) {
-      return hoveredSlug ?? first;
+      return debouncedHoverSlug ?? first;
     }
     return mobilePick ?? first;
-  }, [hoveredSlug, isDesktop, mobilePick, orderedSlugs]);
+  }, [debouncedHoverSlug, isDesktop, mobilePick, orderedSlugs]);
 
   const value = useMemo(
     (): ListVideoPlaybackContextValue => ({

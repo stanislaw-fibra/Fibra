@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Hls from "hls.js";
 
 type Props = {
@@ -8,32 +8,64 @@ type Props = {
   streamId?: string;
   videoSrc?: string;
   posterUrl: string;
-  /** Gdy false — tylko statyczny poster (brak manifestu / play). */
+  /** W obrębie „ringu” max 3 slotów — wtedy `<video>` zostaje w DOM (HLS nie niszczony przy pauzie). */
+  mounted: boolean;
+  /** Odtwarzaj / pauzuj (bez odmontowywania przy `mounted`). */
   playing: boolean;
   muted: boolean;
-  /** Pierwszy plakat na liście: szybsze ładowanie miniatury */
   posterPriority?: boolean;
 };
 
+function destroyHls(hlsRef: { current: Hls | null }, video: HTMLVideoElement | null) {
+  if (hlsRef.current) {
+    try {
+      hlsRef.current.destroy();
+    } catch {
+      // ignore
+    }
+    hlsRef.current = null;
+  }
+  if (video) {
+    try {
+      video.pause();
+    } catch {
+      // ignore
+    }
+    video.removeAttribute("src");
+    try {
+      video.load();
+    } catch {
+      // ignore
+    }
+  }
+}
+
 /**
- * Klip na karcie listy: wideo tylko gdy `playing`; w przeciwnym razie sam poster (oszczędność minut streamu).
+ * Klip na karcie listy: poster zawsze pod wideo; wideo z fade dopiero po `onPlaying`.
+ * Przy `mounted` i `!playing` — pauza zamiast niszczenia HLS (sąsiednie karty preloadują segmenty).
  */
 export function GridClipSurface({
   title,
   streamId,
   videoSrc,
   posterUrl,
+  mounted,
   playing,
   muted,
   posterPriority = false,
 }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const [revealVideo, setRevealVideo] = useState(false);
 
   const hlsSrc = useMemo(() => {
     if (!streamId) return null;
     return `https://videodelivery.net/${streamId}/manifest/video.m3u8`;
   }, [streamId]);
+
+  useEffect(() => {
+    if (!playing) setRevealVideo(false);
+  }, [playing]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -42,31 +74,19 @@ export function GridClipSurface({
   }, [muted]);
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !playing) {
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-        hlsRef.current = null;
-      }
-      if (video) {
-        try {
-          video.pause();
-        } catch {
-          // ignore
-        }
-        video.removeAttribute("src");
-        video.load();
-      }
+    if (!mounted) {
+      destroyHls(hlsRef, videoRef.current);
       return;
     }
 
+    const video = videoRef.current;
+    if (!video) return;
+
     video.loop = true;
     video.playsInline = true;
+    video.preload = "auto";
 
-    if (hlsRef.current) {
-      hlsRef.current.destroy();
-      hlsRef.current = null;
-    }
+    destroyHls(hlsRef, video);
 
     const canNativeHls = !!video.canPlayType("application/vnd.apple.mpegurl");
 
@@ -86,54 +106,56 @@ export function GridClipSurface({
       video.src = videoSrc;
     }
 
-    video.preload = "auto";
-    void video.play().catch(() => void 0);
-
     return () => {
-      try {
-        video.pause();
-      } catch {
-        // ignore
-      }
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-        hlsRef.current = null;
-      }
-      video.removeAttribute("src");
-      try {
-        video.load();
-      } catch {
-        // ignore
-      }
+      destroyHls(hlsRef, videoRef.current);
+      setRevealVideo(false);
     };
-  }, [playing, hlsSrc, videoSrc]);
+  }, [mounted, hlsSrc, videoSrc]);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!mounted || !v) return;
+    if (playing) {
+      void v.play().catch(() => void 0);
+    } else {
+      try {
+        v.pause();
+      } catch {
+        // ignore
+      }
+    }
+  }, [playing, mounted]);
 
   return (
-    <>
+    <div className="absolute inset-0 bg-ink-950">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={posterUrl}
         alt=""
-        className={[
-          "absolute inset-0 h-full w-full object-cover transition-opacity duration-200",
-          playing ? "opacity-0" : "opacity-100",
-        ].join(" ")}
+        className="absolute inset-0 z-0 h-full w-full object-cover"
         loading={posterPriority ? "eager" : "lazy"}
         draggable={false}
         aria-hidden
       />
-      {playing ? (
-        <video
-          ref={videoRef}
-          className="absolute inset-0 h-full w-full object-cover"
-          muted={muted}
-          loop
-          playsInline
-          preload="auto"
-          poster={posterUrl}
-          aria-label={title}
-        />
+      {mounted ? (
+        <div
+          className={[
+            "absolute inset-0 z-[1] pointer-events-none transition-opacity duration-200 ease-out",
+            revealVideo ? "opacity-100" : "opacity-0",
+          ].join(" ")}
+        >
+          <video
+            ref={videoRef}
+            className="absolute inset-0 h-full w-full object-cover"
+            muted={muted}
+            loop
+            playsInline
+            preload="auto"
+            aria-label={title}
+            onPlaying={() => setRevealVideo(true)}
+          />
+        </div>
       ) : null}
-    </>
+    </div>
   );
 }

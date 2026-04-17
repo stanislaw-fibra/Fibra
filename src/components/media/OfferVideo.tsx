@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Hls from "hls.js";
 import { VideoSoundIconButton } from "@/components/media/VideoSoundIconButton";
+import { cloudflareStreamThumbnailUrl } from "@/lib/cloudflare-stream";
 
 type Props = {
   title: string;
@@ -38,7 +39,7 @@ export function OfferVideo({
 }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const [started, setStarted] = useState(false);
+  const [revealVideo, setRevealVideo] = useState(false);
   const [internalMuted, setInternalMuted] = useState(defaultMuted);
 
   const controlled = mutedProp !== undefined;
@@ -48,6 +49,14 @@ export function OfferVideo({
     if (!streamId) return null;
     return `https://videodelivery.net/${streamId}/manifest/video.m3u8`;
   }, [streamId]);
+
+  const posterLayerUrl = useMemo(() => {
+    if (streamId) {
+      const u = cloudflareStreamThumbnailUrl(streamId, { time: "1s", height: 720 });
+      if (u) return u;
+    }
+    return poster;
+  }, [streamId, poster]);
 
   const canToggleSound = Boolean(hlsSrc || videoSrc);
 
@@ -65,25 +74,13 @@ export function OfferVideo({
     }
   }, [muted]);
 
-  // Attach HLS only when needed. This gives us full control (pause/only one playing).
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    const shouldInit = true;
-
     video.loop = true;
     video.playsInline = true;
-
-    if (!shouldInit) {
-      try {
-        video.pause();
-      } catch {
-        // ignore
-      }
-      setStarted(false);
-      return;
-    }
+    setRevealVideo(false);
 
     if (hlsRef.current) {
       hlsRef.current.destroy();
@@ -108,8 +105,8 @@ export function OfferVideo({
       video.src = videoSrc;
     }
 
-    video.preload = "auto";
-    video.play().catch(() => void 0);
+    video.preload = priority ? "auto" : "metadata";
+    void video.play().catch(() => void 0);
 
     return () => {
       try {
@@ -121,6 +118,7 @@ export function OfferVideo({
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
+      setRevealVideo(false);
     };
   }, [priority, hlsSrc, videoSrc]);
 
@@ -129,13 +127,13 @@ export function OfferVideo({
     if (playRequest < 1) return;
     const v = videoRef.current;
     if (!v) return;
+    setRevealVideo(false);
     try {
       v.currentTime = 0;
     } catch {
       // ignore
     }
     void v.play().catch(() => void 0);
-    setStarted(true);
   }, [playRequest]);
 
   const handleEnded = () => {
@@ -147,34 +145,37 @@ export function OfferVideo({
       // ignore
     }
     void v.play().catch(() => void 0);
-    setStarted(true);
   };
 
   return (
-    <div className="absolute inset-0 pointer-events-none">
-      <video
-        ref={videoRef}
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        muted={muted}
-        loop
-        playsInline
-        preload={priority ? "auto" : "metadata"}
-        poster={poster}
-        aria-label={title}
-        onPlaying={() => setStarted(true)}
-        onEnded={handleEnded}
-      />
+    <div className="absolute inset-0 pointer-events-none bg-ink-950">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={poster}
-        alt={title}
-        className={[
-          "pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300",
-          started ? "opacity-0" : "opacity-100",
-        ].join(" ")}
+        src={posterLayerUrl}
+        alt=""
+        className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover"
         loading={priority ? "eager" : "lazy"}
         draggable={false}
+        aria-hidden
       />
+      <div
+        className={[
+          "pointer-events-none absolute inset-0 z-[1] transition-opacity duration-200 ease-out",
+          revealVideo ? "opacity-100" : "opacity-0",
+        ].join(" ")}
+      >
+        <video
+          ref={videoRef}
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          muted={muted}
+          loop
+          playsInline
+          preload={priority ? "auto" : "metadata"}
+          aria-label={title}
+          onPlaying={() => setRevealVideo(true)}
+          onEnded={handleEnded}
+        />
+      </div>
       {canToggleSound && !hideSoundButton && (
         <div className="pointer-events-auto absolute top-2.5 right-2.5 z-[40] md:top-3 md:right-3">
           <VideoSoundIconButton

@@ -43,11 +43,24 @@ export function VideoCard({
 
   const clipPosterUrl = useMemo(() => {
     if (offer.streamId) {
-      const u = cloudflareStreamThumbnailUrl(offer.streamId);
+      const u = cloudflareStreamThumbnailUrl(offer.streamId, { time: "1s", height: 720 });
       if (u) return u;
     }
     return offer.poster;
   }, [offer.streamId, offer.poster]);
+
+  const activeSlug = playback?.activeSlug ?? null;
+  const myIdx = playback ? playback.orderedSlugs.indexOf(offer.slug) : -1;
+  const activeIdx =
+    playback && activeSlug != null && activeSlug !== ""
+      ? playback.orderedSlugs.indexOf(activeSlug)
+      : playback
+        ? 0
+        : -1;
+
+  const mountVideo =
+    hasVideo &&
+    (playback ? myIdx >= 0 && activeIdx >= 0 && Math.abs(myIdx - activeIdx) <= 1 : legacyInView);
 
   const listPlaying = Boolean(playback && hasVideo && playback.activeSlug === offer.slug);
   const playing = hasVideo && (playback ? listPlaying : legacyInView);
@@ -207,6 +220,7 @@ export function VideoCard({
                 streamId={offer.streamId}
                 videoSrc={offer.videoSrc}
                 posterUrl={clipPosterUrl}
+                mounted={mountVideo}
                 playing={playing}
                 muted={muted}
                 posterPriority={index === 0}

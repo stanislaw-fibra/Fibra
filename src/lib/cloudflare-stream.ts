@@ -24,10 +24,23 @@ export function cloudflareStreamIframeUrl(videoId: string): string | null {
   return `https://customer-${code}.cloudflarestream.com/${encodeURIComponent(id)}/iframe`;
 }
 
-/** Miniatura (poster) — ten sam host co embed; używana na listach zamiast ciągłego streamu. */
-export function cloudflareStreamThumbnailUrl(videoId: string): string | null {
+export type CloudflareThumbnailOpts = {
+  /** Domyślnie `1s` — klatka z treści, nie czarny start. */
+  time?: string;
+  /** Domyślnie 720. */
+  height?: number;
+};
+
+/** Miniatura (poster) — ten sam host co embed; na listach pod wideo. */
+export function cloudflareStreamThumbnailUrl(
+  videoId: string,
+  opts?: CloudflareThumbnailOpts,
+): string | null {
   const code = getCloudflareStreamCustomerCode();
   const id = sanitizeCloudflareVideoId(videoId);
   if (!code || !id) return null;
-  return `https://customer-${code}.cloudflarestream.com/${encodeURIComponent(id)}/thumbnails/thumbnail.jpg`;
+  const time = opts?.time ?? "1s";
+  const height = opts?.height ?? 720;
+  const base = `https://customer-${code}.cloudflarestream.com/${encodeURIComponent(id)}/thumbnails/thumbnail.jpg`;
+  return `${base}?time=${encodeURIComponent(time)}&height=${height}`;
 }
