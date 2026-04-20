@@ -3,6 +3,7 @@ import Link from "next/link";
 import { toggleOfferActiveAction } from "@/app/panel/actions/offers";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { priceFormat } from "@/lib/offers";
+import { RefreshOffersButton } from "@/app/panel/_components/RefreshOffersButton";
 
 type Search = {
   category?: string;
@@ -135,12 +136,15 @@ export default async function PanelOffersPage({ searchParams }: Props) {
           <h1 className="font-display text-[2rem] md:text-[2.25rem] text-white leading-tight">Oferty</h1>
           <p className="mt-2 text-[14px] text-ink-400">Lista aktualnych ofert Grupy Fibra. {wynikiPhrase(list.length)}.</p>
         </div>
-        <Link
-          href="/panel/oferty/nowa"
-          className="inline-flex justify-center rounded-full bg-brand-500 hover:bg-accent-400 hover:text-ink-950 text-white text-[14px] font-medium px-6 py-3 transition-colors shrink-0"
-        >
-          Dodaj ofertę
-        </Link>
+        <div className="flex flex-wrap items-start gap-3 shrink-0">
+          <RefreshOffersButton />
+          <Link
+            href="/panel/oferty/nowa"
+            className="inline-flex justify-center rounded-full bg-brand-500 hover:bg-accent-400 hover:text-ink-950 text-white text-[14px] font-medium px-6 py-3 transition-colors shrink-0"
+          >
+            Dodaj ofertę
+          </Link>
+        </div>
       </div>
 
       {sp.error && (

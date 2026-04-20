@@ -31,7 +31,7 @@ export function OpeningReels({ offers }: { offers: Offer[] }) {
           <h1 className="font-display text-white leading-[0.98] tracking-tight max-w-[18ch] text-[clamp(2.4rem,6.5vw,4.5rem)]">
             Znajdź swoje miejsce.
             <br />
-            Zobaczysz je, zanim tam wejdziesz.
+            Zobacz je, zanim tam wejdziesz.
           </h1>
         </div>
 
@@ -44,10 +44,10 @@ export function OpeningReels({ offers }: { offers: Offer[] }) {
             {ctaArrow}
           </Link>
           <Link
-            href="/jak-dzialamy"
+            href="/o-fibrze"
             className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 backdrop-blur-md px-6 py-3 text-[13px] font-medium text-white/90 hover:bg-white/10 hover:border-white/35 transition-all duration-300"
           >
-            Jak działamy
+            Poznaj Fibrę
             {ctaArrow}
           </Link>
         </div>

@@ -19,7 +19,9 @@ const nextConfig: NextConfig = {
     qualities: [60, 72, 75, 78],
   },
   async redirects() {
-    return [{ source: "/jak-pracujemy", destination: "/jak-dzialamy", permanent: true }];
+    return [
+      { source: "/o-nas", destination: "/o-fibrze", permanent: true },
+    ];
   },
 };
 

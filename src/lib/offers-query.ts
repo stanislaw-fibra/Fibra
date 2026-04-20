@@ -9,6 +9,7 @@ const UUID_RE =
 
 const OFFER_SELECT = `
   id,
+  slug,
   galactica_offer_id,
   category,
   listing_type,
@@ -54,6 +55,9 @@ const OFFER_SELECT = `
   agent_phone_mobile,
   agent_phone_office,
   agent_email,
+  agents (
+    photo_url
+  ),
   offer_media (
     cloudflare_video_short_id,
     cloudflare_video_long_id,
@@ -85,6 +89,7 @@ type ImageRow = {
 
 type OfferRow = {
   id: string;
+  slug: string | null;
   galactica_offer_id: string;
   category: string;
   listing_type: string;
@@ -130,6 +135,7 @@ type OfferRow = {
   agent_phone_mobile: string | null;
   agent_phone_office: string | null;
   agent_email: string | null;
+  agents: { photo_url: string | null } | { photo_url: string | null }[] | null;
   offer_media: MediaRow | MediaRow[] | null;
   offer_images: ImageRow[] | null;
 };
@@ -143,6 +149,43 @@ function num(v: string | number | null | undefined): number {
 function firstRel<T>(x: T | T[] | null | undefined): T | undefined {
   if (x == null) return undefined;
   return Array.isArray(x) ? x[0] : x;
+}
+
+/** W bucketcie `agent-photos` Arkadiusz i Justyna mają wersje PNG; stare `photo_url` w bazie mogą wskazywać na `.jpg`. */
+function normalizeAgentHeadshotUrl(url: string | null | undefined): string | undefined {
+  const u = url?.trim();
+  if (!u) return undefined;
+  const lower = u.toLowerCase();
+  if (!lower.includes("agent-photos")) return u;
+  if (
+    (lower.includes("arkadiusz") && lower.includes("jezusek")) ||
+    (lower.includes("justyna") && lower.includes("polok"))
+  ) {
+    return u.replace(/\.jpg\b/i, ".png");
+  }
+  return u;
+}
+
+/**
+ * Gdy `offers.agent_id` jest puste lub embed `agents` nie zwraca wiersza (np. stary import),
+ * a w wierszu jest `agent_name` — dociągnij `photo_url` z tabeli `agents` po dokładnym dopasowaniu nazwy.
+ */
+async function attachAgentPhotoUrlIfMissing(offer: Offer): Promise<Offer> {
+  if (offer.agentPhotoUrl?.trim()) return offer;
+  const name = offer.agentName?.trim();
+  if (!name) return offer;
+
+  const supabase = getSupabaseAnon();
+  if (!supabase) return offer;
+
+  const { data, error } = await supabase.from("agents").select("photo_url").eq("name", name).maybeSingle();
+  if (error) {
+    console.warn("[offers-query] attachAgentPhotoUrlIfMissing:", error.message);
+    return offer;
+  }
+  const url = normalizeAgentHeadshotUrl(data?.photo_url?.trim());
+  if (!url) return offer;
+  return { ...offer, agentPhotoUrl: url };
 }
 
 function streamThumb(streamId: string, h = 1200) {
@@ -233,7 +276,7 @@ export function mapOfferRow(row: OfferRow): Offer {
 
   return {
     id: row.id,
-    slug: row.id,
+    slug: row.slug?.trim() || row.id,
     title: displayTitle,
     subtitle: row.district?.trim() || row.neighborhood?.trim() || undefined,
     city: row.city?.trim() || "",
@@ -282,6 +325,7 @@ export function mapOfferRow(row: OfferRow): Offer {
     agentPhone: row.agent_phone_mobile?.trim() || undefined,
     agentPhoneOffice: row.agent_phone_office?.trim() || undefined,
     agentEmail: row.agent_email?.trim() || undefined,
+    agentPhotoUrl: normalizeAgentHeadshotUrl(firstRel(row.agents)?.photo_url?.trim()) || undefined,
     youtubeUrl: pickYoutubeUrl(row.raw_params),
     hasShortVideo: Boolean(shortId),
     updatedAt: row.updated_at ?? undefined,
@@ -327,12 +371,15 @@ async function fetchAllActiveOfferRows(): Promise<OfferRow[] | null> {
   return ((data ?? []) as unknown) as OfferRow[];
 }
 
-async function fetchOfferRow(filter: { id?: string; galactica_offer_id?: string }): Promise<OfferRow | null> {
+async function fetchOfferRow(
+  filter: { slug?: string; id?: string; galactica_offer_id?: string },
+): Promise<OfferRow | null> {
   const supabase = getSupabaseAnon();
   if (!supabase) return null;
 
   let q = supabase.from("offers").select(OFFER_SELECT).eq("is_active", true);
-  if (filter.id) q = q.eq("id", filter.id);
+  if (filter.slug) q = q.eq("slug", filter.slug);
+  else if (filter.id) q = q.eq("id", filter.id);
   else if (filter.galactica_offer_id) q = q.eq("galactica_offer_id", filter.galactica_offer_id);
   else return null;
 
@@ -371,7 +418,15 @@ export async function getAllActiveOffers(): Promise<Offer[]> {
   return OFFERS;
 }
 
-/** Jedna oferta: najpierw mock po `slug`, potem Supabase po `id` (uuid) lub `galactica_offer_id`. */
+/**
+ * Jedna oferta: najpierw mock po `slug`, potem Supabase:
+ *  1) po kolumnie `slug` (kanoniczne URL-e typu `tytul-FIB-DS-4127`)
+ *  2) po `id` (UUID) — stare linki
+ *  3) po `galactica_offer_id` (np. `FIB-DS-4127` samotnie) — kompatybilność wstecz
+ *
+ * Jeśli chcesz wiedzieć, czy trafiono w URL kanoniczny (i ewentualnie zrobić 301),
+ * porównaj zwrócone `offer.slug` z `slug` z URL-a.
+ */
 export async function getOfferBySlug(slug: string): Promise<Offer | undefined> {
   const local = getStaticOffer(slug);
   if (local) return local;
@@ -381,13 +436,17 @@ export async function getOfferBySlug(slug: string): Promise<Offer | undefined> {
     if (!supabase) return undefined;
 
     let row: OfferRow | null = null;
-    if (UUID_RE.test(slug)) {
+    // 1) po kolumnie slug
+    row = await fetchOfferRow({ slug });
+    // 2) fallback: UUID (stare linki sprzed migracji)
+    if (!row && UUID_RE.test(slug)) {
       row = await fetchOfferRow({ id: slug });
     }
+    // 3) fallback: galactica_offer_id (np. FIB-DS-4127 bez części tytułowej)
     if (!row) {
       row = await fetchOfferRow({ galactica_offer_id: slug });
     }
-    if (row) return mapOfferRow(row);
+    if (row) return attachAgentPhotoUrlIfMissing(mapOfferRow(row));
   } catch (e) {
     console.warn("[offers-query] getOfferBySlug:", e);
   }

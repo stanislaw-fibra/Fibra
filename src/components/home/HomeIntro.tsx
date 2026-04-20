@@ -1,7 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+
+const FOUNDER_PHOTO =
+  "https://yrkvochsziertbvzbnol.supabase.co/storage/v1/object/public/agent-photos/Bartosz%20Nosiadek.jpg";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -61,42 +65,77 @@ export function HomeIntro() {
               Obsługujemy zarówno kupujących własne mieszkanie, jak i inwestorów szukających lokali na wynajem. Znamy tu
               każdy blok i każdą ulicę.
             </motion.p>
-            <motion.div variants={fadeUp} className="mt-10 flex flex-wrap items-center gap-4">
+            <motion.div variants={fadeUp} className="mt-10 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
               <Link
-                href="/o-nas"
-                className="group inline-flex items-center gap-3 rounded-full bg-ink-900 hover:bg-brand-500 text-white px-7 py-4 text-[14px] font-medium transition-colors"
+                href="/o-fibrze"
+                className="group inline-flex items-center justify-center gap-2.5 rounded-full bg-ink-900 hover:bg-brand-500 text-white px-7 py-4 text-[14px] md:text-[15px] font-medium transition-colors active:scale-[0.98]"
               >
                 Poznaj zespół
-                <svg width="16" height="16" viewBox="0 0 14 14" fill="none" aria-hidden>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  aria-hidden
+                  className="transition-transform duration-300 group-hover:translate-x-0.5"
+                >
                   <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </Link>
               <Link
                 href="/kontakt"
-                className="group inline-flex items-center gap-3 text-[14px] font-medium text-ink-900 hover:text-brand-500 transition-colors"
+                className="group inline-flex items-center justify-center gap-2.5 rounded-full border border-ink-300 bg-paper hover:border-ink-900 hover:bg-ink-950 hover:text-white text-ink-900 px-7 py-4 text-[14px] md:text-[15px] font-medium transition-all duration-200 active:scale-[0.98]"
               >
-                <span className="inline-flex w-10 h-10 items-center justify-center rounded-full border border-ink-900 group-hover:border-brand-500 group-hover:bg-brand-500 group-hover:text-white transition-all">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-                    <path d="M7 3v8M3 7h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                  </svg>
-                </span>
-                Umów rozmowę
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0">
+                  <rect
+                    x="2.5"
+                    y="3.75"
+                    width="11"
+                    height="9.75"
+                    rx="1.5"
+                    stroke="currentColor"
+                    strokeWidth="1.25"
+                  />
+                  <path
+                    d="M2.5 6.75h11M5.5 2.25v2.5M10.5 2.25v2.5"
+                    stroke="currentColor"
+                    strokeWidth="1.25"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                Umów spotkanie
               </Link>
             </motion.div>
           </div>
 
-          <motion.div variants={fadeUp} className="lg:col-span-5">
-            <div className="rounded-[var(--radius-lg)] border border-ink-200/80 bg-paper-warm p-8 md:p-10 shadow-[var(--shadow-soft)] ring-1 ring-ink-200/50">
-              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-ink-500 mb-4">Motto</p>
-              <p className="font-display text-[22px] md:text-[26px] text-ink-950 leading-snug">
-                „Interesy robi się z ludźmi, a nie na ludziach.”
-              </p>
-              <p className="mt-6 text-[14px] text-ink-600 leading-relaxed">
-                Tak pracujemy z klientami i z rynkiem - bez presji, z pełną transparentnością i jednym opiekunem przy
-                transakcji.
-              </p>
+          <motion.figure
+            variants={fadeUp}
+            className="lg:col-span-5 relative overflow-hidden rounded-[var(--radius-lg)] ring-1 ring-ink-200/60 shadow-[var(--shadow-soft)] bg-ink-100"
+          >
+            <div className="relative aspect-[4/5] w-full">
+              <Image
+                src={FOUNDER_PHOTO}
+                alt="Bartosz Nosiadek - Założyciel, Prezes Zarządu Fibra"
+                fill
+                sizes="(min-width: 1024px) 40vw, (min-width: 768px) 70vw, 90vw"
+                className="object-cover"
+                style={{ objectPosition: "center 22%" }}
+                quality={82}
+              />
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-ink-950/75 via-ink-950/25 to-transparent"
+                aria-hidden
+              />
             </div>
-          </motion.div>
+            <figcaption className="absolute inset-x-0 bottom-0 p-6 md:p-7 text-white">
+              <p className="font-display text-[22px] md:text-[26px] leading-tight text-balance">
+                Bartosz Nosiadek
+              </p>
+              <p className="mt-1.5 text-[11px] md:text-[12px] uppercase tracking-[0.18em] text-white/85 font-medium">
+                Założyciel, Prezes Zarządu
+              </p>
+            </figcaption>
+          </motion.figure>
         </motion.div>
 
         <motion.div

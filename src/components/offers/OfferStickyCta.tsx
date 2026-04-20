@@ -1,17 +1,20 @@
 import { priceFormat } from "@/lib/offers";
 import { firstName as getFirstName, firstNameGenitive } from "@/lib/polish-names";
+import { AgentAvatar } from "@/components/offers/AgentAvatar";
 
 export function OfferStickyCta({
   priceFrom,
   title,
   agentName,
   agentPhone,
+  agentPhotoUrl,
 }: {
   priceFrom?: number;
   title: string;
   refNumber?: string;
   agentName?: string;
   agentPhone?: string;
+  agentPhotoUrl?: string;
 }) {
   const askHref = "#kontakt";
 
@@ -44,25 +47,15 @@ export function OfferStickyCta({
           </a>
           <a
             href={telHref}
-            className="group inline-flex items-center gap-2.5 rounded-full border border-ink-200 bg-paper px-4 md:px-5 py-2.5 text-[13px] font-medium text-ink-900 transition-colors hover:border-brand-500 hover:text-brand-600"
+            className="group inline-flex items-center gap-2.5 md:gap-3 rounded-full border border-ink-200 bg-paper py-1.5 pl-1.5 pr-4 md:pr-5 text-[13px] font-medium text-ink-900 transition-colors hover:border-brand-500 hover:text-brand-600"
             aria-label={firstNameGen ? `Zadzwoń do ${firstNameGen}, ${phoneDisplay}` : `Zadzwoń ${phoneDisplay}`}
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 14 14"
-              fill="none"
-              aria-hidden
-              className="text-brand-500 group-hover:text-brand-600"
-            >
-              <path
-                d="M11.5 9.8v1.4a1.2 1.2 0 0 1-1.3 1.2 11.8 11.8 0 0 1-5.1-1.8 11.6 11.6 0 0 1-3.6-3.6 11.8 11.8 0 0 1-1.8-5.2 1.2 1.2 0 0 1 1.2-1.3h1.4a1.2 1.2 0 0 1 1.2 1 7.8 7.8 0 0 0 .4 1.8 1.2 1.2 0 0 1-.3 1.2l-.6.6a9.6 9.6 0 0 0 3.6 3.6l.6-.6a1.2 1.2 0 0 1 1.2-.3 7.8 7.8 0 0 0 1.8.4 1.2 1.2 0 0 1 1 1.2Z"
-                stroke="currentColor"
-                strokeWidth="1.3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <AgentAvatar
+              photoUrl={agentPhotoUrl}
+              name={agentName}
+              size="sm"
+              className="ring-ink-200/80 shadow-[0_2px_6px_-2px_rgba(11,15,20,0.18)]"
+            />
             <span className="flex flex-col leading-tight text-left">
               {firstName && (
                 <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-500 group-hover:text-brand-500/80">

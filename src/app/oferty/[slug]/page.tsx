@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import { priceFormat } from "@/lib/offers";
 import type { Offer } from "@/lib/offers";
@@ -11,6 +11,7 @@ import { OfferGallery } from "@/components/offers/OfferGallery";
 import { OfferStickyCta } from "@/components/offers/OfferStickyCta";
 import { OfferAgentMini } from "@/components/offers/OfferAgentMini";
 import { OfferContactForm } from "@/components/offers/OfferContactForm";
+import { AgentAvatar } from "@/components/offers/AgentAvatar";
 import { OfferDescription } from "@/components/offers/OfferDescription";
 import { OfferDetailParams } from "@/components/offers/OfferDetailParams";
 import { RelatedOffersWithPlayback } from "@/components/offers/RelatedOffersWithPlayback";
@@ -63,6 +64,12 @@ export default async function OfferPage({
   const { slug } = await params;
   const offer = await getOfferBySlug(slug);
   if (!offer) notFound();
+
+  // 301 na kanoniczny slug: stare linki typu /oferty/{uuid} lub /oferty/{FIB-DS-4127}
+  // oraz odmiany wielkości liter w suffiksie przenosimy na `offer.slug`.
+  if (offer.slug && offer.slug !== slug) {
+    permanentRedirect(`/oferty/${offer.slug}`);
+  }
 
   const all = await getAllOffers();
   const others = all.filter((o) => o.slug !== slug).slice(0, 4);
@@ -219,26 +226,33 @@ export default async function OfferPage({
                 const phone = offer.agentPhone || offer.agentPhoneOffice || "510 777 200";
                 const telHref = `tel:+48${phone.replace(/\D/g, "")}`;
                 return (
-                  <div className="mt-6 flex flex-col gap-1.5">
-                    {offer.agentName && (
-                      <span className="text-[11px] uppercase tracking-[0.16em] text-ink-500">
-                        {offer.agentName}
-                      </span>
-                    )}
-                    <a
-                      href={telHref}
-                      className="inline-flex font-display text-[22px] text-brand-600 hover:text-brand-500 transition-colors"
-                    >
-                      {phone}
-                    </a>
-                    {offer.agentEmail && (
+                  <div className="mt-6 flex items-center gap-4 md:gap-5">
+                    <AgentAvatar
+                      photoUrl={offer.agentPhotoUrl}
+                      name={offer.agentName}
+                      size="md"
+                    />
+                    <div className="min-w-0 flex flex-col gap-1">
+                      {offer.agentName && (
+                        <span className="text-[11px] uppercase tracking-[0.16em] text-ink-500">
+                          {offer.agentName}
+                        </span>
+                      )}
                       <a
-                        href={`mailto:${offer.agentEmail}`}
-                        className="text-[14px] text-ink-600 hover:text-brand-600 transition-colors"
+                        href={telHref}
+                        className="inline-flex font-display text-[22px] text-brand-600 hover:text-brand-500 transition-colors tabular-nums leading-none"
                       >
-                        {offer.agentEmail}
+                        {phone}
                       </a>
-                    )}
+                      {offer.agentEmail && (
+                        <a
+                          href={`mailto:${offer.agentEmail}`}
+                          className="text-[14px] text-ink-600 hover:text-brand-600 transition-colors truncate"
+                        >
+                          {offer.agentEmail}
+                        </a>
+                      )}
+                    </div>
                   </div>
                 );
               })()}
@@ -399,6 +413,7 @@ export default async function OfferPage({
         refNumber={offer.refNumber}
         agentName={offer.agentName}
         agentPhone={offer.agentPhone || offer.agentPhoneOffice}
+        agentPhotoUrl={offer.agentPhotoUrl}
       />
       <Footer />
     </>

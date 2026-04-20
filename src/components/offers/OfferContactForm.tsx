@@ -186,7 +186,7 @@ export function OfferContactForm({
                 name="email"
                 type="email"
                 autoComplete="email"
-                placeholder="imie@domena.pl"
+                placeholder="imie@gmail.com"
                 className="mt-2 w-full rounded-[var(--radius-sm)] border border-ink-200 bg-ink-50/80 px-4 py-3 text-[15px] outline-none transition-colors focus:border-brand-500 focus:bg-white"
               />
             </label>

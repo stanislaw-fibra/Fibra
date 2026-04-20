@@ -4,8 +4,32 @@ import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { intFromHumanOrNull, parseHumanNumber } from "@/lib/parse-human-number";
+import { makeOfferSlug } from "@/lib/slug";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServer } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+/**
+ * Zapewnia unikalność slug-a. Przy kolizji doklejamy krótki losowy suffix,
+ * żeby insert nie padł na unique indeksie.
+ */
+async function ensureUniqueOfferSlug(admin: SupabaseClient, candidate: string): Promise<string> {
+  const base = candidate || "oferta";
+  const { data } = await admin.from("offers").select("id").eq("slug", base).maybeSingle();
+  if (!data) return base;
+  const suffix = Math.random().toString(36).slice(2, 8);
+  return `${base}-${suffix}`;
+}
+
+/**
+ * Odświeża publiczną stronę oferty po kanonicznym slug-u (publiczny URL to
+ * `/oferty/{slug}`, nie `/oferty/{uuid}`). Gdy slug jest pusty — fallback do UUID-a.
+ */
+async function revalidateOfferPublicPath(admin: SupabaseClient, offerId: string) {
+  const { data } = await admin.from("offers").select("slug").eq("id", offerId).maybeSingle();
+  const slug = data?.slug?.trim();
+  revalidatePath(`/oferty/${slug || offerId}`);
+}
 
 async function requireSessionUser() {
   const supabase = await createSupabaseServer();
@@ -40,7 +64,7 @@ export async function toggleOfferActiveAction(formData: FormData) {
   if (error) throw new Error(error.message);
   revalidatePath("/panel/oferty");
   revalidatePath("/oferty");
-  revalidatePath(`/oferty/${id}`);
+  await revalidateOfferPublicPath(admin, id);
   revalidatePath("/");
 }
 
@@ -75,8 +99,14 @@ export async function createOfferAction(formData: FormData) {
 
   const is_active = (strOrNull(formData.get("is_active")) ?? "true") === "true";
 
+  const slug = await ensureUniqueOfferSlug(
+    admin,
+    makeOfferSlug(advertisement_text || title, galactica_offer_id),
+  );
+
   const row = {
     galactica_offer_id,
+    slug,
     category,
     listing_type,
     title,
@@ -210,7 +240,7 @@ export async function updateOfferAction(formData: FormData) {
   revalidatePath("/panel/oferty");
   revalidatePath(`/panel/oferty/${id}`);
   revalidatePath("/oferty");
-  revalidatePath(`/oferty/${id}`);
+  await revalidateOfferPublicPath(admin, id);
   redirect(`/panel/oferty/${id}?saved=1`);
 }
 
@@ -258,7 +288,7 @@ export async function uploadOfferImageAction(formData: FormData) {
   }
 
   revalidatePath(`/panel/oferty/${offerId}`);
-  revalidatePath(`/oferty/${offerId}`);
+  await revalidateOfferPublicPath(admin, offerId);
   redirect(`/panel/oferty/${offerId}?uploaded=1`);
 }
 
@@ -283,7 +313,7 @@ export async function deleteOfferImageAction(formData: FormData) {
   }
   await admin.from("offer_images").delete().eq("id", imageId);
   revalidatePath(`/panel/oferty/${offerId}`);
-  revalidatePath(`/oferty/${offerId}`);
+  await revalidateOfferPublicPath(admin, offerId);
   redirect(`/panel/oferty/${offerId}`);
 }
 
@@ -340,7 +370,7 @@ export async function upsertOfferMediaAction(formData: FormData) {
   revalidatePath(`/panel/oferty/${offerId}`);
   revalidatePath("/panel/oferty");
   revalidatePath("/oferty");
-  revalidatePath(`/oferty/${offerId}`);
+  await revalidateOfferPublicPath(admin, offerId);
   revalidatePath("/");
   redirect(`/panel/oferty/${offerId}?videoSaved=1`);
 }
@@ -390,7 +420,7 @@ export async function attachStreamVideoSlotAction(
   revalidatePath(`/panel/oferty/${offerId}`);
   revalidatePath("/panel/oferty");
   revalidatePath("/oferty");
-  revalidatePath(`/oferty/${offerId}`);
+  await revalidateOfferPublicPath(admin, offerId);
   revalidatePath("/");
   return { ok: true };
 }

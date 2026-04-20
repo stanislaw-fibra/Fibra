@@ -1,11 +1,21 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { makeOfferSlug } from "@/lib/slug";
 import type { MappedOffer } from "./field-mapper";
 
 export interface OfferSyncResult {
   offerId: string;
   action: "created" | "updated" | "skipped";
   protected?: boolean;
+}
+
+/**
+ * Gdy proponowany slug koliduje (np. duplikat tytułu + inny ID),
+ * dodaj skrócony suffix losowy, żeby insert się udał.
+ */
+function deriveUniqueSlugFallback(baseSlug: string): string {
+  const rnd = Math.random().toString(36).slice(2, 8);
+  return `${baseSlug}-${rnd}`;
 }
 
 // Upsert oferty po galactica_offer_id. Oferty MANUAL-* nie są nadpisywane.
@@ -74,27 +84,60 @@ export async function upsertOffer(
     is_active: true,
   };
 
-  // Sprawdź czy istnieje
+  // Sprawdź czy istnieje (i pobierz istniejący slug — NIE nadpisujemy przy update,
+  // żeby zmiana tytułu nie łamała linków/SEO).
   const { data: existing, error: selErr } = await supabase
     .from("offers")
-    .select("id")
+    .select("id, slug")
     .eq("galactica_offer_id", mapped.galactica_offer_id)
     .maybeSingle();
   if (selErr) throw selErr;
 
   if (existing?.id) {
-    const { error } = await supabase.from("offers").update(row).eq("id", existing.id);
+    // Backfill slug-a tylko gdy brakuje; istniejący zostaje bez zmian.
+    const patch: Record<string, unknown> = { ...row };
+    if (!existing.slug || existing.slug.trim().length === 0) {
+      patch.slug = await resolveInsertableSlug(
+        supabase,
+        makeOfferSlug(mapped.advertisement_text || mapped.title, mapped.galactica_offer_id),
+      );
+    }
+    const { error } = await supabase.from("offers").update(patch).eq("id", existing.id);
     if (error) throw error;
     return { offerId: existing.id, action: "updated" };
   }
 
+  const slug = await resolveInsertableSlug(
+    supabase,
+    makeOfferSlug(mapped.advertisement_text || mapped.title, mapped.galactica_offer_id),
+  );
   const { data: inserted, error } = await supabase
     .from("offers")
-    .insert(row)
+    .insert({ ...row, slug })
     .select("id")
     .single();
   if (error) throw error;
   return { offerId: inserted.id, action: "created" };
+}
+
+/**
+ * Zapewnia unikalność slug-a. Przy kolizji (niezwykle rzadkie — tylko gdy dwa różne
+ * tytuły dadzą identyczny slug i Galactica ID też się pokryje) doklejamy krótki
+ * losowy suffix.
+ */
+async function resolveInsertableSlug(supabase: SupabaseClient, candidate: string): Promise<string> {
+  if (!candidate) return deriveUniqueSlugFallback("oferta");
+  const { data, error } = await supabase
+    .from("offers")
+    .select("id")
+    .eq("slug", candidate)
+    .maybeSingle();
+  if (error) {
+    // Na wszelki wypadek: gdy zapytanie padło, wolimy slug z suffixem niż crash insertu.
+    return deriveUniqueSlugFallback(candidate);
+  }
+  if (!data) return candidate;
+  return deriveUniqueSlugFallback(candidate);
 }
 
 export async function deactivateOffer(

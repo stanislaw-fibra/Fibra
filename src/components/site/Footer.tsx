@@ -13,8 +13,8 @@ export function Footer() {
         <div className="grid md:grid-cols-12 gap-10 md:gap-16">
           <div className="md:col-span-5">
             <Logo variant="paper" />
-            <p className="mt-10 font-display fluid-h2 text-white max-w-[12ch]">
-              Nieruchomości. Prowadzone konkretnie i po ludzku.
+            <p className="mt-10 font-display fluid-h2 text-white max-w-[14ch]">
+              Doświadczenie, któremu możesz zaufać.
             </p>
             <div className="mt-12 flex flex-col gap-1.5 text-[15px]">
               <a href="tel:+48510777200" className="text-white hover:text-accent-400 transition-colors">
@@ -36,8 +36,7 @@ export function Footer() {
                 ["/", "Strona główna"],
                 ["/oferty", "Oferty"],
                 ["/sprzedaj-z-fibra", "Sprzedaj z Fibrą"],
-                ["/jak-dzialamy", "Jak działamy"],
-                ["/o-nas", "O Fibrze"],
+                ["/o-fibrze", "O Fibrze"],
                 ["/kontakt", "Kontakt"],
               ].map(([h, l]) => (
                 <li key={h}>

@@ -9,8 +9,7 @@ import { Logo } from "./Logo";
 const LINKS = [
   { href: "/oferty", label: "Oferty" },
   { href: "/sprzedaj-z-fibra", label: "Sprzedaj z Fibrą" },
-  { href: "/jak-dzialamy", label: "Jak działamy" },
-  { href: "/o-nas", label: "O Fibrze" },
+  { href: "/o-fibrze", label: "O Fibrze" },
   { href: "/kontakt", label: "Kontakt" },
 ];
 

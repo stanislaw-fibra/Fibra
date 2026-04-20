@@ -25,7 +25,6 @@ export default async function PanelDashboardLayout({ children }: { children: Rea
           <p className="font-display text-[1.35rem] text-white leading-none">Fibra</p>
           <p className="mt-2 text-[11px] uppercase tracking-[0.14em] text-ink-500">Panel</p>
         </div>
-        {/* TODO: przycisk „Odśwież oferty z Galactiki” - ręczny trigger importu XML (cron / worker), gdy importer będzie gotowy. */}
         <nav className="flex-1 p-4 space-y-1">
           {NAV.map((item) => (
             <Link

@@ -76,6 +76,8 @@ export interface Offer {
   agentPhone?: string;
   agentPhoneOffice?: string;
   agentEmail?: string;
+  /** URL zdjęcia agenta (bucket `agent-photos` w Supabase). Gdy puste — pokazujemy inicjały. */
+  agentPhotoUrl?: string;
 }
 
 const u = (id: string, w = 1200, h = 1500) =>

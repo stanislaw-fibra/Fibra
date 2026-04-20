@@ -41,16 +41,6 @@ export function SellWithFibra() {
               tego szukają. Od wyceny i strategii, przez wideo i spacer 3D, po kontakt z kupującymi.
             </p>
 
-            <div className="mt-10 rounded-[var(--radius-md)] border border-brand-500/25 bg-brand-500/[0.06] p-6 md:p-7">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-600 mb-2">
-                Wirtualny spacer 3D
-              </p>
-              <p className="text-[15px] text-ink-800 leading-relaxed">
-                Standard u nas - nie dodatek za dopłatą. Kupujący mierzą ściany, widzą rzeczywisty układ i wracają do
-                Ciebie już po świadomym „tak”.
-              </p>
-            </div>
-
             <div className="mt-10 flex flex-wrap gap-4">
               <Link
                 href="/kontakt"
@@ -62,7 +52,7 @@ export function SellWithFibra() {
                 </svg>
               </Link>
               <Link
-                href="/jak-dzialamy"
+                href="/sprzedaj-z-fibra#jak-dzialamy"
                 className="inline-flex items-center gap-2 text-[13px] font-medium text-ink-900 hover:text-brand-500 transition-colors"
               >
                 Zobacz jak działamy
