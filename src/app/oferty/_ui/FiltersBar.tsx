@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { Offer } from "@/lib/offers";
 import {
   CATEGORY_OPTIONS,
@@ -14,6 +15,50 @@ import {
   RangeInputs,
   SegmentedControl,
 } from "./FilterPrimitives";
+
+/**
+ * Chowa pasek przy scrollu w dół (żeby nie nachodził na odtwarzane wideo)
+ * i pokazuje natychmiast przy scrollu w górę albo intencji kontaktu z nim
+ * (focus-within na popoverach, hover). W pobliżu topu strony (< 180 px)
+ * pasek zawsze widoczny.
+ */
+function useAutoHideOnScroll(): boolean {
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let raf = 0;
+    let queued = false;
+
+    const tick = () => {
+      queued = false;
+      const y = window.scrollY;
+      const delta = y - lastY;
+      if (y < 180) {
+        setHidden(false);
+      } else if (delta > 6) {
+        setHidden(true);
+      } else if (delta < -6) {
+        setHidden(false);
+      }
+      lastY = y;
+    };
+
+    const onScroll = () => {
+      if (queued) return;
+      queued = true;
+      raf = window.requestAnimationFrame(tick);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return hidden;
+}
 
 type Props = {
   offers: Offer[];
@@ -73,9 +118,17 @@ export function FiltersBar({
 }: Props) {
   const cities = uniqueCities(offers);
   const pricePresets = filters.listing === "wynajem" ? PRICE_PRESETS_RENT : PRICE_PRESETS_SELL;
+  const hidden = useAutoHideOnScroll();
 
   return (
-    <div className="sticky top-[72px] z-40 border-b border-ink-200/80 bg-paper/85 backdrop-blur-md relative">
+    <div
+      className={[
+        "sticky top-[72px] z-40 border-b border-ink-200/80 bg-paper/85 backdrop-blur-md",
+        "relative transition-transform duration-300 ease-out will-change-transform",
+        "focus-within:translate-y-0 hover:translate-y-0",
+        hidden ? "-translate-y-[110%]" : "translate-y-0",
+      ].join(" ")}
+    >
       {/* Subtelny pasek postępu podczas aktualizacji filtrów - delikatny cue, że coś się dzieje. */}
       <div
         aria-hidden

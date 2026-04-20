@@ -58,9 +58,16 @@ export function VideoCard({
         ? 0
         : -1;
 
+  // Ring preloadu:
+  //  - desktop: ±1 (hover zmienia często, więc szerszy ring tylko by zjadał pasmo)
+  //  - mobile : ±2 — kolejny klip zdąży się podciągnąć, zanim użytkownik dotrze do niego przy
+  //    pionowym scrollu; to właśnie daje wrażenie „seamless" ładowania.
+  const preloadRing = playback ? (playback.isDesktop ? 1 : 2) : 0;
   const mountVideo =
     hasVideo &&
-    (playback ? myIdx >= 0 && activeIdx >= 0 && Math.abs(myIdx - activeIdx) <= 1 : legacyInView);
+    (playback
+      ? myIdx >= 0 && activeIdx >= 0 && Math.abs(myIdx - activeIdx) <= preloadRing
+      : legacyInView);
 
   const listPlaying = Boolean(playback && hasVideo && playback.activeSlug === offer.slug);
   const playing = hasVideo && (playback ? listPlaying : legacyInView);
@@ -141,52 +148,43 @@ export function VideoCard({
     if (playback?.isDesktop) playback.onCardLeave();
   }, [playback]);
 
-  const shellClass =
-    surfaceTheme === "hero"
-      ? [
-          "relative aspect-[9/16] w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-900 shadow-[var(--shadow-cinematic)]",
-          "transition-[box-shadow,transform] duration-300",
-          "ring-1 ring-white/10 hover:ring-white/25 hover:shadow-[0_0_0_1px_rgba(242,101,34,0.2),var(--shadow-cinematic)]",
-        ].join(" ")
-      : "relative aspect-[9/16] w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-800";
+  const isHero = surfaceTheme === "hero";
 
-  const topRowClass =
-    surfaceTheme === "hero"
-      ? [
-          "absolute top-3 left-3 right-3 md:top-4 md:left-4 md:right-4 flex items-start justify-between z-[2]",
-          canToggleSound ? "pr-11 sm:pr-12" : "",
-        ].join(" ")
-      : [
-          "absolute top-4 left-4 right-4 flex items-start justify-between z-[2]",
-          canToggleSound ? "pr-11 sm:pr-12" : "",
-        ].join(" ");
+  const shellClass = isHero
+    ? [
+        "relative aspect-[9/16] w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-900 shadow-[var(--shadow-cinematic)]",
+        "transition-[box-shadow,transform] duration-300",
+        "ring-1 ring-white/10 hover:ring-white/25 hover:shadow-[0_0_0_1px_rgba(242,101,34,0.2),var(--shadow-cinematic)]",
+      ].join(" ")
+    : "relative aspect-[9/16] w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-800";
 
-  const idxClass =
-    surfaceTheme === "hero"
-      ? "font-display text-[12px] md:text-[13px] text-white/50 leading-none tabular-nums"
-      : "font-display text-[13px] text-white/50 leading-none tabular-nums";
+  // Top badges (index number + Nowość). Drobne, w rogu — nie zasłaniają właściwego kadru.
+  const topRowClass = [
+    isHero
+      ? "absolute top-3 left-3 right-3 md:top-4 md:left-4 md:right-4"
+      : "absolute top-4 left-4 right-4",
+    "flex items-start justify-between z-[3]",
+    canToggleSound ? "pr-11 sm:pr-12" : "",
+  ].join(" ");
 
-  const bottomWrapClass =
-    surfaceTheme === "hero"
-      ? "absolute inset-x-0 bottom-0 p-4 md:p-5 lg:p-6 text-white z-[2]"
-      : "absolute inset-x-0 bottom-0 p-5 md:p-6 text-white z-[2]";
+  const idxClass = isHero
+    ? "font-display text-[12px] md:text-[13px] text-white/60 leading-none tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
+    : "font-display text-[13px] text-white/60 leading-none tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]";
 
-  const cityClass =
-    surfaceTheme === "hero"
-      ? "text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1.5 md:mb-2"
-      : "text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2";
-
-  const titleClass =
-    surfaceTheme === "hero"
-      ? "font-display text-[18px] sm:text-[20px] md:text-[22px] lg:text-[24px] leading-[1.05] mb-1.5 md:mb-2 line-clamp-2"
-      : "font-display text-[22px] md:text-[26px] leading-[1.05] mb-2 line-clamp-2";
-
-  const metaRowClass =
-    surfaceTheme === "hero"
-      ? "flex items-center justify-between text-[10px] md:text-[11px] text-white/50"
-      : "flex items-center justify-between text-[11px] text-white/50";
-
-  const showTaglineInOverlay = variant === "primary" && surfaceTheme !== "hero" && offer.tagline;
+  // Tekst pod filmem — jednakowy układ w obu motywach (katalog i hero strony głównej).
+  // Kadr filmu pozostaje czysty, a istotne elementy nagrania nie znikają pod overlayem.
+  // Motyw hero używa kompaktowych rozmiarów (ciemne tło, mniejsze kafelki w 4 kolumnach / horizontal scroll).
+  const textWrapClass = isHero ? "pt-3 md:pt-3.5" : "pt-4 md:pt-5 px-0.5";
+  const eyebrowClass = isHero
+    ? "text-[10px] uppercase tracking-[0.18em] text-white/55"
+    : "text-[10.5px] uppercase tracking-[0.18em] text-ink-500";
+  const titleTextClass = isHero
+    ? "mt-1 font-display text-[15px] sm:text-[16px] md:text-[16.5px] leading-[1.15] text-white line-clamp-2 text-balance"
+    : "mt-1.5 font-display text-[20px] md:text-[22px] leading-[1.14] text-ink-950 line-clamp-2 text-balance";
+  const metaRowClass = isHero
+    ? "mt-2 flex items-center justify-between text-[11px] md:text-[11.5px] text-white/65 tabular-nums"
+    : "mt-3 flex items-center justify-between text-[12.5px] text-ink-600 tabular-nums";
+  const priceClass = isHero ? "font-medium text-white" : "font-medium text-ink-900";
 
   return (
     <div className="video-card group relative">
@@ -236,51 +234,16 @@ export function VideoCard({
             )}
           </div>
 
-          <div className="absolute inset-0 grad-btm-strong z-[1]" />
+          {/* Góra: delikatny gradient dla czytelności numeru/"Nowość" na jasnych kadrach.
+              Dół kadru zostawiamy czysty — tekst siedzi pod filmem, nie na nim. */}
+          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-ink-950/55 via-ink-950/15 to-transparent z-[1] pointer-events-none" />
 
           <div className={topRowClass}>
             <span className={idxClass}>{String(index + 1).padStart(2, "0")}</span>
             <div className="flex flex-col items-end gap-1.5">
               {offer.isNew && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-400 text-ink-950 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em]">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-400 text-ink-950 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] shadow-[0_2px_10px_-2px_rgba(0,0,0,0.4)]">
                   Nowość
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className={bottomWrapClass}>
-            <p className={cityClass}>
-              {offer.city}
-              {offer.district ? ` · ${offer.district}` : ""} · {offer.kindLabel}
-            </p>
-            <h3 className={titleClass}>{offer.title}</h3>
-            {showTaglineInOverlay && (
-              <p className="text-[13px] text-white/60 leading-snug line-clamp-2 mb-4">{offer.tagline}</p>
-            )}
-            <div className={metaRowClass}>
-              <span className="flex items-center gap-2">
-                {offer.area} m²{offer.rooms ? ` · ${offer.rooms} pok.` : ""}
-              </span>
-              {showPrice ? (
-                <span
-                  className={
-                    surfaceTheme === "hero"
-                      ? "text-white font-medium text-[11px] md:text-[12px]"
-                      : "text-white font-medium text-[12px]"
-                  }
-                >
-                  {priceShort(offer.priceFrom)}
-                </span>
-              ) : (
-                <span
-                  className={
-                    surfaceTheme === "hero"
-                      ? "text-white/80 text-[11px] md:text-[12px] font-medium"
-                      : "text-white/80 text-[12px] font-medium"
-                  }
-                >
-                  Zobacz ofertę
                 </span>
               )}
             </div>
@@ -289,7 +252,7 @@ export function VideoCard({
 
         <Link
           href={`/oferty/${offer.slug}`}
-          className="absolute inset-0 z-[10]"
+          className="absolute inset-0 z-[10] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950 rounded-[var(--radius-lg)]"
           aria-label={`Zobacz ofertę: ${offer.title}`}
         >
           <span className="sr-only">{offer.title}</span>
@@ -309,18 +272,41 @@ export function VideoCard({
         )}
       </div>
 
-      {showFooter && (
-        <div className="pt-5 px-0.5">
-          <p className="text-[13.5px] text-ink-600 leading-[1.55] line-clamp-2">{offer.excerpt}</p>
-          <Link
-            href={`/oferty/${offer.slug}`}
-            className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-ink-900 hover:text-brand-500 transition-colors"
-          >
-            Zobacz ofertę
-            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden>
-              <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Link>
+      {/* Tekst POD filmem — wspólny układ dla katalogu i hero strony głównej. */}
+      {!visualOnly && (
+        <div className={textWrapClass}>
+          <p className={eyebrowClass}>
+            {offer.city}
+            {offer.district ? ` · ${offer.district}` : ""} · {offer.kindLabel}
+          </p>
+          <h3 className={titleTextClass}>{offer.title}</h3>
+
+          {showFooter && !isHero && offer.excerpt && (
+            <p className="mt-2 text-[13.5px] text-ink-600 leading-[1.55] line-clamp-2 text-pretty">
+              {offer.excerpt}
+            </p>
+          )}
+
+          <div className={metaRowClass}>
+            <span>
+              {offer.area} m²{offer.rooms ? ` · ${offer.rooms} pok.` : ""}
+            </span>
+            {showPrice && offer.priceFrom ? (
+              <span className={priceClass}>{priceShort(offer.priceFrom)}</span>
+            ) : null}
+          </div>
+
+          {showFooter && !isHero && (
+            <Link
+              href={`/oferty/${offer.slug}`}
+              className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-ink-900 hover:text-brand-500 transition-colors"
+            >
+              Zobacz ofertę
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden>
+                <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
+          )}
         </div>
       )}
     </div>

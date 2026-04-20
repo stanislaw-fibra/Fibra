@@ -119,7 +119,11 @@ export function HomeIntro() {
                 fill
                 sizes="(min-width: 1024px) 40vw, (min-width: 768px) 70vw, 90vw"
                 className="object-cover"
-                style={{ objectPosition: "center 22%" }}
+                style={{
+                  objectPosition: "center 58%",
+                  transform: "scale(1.1)",
+                  transformOrigin: "center 45%",
+                }}
                 quality={82}
               />
               <div
