@@ -249,9 +249,19 @@ body {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
 }
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 .marquee-track {
   animation: marquee 60s linear infinite;
   will-change: transform;
+}
+@media (max-width: 768px) {
+  .marquee-track {
+    animation-duration: 30s;
+  }
 }
 
 /* Blob float */

@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cdn.pixabay.com", pathname: "/**" },
       { protocol: "https", hostname: "images.pixabay.com", pathname: "/**" },
     ],
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+    qualities: [60, 72, 75, 78],
   },
   async redirects() {
     return [{ source: "/jak-pracujemy", destination: "/jak-dzialamy", permanent: true }];

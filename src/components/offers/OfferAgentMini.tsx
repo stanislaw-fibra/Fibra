@@ -1,14 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import { firstName as getFirstName, firstNameGenitive } from "@/lib/polish-names";
 
-export function OfferAgentMini({ offerTitle }: { offerTitle: string }) {
+export function OfferAgentMini({
+  offerTitle,
+  agentName,
+  agentEmail,
+}: {
+  offerTitle: string;
+  agentName?: string;
+  agentEmail?: string;
+}) {
   const [sent, setSent] = useState(false);
+  const firstName = getFirstName(agentName);
+  const firstNameGen = firstNameGenitive(agentName);
 
   if (sent) {
     return (
       <p className="text-[15px] text-ink-600">
-        Dziękujemy - oddzwonimy lub odezwiemy się mailowo wkrótce.
+        Dziękujemy - {firstName ? `${firstName} oddzwoni` : "oddzwonimy"} lub odezwie się mailowo wkrótce.
       </p>
     );
   }
@@ -22,6 +33,8 @@ export function OfferAgentMini({ offerTitle }: { offerTitle: string }) {
       }}
     >
       <input type="hidden" name="oferta" value={offerTitle} />
+      {agentEmail && <input type="hidden" name="agent_email" value={agentEmail} />}
+      {agentName && <input type="hidden" name="agent_name" value={agentName} />}
       <input
         name="name"
         required
@@ -39,7 +52,7 @@ export function OfferAgentMini({ offerTitle }: { offerTitle: string }) {
         type="submit"
         className="inline-flex items-center justify-center gap-2 rounded-full bg-ink-900 px-6 py-3 text-[13px] font-medium text-white transition-colors hover:bg-brand-500"
       >
-        Wyślij
+        {firstNameGen ? `Wyślij do ${firstNameGen}` : "Wyślij"}
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
           <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>

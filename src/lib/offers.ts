@@ -65,6 +65,17 @@ export interface Offer {
   hasAirConditioning?: boolean;
   isPriceNegotiable?: boolean;
   virtualTourUrl?: string;
+  /** Link do YouTube z Galactiki (param „wideo"). Fallback hero i landing page. */
+  youtubeUrl?: string;
+  /** Flaga — true gdy oferta ma krótki, pionowy film (Cloudflare Stream). */
+  hasShortVideo?: boolean;
+  /** Data ostatniej aktualizacji (ISO) — do sortowania w katalogu. */
+  updatedAt?: string;
+  /** Agent przypisany do oferty (z Galactiki / panelu). */
+  agentName?: string;
+  agentPhone?: string;
+  agentPhoneOffice?: string;
+  agentEmail?: string;
 }
 
 const u = (id: string, w = 1200, h = 1500) =>

@@ -2,12 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/ui/Reveal";
 
-const MATTERPORT_IMAGE =
-  "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1400&q=82";
+/** Hero – grafika z `/public`. */
+const HERO_IMAGE = "/Sprzedaj_z_fibra.webp";
 
-/** Wnętrze / detal - hero po prawej (bez stockowych ludzi w garniturach). */
-const HERO_SIDE_IMAGE =
-  "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1100&q=82";
+/** Sekcja spacerów 3D – grafika z `/public`; podpis źródła pod obrazem. */
+const MATTERPORT_IMAGE = "/matterport.webp";
 
 const STEPS: { n: string; title: string; body: string }[] = [
   {
@@ -136,12 +135,13 @@ export function SprzedajZFibraLanding({
             <Reveal delay={120} className="lg:col-span-6 xl:col-span-7">
               <div className="relative mx-auto w-full max-w-[440px] lg:max-w-none lg:ml-auto aspect-[4/5] max-h-[min(72vh,620px)] rounded-[var(--radius-lg)] overflow-hidden border border-white/[0.12] shadow-[0_40px_100px_-28px_rgba(0,0,0,0.65)] ring-1 ring-white/[0.06]">
                 <Image
-                  src={HERO_SIDE_IMAGE}
-                  alt="Przestrzeń mieszkalna - jakość prezentacji nieruchomości"
+                  src={HERO_IMAGE}
+                  alt="Sprzedaj z Fibrą - profesjonalna prezentacja nieruchomości"
                   fill
                   className="object-cover"
                   sizes="(min-width: 1280px) 40vw, (min-width: 1024px) 50vw, 100vw"
                   priority
+                  quality={78}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-ink-950/50 via-transparent to-ink-950/20 pointer-events-none" aria-hidden />
               </div>
@@ -279,9 +279,21 @@ export function SprzedajZFibraLanding({
               </Reveal>
             </div>
             <Reveal delay={80}>
-              <div className="relative aspect-[4/3] lg:aspect-[5/4] w-full overflow-hidden rounded-[var(--radius-lg)] border border-ink-200/80 shadow-[var(--shadow-cinematic)] ring-1 ring-ink-200/40">
-                <Image src={MATTERPORT_IMAGE} alt="Wnętrze nieruchomości - wizualizacja spaceru 3D" fill className="object-cover" sizes="(min-width: 1024px) 42vw, 100vw" priority={false} />
-                <div className="absolute inset-0 bg-gradient-to-tr from-ink-950/25 via-transparent to-transparent pointer-events-none" aria-hidden />
+              <div className="space-y-3">
+                <div className="relative aspect-[4/3] lg:aspect-[5/4] w-full overflow-hidden rounded-[var(--radius-lg)] border border-ink-200/80 shadow-[var(--shadow-cinematic)] ring-1 ring-ink-200/40">
+                  <Image
+                    src={MATTERPORT_IMAGE}
+                    alt="Wirtualny spacer 3D Matterport - przykład prezentacji nieruchomości"
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 1024px) 42vw, 100vw"
+                    quality={78}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-ink-950/25 via-transparent to-transparent pointer-events-none" aria-hidden />
+                </div>
+                <p className="text-[12px] text-ink-500 leading-relaxed lg:text-right">
+                  Źródło zdjęcia: Matterport.
+                </p>
               </div>
             </Reveal>
           </div>

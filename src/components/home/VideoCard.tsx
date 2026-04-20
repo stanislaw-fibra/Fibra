@@ -246,11 +246,6 @@ export function VideoCard({
                   Nowość
                 </span>
               )}
-              {offer.isExclusive && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur-md text-white px-2.5 py-1 text-[10px] uppercase tracking-[0.14em]">
-                  Exclusive
-                </span>
-              )}
             </div>
           </div>
 

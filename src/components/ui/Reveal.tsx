@@ -25,7 +25,10 @@ export function Reveal({ children, delay = 0, as: Tag = "div", className = "" }:
           }
         });
       },
-      { threshold: 0.15, rootMargin: "0px 0px -80px 0px" }
+      // Trigger wcześniej niż element pojawi się w viewport - dzięki temu
+      // obrazy lazy zaczynają się ładować, a animacja fade-in kończy przed
+      // tym, jak user doscrolluje do sekcji. Bez tego widać puste miejsce.
+      { threshold: 0, rootMargin: "0px 0px 480px 0px" }
     );
     io.observe(el);
     return () => io.disconnect();

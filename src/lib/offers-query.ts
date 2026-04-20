@@ -15,6 +15,8 @@ const OFFER_SELECT = `
   title,
   advertisement_text,
   description,
+  raw_params,
+  updated_at,
   price,
   currency,
   area_total,
@@ -50,6 +52,8 @@ const OFFER_SELECT = `
   virtual_tour_url,
   agent_name,
   agent_phone_mobile,
+  agent_phone_office,
+  agent_email,
   offer_media (
     cloudflare_video_short_id,
     cloudflare_video_long_id,
@@ -87,6 +91,8 @@ type OfferRow = {
   title: string | null;
   advertisement_text: string | null;
   description: string | null;
+  raw_params: Record<string, unknown> | null;
+  updated_at: string | null;
   price: string | number | null;
   currency: string | null;
   area_total: string | number | null;
@@ -122,6 +128,8 @@ type OfferRow = {
   virtual_tour_url: string | null;
   agent_name: string | null;
   agent_phone_mobile: string | null;
+  agent_phone_office: string | null;
+  agent_email: string | null;
   offer_media: MediaRow | MediaRow[] | null;
   offer_images: ImageRow[] | null;
 };
@@ -139,6 +147,15 @@ function firstRel<T>(x: T | T[] | null | undefined): T | undefined {
 
 function streamThumb(streamId: string, h = 1200) {
   return `https://videodelivery.net/${streamId}/thumbnails/thumbnail.jpg?time=0s&height=${h}`;
+}
+
+function pickYoutubeUrl(raw: Record<string, unknown> | null | undefined): string | undefined {
+  if (!raw) return undefined;
+  const candidates = [raw.wideo, raw.video, raw.film, raw.youtube];
+  for (const c of candidates) {
+    if (typeof c === "string" && c.trim().includes("youtu")) return c.trim();
+  }
+  return undefined;
 }
 
 function categoryToKind(category: string, title: string): OfferKind {
@@ -261,6 +278,13 @@ export function mapOfferRow(row: OfferRow): Offer {
     hasAirConditioning: row.has_air_conditioning ?? undefined,
     isPriceNegotiable: row.is_price_negotiable ?? undefined,
     virtualTourUrl: row.virtual_tour_url?.trim() || undefined,
+    agentName: row.agent_name?.trim() || undefined,
+    agentPhone: row.agent_phone_mobile?.trim() || undefined,
+    agentPhoneOffice: row.agent_phone_office?.trim() || undefined,
+    agentEmail: row.agent_email?.trim() || undefined,
+    youtubeUrl: pickYoutubeUrl(row.raw_params),
+    hasShortVideo: Boolean(shortId),
+    updatedAt: row.updated_at ?? undefined,
   };
 }
 
@@ -286,6 +310,23 @@ async function fetchPublicListingOfferRows(): Promise<OfferRow[] | null> {
   });
 }
 
+async function fetchAllActiveOfferRows(): Promise<OfferRow[] | null> {
+  const supabase = getSupabaseAnon();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from("offers")
+    .select(OFFER_SELECT)
+    .eq("is_active", true)
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    console.warn("[offers-query] Supabase all active offers:", error.message);
+    return null;
+  }
+  return ((data ?? []) as unknown) as OfferRow[];
+}
+
 async function fetchOfferRow(filter: { id?: string; galactica_offer_id?: string }): Promise<OfferRow | null> {
   const supabase = getSupabaseAnon();
   if (!supabase) return null;
@@ -304,7 +345,7 @@ async function fetchOfferRow(filter: { id?: string; galactica_offer_id?: string 
   return (data as OfferRow) ?? null;
 }
 
-/** Wszystkie oferty widoczne publicznie (RLS + ewentualny fallback do mocków). */
+/** Lista publiczna z krótkim filmem (homepage, tryb Video w /oferty). */
 export async function getAllOffers(): Promise<Offer[]> {
   try {
     const rows = await fetchPublicListingOfferRows();
@@ -313,6 +354,19 @@ export async function getAllOffers(): Promise<Offer[]> {
     }
   } catch (e) {
     console.warn("[offers-query] getAllOffers:", e);
+  }
+  return OFFERS;
+}
+
+/** Wszystkie aktywne oferty (bez wymogu krótkiego filmu) — katalog /oferty. */
+export async function getAllActiveOffers(): Promise<Offer[]> {
+  try {
+    const rows = await fetchAllActiveOfferRows();
+    if (rows && rows.length > 0) {
+      return dedupeOffersByRef(rows.map(mapOfferRow));
+    }
+  } catch (e) {
+    console.warn("[offers-query] getAllActiveOffers:", e);
   }
   return OFFERS;
 }

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { priceFormat } from "@/lib/offers";
@@ -11,8 +10,14 @@ import { OfferVideo } from "@/components/media/OfferVideo";
 import { OfferGallery } from "@/components/offers/OfferGallery";
 import { OfferStickyCta } from "@/components/offers/OfferStickyCta";
 import { OfferAgentMini } from "@/components/offers/OfferAgentMini";
+import { OfferContactForm } from "@/components/offers/OfferContactForm";
+import { OfferDescription } from "@/components/offers/OfferDescription";
 import { OfferDetailParams } from "@/components/offers/OfferDetailParams";
 import { RelatedOffersWithPlayback } from "@/components/offers/RelatedOffersWithPlayback";
+import { OfferHeroMedia } from "@/components/offers/OfferHeroMedia";
+import { OfferMatterport } from "@/components/offers/OfferMatterport";
+import { OfferYouTube } from "@/components/offers/OfferYouTube";
+import { firstNameInstrumental } from "@/lib/polish-names";
 
 export const revalidate = 60;
 
@@ -61,8 +66,7 @@ export default async function OfferPage({
 
   const all = await getAllOffers();
   const others = all.filter((o) => o.slug !== slug).slice(0, 4);
-  const gallery = offer.gallery?.length ? offer.gallery : [offer.poster];
-  const kontaktMaterials = `/kontakt?temat=materiały&oferta=${encodeURIComponent(offer.slug)}`;
+  const gallery = offer.gallery?.length ? offer.gallery : [];
   const fullDesc = offer.fullDescription?.trim();
   const heroStreamId = offer.streamIdLong ?? offer.streamId;
 
@@ -85,59 +89,45 @@ export default async function OfferPage({
             </nav>
 
             <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
-              <div className="lg:col-span-5 order-1 lg:sticky lg:top-[88px]">
-                <div className="relative aspect-[9/15] w-full max-w-[520px] mx-auto lg:mx-0 overflow-hidden rounded-[var(--radius-lg)] bg-ink-900 shadow-[var(--shadow-cinematic)] ring-1 ring-ink-200/60">
-                  {heroStreamId ? (
-                    <OfferVideo
-                      title={offer.title}
-                      poster={offer.poster}
-                      streamId={heroStreamId}
-                      videoSrc={offer.videoSrc}
-                      priority
-                    />
-                  ) : (
-                    <Image
-                      src={offer.poster}
-                      alt={offer.title}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 1024px) 100vw, 520px"
-                      priority
-                      unoptimized
-                    />
-                  )}
-                  <div className="absolute inset-0 grad-btm pointer-events-none z-[2]" />
-                  <div className="pointer-events-none absolute top-4 left-4 right-4 flex gap-2 flex-wrap z-[3]">
-                    {offer.isExclusive && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-400 text-ink-950 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em]">
-                        Exclusive
-                      </span>
-                    )}
-                    {offer.isNew && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md text-white px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em]">
-                        Nowość
-                      </span>
-                    )}
-                    {offer.statusOferty && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-950/55 backdrop-blur-md text-white px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em]">
-                        {statusLabel(offer.statusOferty)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <p className="mt-4 text-center lg:text-left text-[12px] text-ink-500 max-w-[520px] mx-auto lg:mx-0">
-                  Film orientacyjny - pełna dokumentacja i rzuty wysyłamy po pierwszym kontakcie.
-                </p>
+              <div className={`${heroStreamId ? "lg:col-span-5" : "lg:col-span-6"} order-1 lg:sticky lg:top-[88px]`}>
+                {heroStreamId ? (
+                  <>
+                    <div className="relative aspect-[9/15] w-full max-w-[520px] mx-auto lg:mx-0 overflow-hidden rounded-[var(--radius-lg)] bg-ink-900 shadow-[var(--shadow-cinematic)] ring-1 ring-ink-200/60">
+                      <OfferVideo
+                        title={offer.title}
+                        poster={offer.poster}
+                        streamId={heroStreamId}
+                        videoSrc={offer.videoSrc}
+                        priority
+                      />
+                      <div className="absolute inset-0 grad-btm pointer-events-none z-[2]" />
+                      <div className="pointer-events-none absolute top-4 left-4 right-4 flex gap-2 flex-wrap z-[3]">
+                        {offer.isNew && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md text-white px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em]">
+                            Nowość
+                          </span>
+                        )}
+                        {offer.statusOferty && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-950/55 backdrop-blur-md text-white px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em]">
+                            {statusLabel(offer.statusOferty)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <OfferHeroMedia
+                    title={offer.title}
+                    youtubeUrl={offer.youtubeUrl}
+                    poster={offer.poster}
+                    gallery={gallery}
+                  />
+                )}
               </div>
 
-              <div className="lg:col-span-7 order-2">
+              <div className={`${heroStreamId ? "lg:col-span-7" : "lg:col-span-6"} order-2`}>
                 <Reveal>
                   <div className="flex flex-wrap items-center gap-3 mb-5">
-                    {offer.refNumber && (
-                      <span className="text-[11px] uppercase tracking-[0.16em] text-ink-500 bg-ink-100 px-3 py-1.5 rounded-full">
-                        Ref. {offer.refNumber}
-                      </span>
-                    )}
                     <span className="text-[11px] uppercase tracking-[0.16em] text-ink-500">
                       {offer.city}
                       {offer.district ? ` · ${offer.district}` : ""} · {offer.kindLabel}
@@ -177,9 +167,7 @@ export default async function OfferPage({
                       <span className="inline-block w-8 h-px bg-brand-500" />
                       Opis
                     </p>
-                    <div className="text-[16px] md:text-[17px] leading-[1.75] text-ink-700 whitespace-pre-wrap">
-                      {fullDesc}
-                    </div>
+                    <OfferDescription text={fullDesc} />
                   </Reveal>
                 ) : (
                   <Reveal delay={180} className="mt-10 max-w-3xl space-y-5">
@@ -192,24 +180,24 @@ export default async function OfferPage({
                 )}
 
                 <Reveal delay={260} className="mt-10 flex flex-wrap gap-4">
-                  <Link
-                    href="/kontakt"
+                  <a
+                    href="#kontakt-prezentacja"
                     className="inline-flex items-center gap-2 rounded-full bg-ink-950 hover:bg-brand-500 text-white px-7 py-3.5 text-[14px] font-medium transition-colors"
                   >
                     Umów rozmowę lub prezentację
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                       <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                  </Link>
-                  <Link
-                    href={kontaktMaterials}
+                  </a>
+                  <a
+                    href="#kontakt-materialy"
                     className="inline-flex items-center gap-2 rounded-full border border-ink-300 bg-paper hover:border-brand-500 hover:text-brand-600 text-ink-900 px-7 py-3.5 text-[14px] font-medium transition-colors"
                   >
                     Poproś o materiały (rzuty, portfolio)
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                       <path d="M7 2v8M3 7l4 3 4-3M2 12h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                  </Link>
+                  </a>
                 </Reveal>
               </div>
             </div>
@@ -220,86 +208,160 @@ export default async function OfferPage({
           <div className="container-xl grid gap-10 lg:grid-cols-12 lg:items-center">
             <div className="lg:col-span-5">
               <h2 className="font-display text-[clamp(1.6rem,3vw,2.25rem)] leading-tight text-ink-950 max-w-[22ch]">
-                Masz pytania? Zadzwoń bezpośrednio lub zostaw numer - oddzwonimy.
+                {offer.agentName
+                  ? `Skontaktuj się z ${firstNameInstrumental(offer.agentName)} - prowadzi tę ofertę.`
+                  : "Masz pytania? Zadzwoń bezpośrednio lub zostaw numer - oddzwonimy."}
               </h2>
               <p className="mt-4 text-[15px] text-ink-600 max-w-md leading-relaxed">
                 Chętnie doprecyzujemy warunki, terminy oglądania i komplet dokumentów do tej oferty.
               </p>
-              <a
-                href="tel:+48510777200"
-                className="mt-6 inline-flex font-display text-[22px] text-brand-600 hover:text-brand-500 transition-colors"
-              >
-                510 777 200
-              </a>
+              {(() => {
+                const phone = offer.agentPhone || offer.agentPhoneOffice || "510 777 200";
+                const telHref = `tel:+48${phone.replace(/\D/g, "")}`;
+                return (
+                  <div className="mt-6 flex flex-col gap-1.5">
+                    {offer.agentName && (
+                      <span className="text-[11px] uppercase tracking-[0.16em] text-ink-500">
+                        {offer.agentName}
+                      </span>
+                    )}
+                    <a
+                      href={telHref}
+                      className="inline-flex font-display text-[22px] text-brand-600 hover:text-brand-500 transition-colors"
+                    >
+                      {phone}
+                    </a>
+                    {offer.agentEmail && (
+                      <a
+                        href={`mailto:${offer.agentEmail}`}
+                        className="text-[14px] text-ink-600 hover:text-brand-600 transition-colors"
+                      >
+                        {offer.agentEmail}
+                      </a>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
             <div className="lg:col-span-7 rounded-[var(--radius-lg)] border border-ink-200/80 bg-paper-warm p-6 md:p-8">
               <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-500 mb-4">
                 Krótki kontakt
               </p>
-              <OfferAgentMini offerTitle={offer.title} />
+              <OfferAgentMini
+                offerTitle={offer.title}
+                agentName={offer.agentName}
+                agentEmail={offer.agentEmail}
+              />
             </div>
           </div>
         </section>
 
         <OfferDetailParams offer={offer} />
 
-        <section className="py-20 md:py-28">
-          <div className="container-xl">
-            <Reveal className="mb-10 md:mb-12">
-              <p className="eyebrow flex items-center gap-3 mb-5">
-                <span className="inline-block w-8 h-px bg-brand-500" />
-                Galeria
-              </p>
-              <h2 className="font-display fluid-h2 text-ink-950 max-w-[20ch]">
-                Wnętrza, detale, kontekst miejsca.
-              </h2>
-              <p className="mt-4 text-[15px] text-ink-600 max-w-2xl">
-                Zdjęcia poglądowe - docelowo zastąpi je zestaw z sesji i materiałów z systemu (Galactica + Stream).
-              </p>
-            </Reveal>
-            <Reveal delay={120}>
-              <OfferGallery images={gallery} title={offer.title} />
-            </Reveal>
-          </div>
-        </section>
-
-        <section className="py-20 md:py-28 bg-paper-warm border-y border-ink-200/60">
-          <div className="container-xl">
-            <div className="grid lg:grid-cols-12 gap-12 lg:gap-20">
-              <Reveal className="lg:col-span-5">
-                <p className="eyebrow flex items-center gap-3 mb-5">
+        {offer.youtubeUrl && heroStreamId && (
+          <section id="film-prezentacyjny" className="py-16 md:py-24">
+            <div className="container-xl">
+              <Reveal className="mb-8 md:mb-10 max-w-2xl">
+                <p className="eyebrow flex items-center gap-3 mb-4">
                   <span className="inline-block w-8 h-px bg-brand-500" />
-                  Streszczenie
+                  Film prezentacyjny
                 </p>
-                <h2 className="font-display fluid-h2 text-ink-950 max-w-[14ch]">{offer.tagline}</h2>
-                <p className="mt-6 text-[16px] leading-[1.65] text-ink-700 max-w-md">{offer.excerpt}</p>
+                <h2 className="font-display fluid-h2 text-ink-950 max-w-[22ch]">
+                  Dłuższe spojrzenie na nieruchomość.
+                </h2>
+                <p className="mt-4 text-[15px] text-ink-600 leading-relaxed">
+                  Pełna prezentacja na YouTube - układ, otoczenie, detale w jednym nagraniu.
+                </p>
               </Reveal>
-              <Reveal delay={140} className="lg:col-span-7">
-                <div className="bg-paper rounded-[var(--radius-lg)] p-8 md:p-10 shadow-soft ring-1 ring-ink-200/60">
-                  <p className="eyebrow mb-6">Dane do wglądu po kontakcie</p>
-                  <ul className="space-y-5">
-                    {[
-                      ["Karta oferty PDF", "Parametry techniczne, rzuty 2D, opis prawny."],
-                      ["Spacer wideo / 3D", "Matterport lub dodatkowe ujęcia - na życzenie."],
-                      ["Harmonogram prezentacji", "Stacjonarnie, zdalnie lub dla doradcy B2B."],
-                      ["Źródło danych", "Docelowo synchronizacja z Galacticą (jedna prawda)."],
-                    ].map(([t, d]) => (
-                      <li key={t} className="flex items-start gap-4">
-                        <span className="mt-1 inline-flex w-6 h-6 items-center justify-center rounded-full bg-brand-500/12 text-brand-600 shrink-0">
-                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                            <path d="M2 6l3 3 5-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </span>
-                        <div>
-                          <p className="text-[15px] font-medium text-ink-950">{t}</p>
-                          <p className="text-[13.5px] text-ink-600 mt-0.5 leading-[1.55]">{d}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              <Reveal delay={120}>
+                <OfferYouTube url={offer.youtubeUrl} title={`Film prezentacyjny - ${offer.title}`} />
               </Reveal>
             </div>
+          </section>
+        )}
+
+        {offer.virtualTourUrl && (
+          <section id="spacer-3d" className="py-16 md:py-24 bg-paper-warm border-y border-ink-200/60">
+            <div className="container-xl">
+              <Reveal className="mb-8 md:mb-10 max-w-2xl">
+                <p className="eyebrow flex items-center gap-3 mb-4">
+                  <span className="inline-block w-8 h-px bg-brand-500" />
+                  Spacer 3D
+                </p>
+                <h2 className="font-display fluid-h2 text-ink-950 max-w-[22ch]">
+                  Przejdź się po nieruchomości w 360°.
+                </h2>
+                <p className="mt-4 text-[15px] text-ink-600 leading-relaxed">
+                  Interaktywny spacer Matterport - każdy pokój, każdy detal, w swoim tempie.
+                </p>
+              </Reveal>
+              <Reveal delay={120}>
+                <OfferMatterport url={offer.virtualTourUrl} title={`Spacer 3D - ${offer.title}`} />
+              </Reveal>
+            </div>
+          </section>
+        )}
+
+        {gallery.length > 0 && (
+          <section id="galeria" className="py-20 md:py-28">
+            <div className="container-xl">
+              <Reveal className="mb-10 md:mb-12">
+                <p className="eyebrow flex items-center gap-3 mb-5">
+                  <span className="inline-block w-8 h-px bg-brand-500" />
+                  Galeria
+                </p>
+                <h2 className="font-display fluid-h2 text-ink-950 max-w-[20ch]">
+                  Wnętrza, detale, kontekst miejsca.
+                </h2>
+              </Reveal>
+              <Reveal delay={120}>
+                <OfferGallery images={gallery} title={offer.title} />
+              </Reveal>
+            </div>
+          </section>
+        )}
+
+        <section className="relative py-20 md:py-28 bg-paper">
+          <span
+            id="kontakt"
+            aria-hidden
+            className="pointer-events-none absolute -top-24 left-0"
+          />
+          <span
+            id="kontakt-prezentacja"
+            aria-hidden
+            className="pointer-events-none absolute -top-24 left-0"
+          />
+          <span
+            id="kontakt-materialy"
+            aria-hidden
+            className="pointer-events-none absolute -top-24 left-0"
+          />
+          <div className="container-xl">
+            <Reveal className="mb-10 md:mb-12 max-w-2xl">
+              <p className="eyebrow flex items-center gap-3 mb-5">
+                <span className="inline-block w-8 h-px bg-brand-500" />
+                Kontakt w sprawie oferty
+              </p>
+              <h2 className="font-display fluid-h2 text-ink-950 max-w-[22ch]">
+                {offer.agentName
+                  ? `Porozmawiaj z ${firstNameInstrumental(offer.agentName)} o tej nieruchomości.`
+                  : "Porozmawiajmy o tej nieruchomości."}
+              </h2>
+              <p className="mt-5 text-[15.5px] leading-[1.7] text-ink-600">
+                Zostaw namiary, a oddzwonimy. Możesz od razu zaznaczyć, czy chcesz umówić
+                prezentację, otrzymać komplet materiałów, czy po prostu dopytać o szczegóły.
+              </p>
+            </Reveal>
+            <Reveal delay={120} className="max-w-3xl">
+              <OfferContactForm
+                offerTitle={offer.title}
+                refNumber={offer.refNumber}
+                agentName={offer.agentName}
+                agentEmail={offer.agentEmail}
+                agentPhone={offer.agentPhone || offer.agentPhoneOffice}
+              />
+            </Reveal>
           </div>
         </section>
 
@@ -331,7 +393,13 @@ export default async function OfferPage({
           </div>
         </section>
       </main>
-      <OfferStickyCta priceFrom={offer.priceFrom} title={offer.title} />
+      <OfferStickyCta
+        priceFrom={offer.priceFrom}
+        title={offer.title}
+        refNumber={offer.refNumber}
+        agentName={offer.agentName}
+        agentPhone={offer.agentPhone || offer.agentPhoneOffice}
+      />
       <Footer />
     </>
   );
