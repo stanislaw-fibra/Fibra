@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import type { Offer } from "@/lib/offers";
 
@@ -184,31 +184,36 @@ export function useFilters() {
   const sp = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const filters = useMemo(() => parseFiltersFromSearchParams(new URLSearchParams(sp.toString())), [sp]);
+  const filtersFromUrl = useMemo(
+    () => parseFiltersFromSearchParams(new URLSearchParams(sp.toString())),
+    [sp],
+  );
 
   /**
-   * Jednorazowe przywrócenie preferencji widoku z localStorage.
-   * Jeśli URL nie ma `?view=...`, a user kiedyś wybrał inny widok niż domyślny,
-   * podmieniamy URL na zapamiętaną wartość (bez scroll, bez zmiany historii).
-   * Działa tylko raz przy mountcie — potem user świadomie steruje URL-em.
+   * Preferencja widoku z localStorage jest używana TYLKO jako nakładka w stanie
+   * komponentu — nie robimy `router.replace()` po mountcie (to powodowało
+   * widoczny „podwójny render" / flash na /oferty). URL pozostaje
+   * autorytatywny gdy zawiera `?view=...`; w przeciwnym razie bierzemy wartość
+   * zapamiętaną lokalnie.
    */
-  const hydratedRef = useRef(false);
+  const [storedView, setStoredView] = useState<ViewMode | null>(null);
   useEffect(() => {
-    if (hydratedRef.current) return;
-    hydratedRef.current = true;
+    setStoredView(readStoredView());
+  }, []);
+
+  const filters = useMemo<Filters>(() => {
     const urlHasView = sp.get("view") != null;
-    if (urlHasView) return;
-    const stored = readStoredView();
-    if (!stored || stored === DEFAULT_FILTERS.view) return;
-    const next: Filters = { ...filters, view: stored };
-    const qs = filtersToSearchParams(next).toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-  }, [filters, pathname, router, sp]);
+    if (urlHasView || !storedView) return filtersFromUrl;
+    return { ...filtersFromUrl, view: storedView };
+  }, [filtersFromUrl, sp, storedView]);
 
   const apply = useCallback(
     (patch: Partial<Filters>) => {
       const next = { ...filters, ...patch };
-      if (patch.view) writeStoredView(patch.view);
+      if (patch.view) {
+        writeStoredView(patch.view);
+        setStoredView(patch.view);
+      }
       const qs = filtersToSearchParams(next).toString();
       startTransition(() => {
         router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Offer } from "@/lib/offers";
 import {
   CATEGORY_OPTIONS,
@@ -17,83 +17,20 @@ import {
 } from "./FilterPrimitives";
 
 /**
- * Stan paska filtrów w zależności od scrolla:
- * - 'full'  — blisko góry, pełne filtry.
- * - 'mini'  — mobile, scroll w dół: tylko sortowanie + przełącznik widoku (ikony).
- * - 'hidden' — desktop, scroll w dół: pasek chowa się poza ekran, żeby nie
- *              zasłaniał odtwarzanego wideo. Na mobile zamiast hide
- *              schodzimy w mini-toolbar (patrz wyżej).
+ * Filozofia paska filtrów:
  *
- * Chcemy ŁAPAĆ INTENCJĘ, nie szarpnięcia: pasek zwija się, gdy user
- * zdecydowanie zjedzie w dół (kumulacja > 36 px w tę stronę) i rozwija
- * dopiero, gdy user naprawdę wróci w górę (kumulacja > 120 px). Drobne
- * korekty widoku (10-30 px w górę żeby „wyrównać" scroll) nie powinny
- * resetować stanu.
+ *  - Pełny pasek NIE jest sticky — scrolluje się wraz z treścią, jak każdy
+ *    zwykły element. Dzięki temu „osadzony jest na stałe" w miejscu, w którym
+ *    user się z nim spotkał pierwszy raz.
+ *  - Dopiero gdy pełny pasek wyjedzie poza viewport (a konkretnie: gdy jego
+ *    dolna krawędź przejedzie pod górnym Navem), pojawia się mini-toolbar
+ *    przyklejony fixed pod navem. Kontrolowane przez IntersectionObserver na
+ *    sentinelu umieszczonym tuż pod pełnym paskiem.
+ *  - Scroll w górę wycofuje mini gdy sentinel wróci w widok — nie ma
+ *    „połowicznej" regresji; wracasz do naturalnego, scroll-owalnego paska.
  */
-type BarMode = "full" | "mini" | "hidden";
 
-const DOWN_THRESHOLD = 36; // px - zwij, gdy przekroczymy 36 px w dół od ostatniego punktu odniesienia
-const UP_THRESHOLD = 120; // px - rozwiń dopiero po zdecydowanym powrocie w górę
-
-function useBarMode(): BarMode {
-  const [mode, setMode] = useState<BarMode>("full");
-
-  useEffect(() => {
-    let lastY = window.scrollY;
-    let pivot = lastY; // punkt odniesienia dla kumulatywnej delty w bieżącym kierunku
-    let lastDir: "down" | "up" | null = null;
-    let raf = 0;
-    let queued = false;
-
-    const isMobile = () => window.matchMedia("(max-width: 1023px)").matches;
-
-    const apply = () => {
-      queued = false;
-      const y = window.scrollY;
-      const frameDelta = y - lastY;
-      lastY = y;
-
-      // Blisko góry zawsze pełny pasek — nie chowamy.
-      if (y < 180) {
-        setMode("full");
-        pivot = y;
-        lastDir = null;
-        return;
-      }
-
-      // Zmiana kierunku → resetuj punkt odniesienia.
-      const dir: "down" | "up" | null =
-        frameDelta > 0 ? "down" : frameDelta < 0 ? "up" : null;
-      if (dir && dir !== lastDir) {
-        pivot = y;
-        lastDir = dir;
-      }
-
-      const travelled = y - pivot; // ujemne = w górę, dodatnie = w dół
-      if (travelled > DOWN_THRESHOLD) {
-        setMode(isMobile() ? "mini" : "hidden");
-      } else if (travelled < -UP_THRESHOLD) {
-        setMode("full");
-      }
-      // między progami: zostaw poprzedni tryb (brak migotania i fałszywych
-      // re-expandów po drobnym ruchu palcem).
-    };
-
-    const onScroll = () => {
-      if (queued) return;
-      queued = true;
-      raf = window.requestAnimationFrame(apply);
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (raf) window.cancelAnimationFrame(raf);
-    };
-  }, []);
-
-  return mode;
-}
+const NAV_OFFSET = 72; // px — wysokość górnego Nav'a
 
 type Props = {
   offers: Offer[];
@@ -153,12 +90,25 @@ export function FiltersBar({
 }: Props) {
   const cities = uniqueCities(offers);
   const pricePresets = filters.listing === "wynajem" ? PRICE_PRESETS_RENT : PRICE_PRESETS_SELL;
-  const mode = useBarMode();
 
-  const containerTransform =
-    mode === "hidden" ? "-translate-y-[115%]" : "translate-y-0";
-
-  const fullVisible = mode === "full";
+  // Sentinel umieszczony tuż pod pełnym paskiem — gdy wyjedzie z widoku
+  // (przechodzi pod górny Nav), aktywujemy fixed mini-toolbar. Gdy wraca,
+  // chowamy mini. Intersection-Observer to najtańszy sposób — zero scroll
+  // listenera.
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [showMini, setShowMini] = useState(false);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    // rootMargin od góry ≈ -NAV_OFFSET → obszar nawigacji wchodzi jako
+    // „poza widokiem". Kiedy sentinel jest nad Nav'em → !isIntersecting.
+    const io = new IntersectionObserver(
+      ([entry]) => setShowMini(!entry.isIntersecting),
+      { rootMargin: `-${NAV_OFFSET + 1}px 0px 0px 0px`, threshold: 0 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const hasAnyActive =
     filters.categories.length > 0 ||
@@ -417,39 +367,135 @@ export function FiltersBar({
     </FilterPopover>
   );
 
+  const filtryBadge =
+    advancedCount +
+    (filters.categories.length ? 1 : 0) +
+    (filters.listing !== "all" ? 1 : 0) +
+    (filters.cities.length ? 1 : 0) +
+    (filters.priceMin != null || filters.priceMax != null ? 1 : 0) +
+    (filters.rooms.length ? 1 : 0);
+
   return (
-    <div
-      className={[
-        "sticky top-[72px] z-40 border-b border-ink-200/80 bg-paper/92 backdrop-blur-md",
-        "transition-transform duration-[240ms] ease-[cubic-bezier(0.4,0,0.2,1)] will-change-transform",
-        "focus-within:translate-y-0 hover:translate-y-0",
-        containerTransform,
-      ].join(" ")}
-    >
-      {/* Subtelny pasek postępu — feedback o aktualizacji. */}
-      <div
-        aria-hidden
-        className={[
-          "pointer-events-none absolute left-0 right-0 top-0 h-[2px] overflow-hidden",
-          isPending ? "opacity-100" : "opacity-0",
-          "transition-opacity duration-150",
-        ].join(" ")}
-      >
-        <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-brand-500 to-transparent animate-[shimmer_1.1s_ease-in-out_infinite]" />
-        <style>{`@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }`}</style>
+    <>
+      {/* PEŁNY PASEK — osadzony na stałe (zwykły block, NIE sticky).
+          Scrolluje się razem z treścią. Kiedy wyjedzie z widoku, dopiero
+          wtedy pojawi się mini-toolbar (patrz niżej). */}
+      <div className="relative border-b border-ink-200/80 bg-paper">
+        {/* Subtelny pasek postępu — feedback o aktualizacji. */}
+        <div
+          aria-hidden
+          className={[
+            "pointer-events-none absolute left-0 right-0 top-0 h-[2px] overflow-hidden",
+            isPending ? "opacity-100" : "opacity-0",
+            "transition-opacity duration-150",
+          ].join(" ")}
+        >
+          <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-brand-500 to-transparent animate-[shimmer_1.1s_ease-in-out_infinite]" />
+          <style>{`@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }`}</style>
+        </div>
+
+        {/* DESKTOP full bar — flex-wrap klasycznie. */}
+        <div className="hidden lg:block">
+          <div className="container-xl py-3.5 flex items-start justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-2 min-w-0">
+              {categoryPopover}
+              {listingPopover}
+              {pricePopover}
+              {roomsPopover}
+              {locationPopover}
+              {moreFiltersBtn}
+              {resetBtn}
+            </div>
+            <div className="flex items-center gap-2 justify-end">
+              {sortPopover("end")}
+              <ViewToggle
+                view={filters.view}
+                onChange={(v) => apply({ view: v })}
+                totalGallery={totalMatches}
+                totalVideo={totalVideoMatches}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* MOBILE full bar — dwa rzędy:
+            (1) PRZEŁĄCZNIK WIDOKU na pełną szerokość (dwie równe połówki,
+                nic się nie ucina nawet na 320 px),
+            (2) pozioma, przewijalna lista pigułek filtrów i sortowania
+                (z delikatnym fade-right sygnalizującym, że za krawędzią są
+                kolejne opcje). */}
+        <div className="lg:hidden">
+          <div className="container-xl pt-3 pb-3 space-y-2.5">
+            <ViewToggleWide
+              view={filters.view}
+              onChange={(v) => apply({ view: v })}
+              totalGallery={totalMatches}
+              totalVideo={totalVideoMatches}
+            />
+            <div className="relative">
+              <div className="flex gap-2 overflow-x-auto pb-1 pr-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0">
+                {sortPopover("start")}
+                {categoryPopover}
+                {listingPopover}
+                {pricePopover}
+                {roomsPopover}
+                {locationPopover}
+                {moreFiltersBtn}
+                {resetBtn}
+              </div>
+              <div
+                aria-hidden
+                className="pointer-events-none absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-paper to-transparent"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Sentinel — znika z widoku → uruchamiamy mini-toolbar. */}
+        <div ref={sentinelRef} aria-hidden className="h-px" />
       </div>
 
-      {/* MOBILE: mini-toolbar — sortowanie + przełącznik widoku ikony only.
-          Desktop go nie używa (ma hide-on-scroll). */}
+      {/* MINI-TOOLBAR (mobile) — pojawia się fixed gdy pełny pasek wyszedł
+          z horyzontu. Transition-opacity + translate daje subtelne,
+          naturalne wejście. */}
       <div
         className={[
-          "lg:hidden overflow-hidden transition-[max-height,opacity] duration-200 ease-out",
-          mode === "mini" ? "max-h-[64px] opacity-100" : "max-h-0 opacity-0",
+          "lg:hidden fixed left-0 right-0 z-40",
+          "border-b border-ink-200/80 bg-paper/94 backdrop-blur-md",
+          "transition-[opacity,transform] duration-[220ms] ease-out will-change-[opacity,transform]",
+          showMini
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 -translate-y-1 pointer-events-none",
         ].join(" ")}
-        aria-hidden={mode !== "mini"}
+        style={{ top: `${NAV_OFFSET}px` }}
+        aria-hidden={!showMini}
       >
         <div className="container-xl py-2.5 flex items-center justify-between gap-2">
-          {sortPopover("start")}
+          <div className="flex items-center gap-2 min-w-0">
+            {sortPopover("start")}
+            <button
+              type="button"
+              onClick={onOpenDrawer}
+              aria-label={filtryBadge > 0 ? `Filtry (aktywne: ${filtryBadge})` : "Filtry"}
+              className={[
+                "relative inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-[12.5px] font-medium whitespace-nowrap",
+                "cursor-pointer select-none transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.97]",
+                hasAnyActive
+                  ? "border-ink-900 bg-ink-900 text-white"
+                  : "border-ink-200 bg-paper text-ink-700 hover:border-ink-400",
+              ].join(" ")}
+            >
+              <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <path d="M1.5 3h9M3 6h6M4.5 9h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              Filtry
+              {filtryBadge > 0 && (
+                <span className="inline-flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-white/25 px-1 text-[10px] font-semibold tabular-nums text-white">
+                  {filtryBadge}
+                </span>
+              )}
+            </button>
+          </div>
           <ViewToggleIcons
             view={filters.view}
             onChange={(v) => apply({ view: v })}
@@ -458,71 +504,7 @@ export function FiltersBar({
           />
         </div>
       </div>
-
-      {/* DESKTOP full bar — flex-wrap klasycznie. */}
-      <div
-        className={[
-          "hidden lg:block overflow-hidden transition-[max-height,opacity] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]",
-          fullVisible ? "max-h-[480px] opacity-100" : "max-h-0 opacity-0 lg:max-h-[480px] lg:opacity-100",
-        ].join(" ")}
-      >
-        <div className="container-xl py-3.5 flex items-start justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-2 min-w-0">
-            {categoryPopover}
-            {listingPopover}
-            {pricePopover}
-            {roomsPopover}
-            {locationPopover}
-            {moreFiltersBtn}
-            {resetBtn}
-          </div>
-          <div className="flex items-center gap-2 justify-end">
-            {sortPopover("end")}
-            <ViewToggle
-              view={filters.view}
-              onChange={(v) => apply({ view: v })}
-              totalGallery={totalMatches}
-              totalVideo={totalVideoMatches}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* MOBILE full bar — kompaktowy, dwurzędowy:
-          (1) pozioma, przewijalna lista pigułek z filtrami (brak zawijania,
-              każdy przycisk ma normalny rozmiar, nic się nie ściska);
-          (2) dolny rząd: Sortuj po lewej + przełącznik Wideo/Zdjęcia po prawej,
-              wyrównane flex justify-between — toggle ma stabilną pozycję. */}
-      <div
-        className={[
-          "lg:hidden overflow-hidden transition-[max-height,opacity] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]",
-          fullVisible ? "max-h-[220px] opacity-100" : "max-h-0 opacity-0",
-        ].join(" ")}
-      >
-        <div className="container-xl pt-2.5 pb-3">
-          <div
-            className="flex gap-2 overflow-x-auto pb-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0"
-          >
-            {categoryPopover}
-            {listingPopover}
-            {pricePopover}
-            {roomsPopover}
-            {locationPopover}
-            {moreFiltersBtn}
-            {resetBtn}
-          </div>
-          <div className="mt-2 flex items-center justify-between gap-3">
-            {sortPopover("start")}
-            <ViewToggle
-              view={filters.view}
-              onChange={(v) => apply({ view: v })}
-              totalGallery={totalMatches}
-              totalVideo={totalVideoMatches}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }
 
@@ -644,6 +626,71 @@ function ViewToggleIcons({
           <rect x="6" y="6" width="3.5" height="3.5" />
         </svg>
         <span className="opacity-70 tabular-nums">{totalGallery}</span>
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Pełnoszerokościowa wersja przełącznika do mobilnego pełnego paska: dwie
+ * równe połówki (grid-cols-2). Dzięki temu nic się nie ucina nawet na 320 px
+ * — przyciski rosną/zwężają się razem z dostępną szerokością.
+ */
+function ViewToggleWide({
+  view,
+  onChange,
+  totalGallery,
+  totalVideo,
+}: {
+  view: ViewMode;
+  onChange: (v: ViewMode) => void;
+  totalGallery: number;
+  totalVideo: number;
+}) {
+  return (
+    <div
+      className="grid grid-cols-2 rounded-full border border-ink-200 bg-ink-50 p-1 text-[12px] font-medium shadow-inner"
+      role="group"
+      aria-label="Widok katalogu"
+    >
+      <button
+        type="button"
+        onClick={() => onChange("video")}
+        aria-pressed={view === "video"}
+        className={[
+          "inline-flex items-center justify-center gap-1.5 rounded-full px-2 py-1.5 min-w-0",
+          "cursor-pointer select-none transition-[background-color,color,transform,box-shadow] duration-200 active:scale-[0.97]",
+          view === "video"
+            ? "bg-ink-950 text-white shadow-[0_2px_10px_-4px_rgba(11,15,20,0.45)]"
+            : "text-ink-600 hover:text-ink-950 hover:bg-paper",
+        ].join(" ")}
+      >
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor" aria-hidden>
+          <path d="M3.5 2.2L8.5 5.5 3.5 8.8V2.2z" />
+        </svg>
+        <span className="truncate">Wideo</span>
+        <span className="opacity-60 tabular-nums">({totalVideo})</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange("gallery")}
+        aria-pressed={view === "gallery"}
+        className={[
+          "inline-flex items-center justify-center gap-1.5 rounded-full px-2 py-1.5 min-w-0",
+          "cursor-pointer select-none transition-[background-color,color,transform,box-shadow] duration-200 active:scale-[0.97]",
+          view === "gallery"
+            ? "bg-ink-950 text-white shadow-[0_2px_10px_-4px_rgba(11,15,20,0.45)]"
+            : "text-ink-600 hover:text-ink-950 hover:bg-paper",
+        ].join(" ")}
+      >
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden>
+          <rect x="1.5" y="1.5" width="3.5" height="3.5" />
+          <rect x="6" y="1.5" width="3.5" height="3.5" />
+          <rect x="1.5" y="6" width="3.5" height="3.5" />
+          <rect x="6" y="6" width="3.5" height="3.5" />
+        </svg>
+        <span className="truncate">Zdjęcia</span>
+        <span className="opacity-60 tabular-nums">({totalGallery})</span>
       </button>
     </div>
   );

@@ -42,6 +42,18 @@ export function OfertyPageClient({ allOffers }: Props) {
 
   const orderedSlugs = useMemo(() => videoFiltered.map((o) => o.slug), [videoFiltered]);
 
+  const cities = useMemo(() => {
+    const set = new Map<string, number>();
+    for (const o of allOffers) {
+      const c = o.city?.trim();
+      if (!c) continue;
+      set.set(c, (set.get(c) ?? 0) + 1);
+    }
+    return [...set.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "pl"))
+      .map(([c]) => c);
+  }, [allOffers]);
+
   return (
     <>
       <FiltersBar
@@ -102,6 +114,7 @@ export function OfertyPageClient({ allOffers }: Props) {
         apply={apply}
         advancedCount={advanced}
         matchesCount={currentList.length}
+        cities={cities}
       />
     </>
   );
