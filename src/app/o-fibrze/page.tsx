@@ -182,13 +182,6 @@ export default function OFibrzePage() {
           <div className="container-xl">
             <div className="mx-auto max-w-3xl text-center">
               <Reveal>
-                <p className="eyebrow inline-flex items-center gap-3 mb-6">
-                  <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
-                  Założyciel
-                  <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
-                </p>
-              </Reveal>
-              <Reveal delay={80}>
                 <h2
                   className="font-display text-ink-950 tracking-tight leading-[1.05]"
                   style={{ fontSize: "clamp(1.85rem, 4vw, 3rem)" }}
@@ -196,14 +189,21 @@ export default function OFibrzePage() {
                   Ludzie Fibry
                 </h2>
               </Reveal>
-              <Reveal delay={160}>
+              <Reveal delay={80}>
                 <p className="mt-5 md:mt-6 text-[16px] md:text-[18px] text-ink-600 leading-relaxed text-pretty">
                   Za każdą ofertą, transakcją i rozmową stoi konkretna osoba.
                 </p>
               </Reveal>
+              <Reveal delay={160}>
+                <p className="eyebrow inline-flex items-center gap-3 mt-10 md:mt-14">
+                  <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
+                  Założyciel
+                  <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
+                </p>
+              </Reveal>
             </div>
 
-            <div className="mt-12 md:mt-20 grid gap-10 md:gap-14 lg:gap-20 lg:grid-cols-12 lg:items-center">
+            <div className="mt-10 md:mt-14 grid gap-10 md:gap-14 lg:gap-20 lg:grid-cols-12 lg:items-center">
               <Reveal className="lg:col-span-5">
                 <div className="relative aspect-[3/4] w-full max-w-sm md:max-w-md lg:max-w-none mx-auto overflow-hidden rounded-[var(--radius-lg)] ring-1 ring-ink-200/70 shadow-[var(--shadow-cinematic)] bg-gradient-to-br from-brand-500/10 to-accent-400/10">
                   <Image

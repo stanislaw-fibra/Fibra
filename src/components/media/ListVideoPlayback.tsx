@@ -54,11 +54,21 @@ export function ListVideoPlaybackProvider({
   orderedSlugs,
   mobileMode,
   mobileRootRef = null,
+  enabled = true,
+  desktopRequireHover = false,
   children,
 }: {
   orderedSlugs: readonly string[];
   mobileMode: ListVideoMobileMode;
   mobileRootRef?: RefObject<HTMLElement | null> | null;
+  /** Gdy false — `activeSlug` = null i nic nie gra (np. sekcja poza viewportem). */
+  enabled?: boolean;
+  /**
+   * Desktop: gdy true, karta zaczyna grać dopiero po hoverze (brak fallbacku
+   * do pierwszej). Dobre dla sekcji typu „Inne oferty" — żeby film nie
+   * leciał automatycznie, gdy użytkownik do sekcji nie doszedł albo stoi obok.
+   */
+  desktopRequireHover?: boolean;
   children: ReactNode;
 }) {
   const isDesktop = useIsDesktopMd();
@@ -128,12 +138,14 @@ export function ListVideoPlaybackProvider({
   }, []);
 
   const activeSlug = useMemo(() => {
+    if (!enabled) return null;
     const first = orderedSlugs[0] ?? null;
     if (isDesktop) {
+      if (desktopRequireHover) return debouncedHoverSlug ?? null;
       return debouncedHoverSlug ?? first;
     }
     return mobilePick ?? first;
-  }, [debouncedHoverSlug, isDesktop, mobilePick, orderedSlugs]);
+  }, [enabled, desktopRequireHover, debouncedHoverSlug, isDesktop, mobilePick, orderedSlugs]);
 
   const value = useMemo(
     (): ListVideoPlaybackContextValue => ({

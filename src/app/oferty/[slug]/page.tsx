@@ -110,7 +110,6 @@ export default async function OfferPage({
                         videoSrc={offer.videoSrc}
                         priority
                       />
-                      <div className="absolute inset-0 grad-btm pointer-events-none z-[2]" />
                       <div className="pointer-events-none absolute top-4 left-4 right-4 flex gap-2 flex-wrap z-[3]">
                         {offer.isNew && (
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md text-white px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em]">

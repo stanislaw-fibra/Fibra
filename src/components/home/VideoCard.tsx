@@ -54,23 +54,33 @@ export function VideoCard({
   const activeIdx =
     playback && activeSlug != null && activeSlug !== ""
       ? playback.orderedSlugs.indexOf(activeSlug)
-      : playback
-        ? 0
-        : -1;
+      : -1;
+  const distance =
+    playback && myIdx >= 0 && activeIdx >= 0 ? Math.abs(myIdx - activeIdx) : Infinity;
 
-  // Ring preloadu:
-  //  - desktop: ±1 (hover zmienia często, więc szerszy ring tylko by zjadał pasmo)
-  //  - mobile : ±2 — kolejny klip zdąży się podciągnąć, zanim użytkownik dotrze do niego przy
-  //    pionowym scrollu; to właśnie daje wrażenie „seamless" ładowania.
+  // Preload ring (ile `<video>` trzymamy w DOM bez niszczenia HLS):
+  //  - desktop: ±1 — hover zmienia często, szerszy ring zjada pasmo bez sensu.
+  //  - mobile : ±2 — kolejny klip zdąży się podciągnąć, zanim user do niego dotrze.
   const preloadRing = playback ? (playback.isDesktop ? 1 : 2) : 0;
-  const mountVideo =
-    hasVideo &&
-    (playback
-      ? myIdx >= 0 && activeIdx >= 0 && Math.abs(myIdx - activeIdx) <= preloadRing
-      : legacyInView);
+  const withinRing =
+    !!playback && activeIdx >= 0 && myIdx >= 0 && distance <= preloadRing;
 
-  const listPlaying = Boolean(playback && hasVideo && playback.activeSlug === offer.slug);
-  const playing = hasVideo && (playback ? listPlaying : legacyInView);
+  const mountVideo = hasVideo && (playback ? withinRing : legacyInView);
+
+  const isListActive = Boolean(
+    playback && hasVideo && playback.activeSlug === offer.slug,
+  );
+  // Priming sąsiedniej karty tylko na mobile (viewport pokazuje ~jeden klip naraz,
+  // więc wideo obok gra „w kulisach" muted — jak w Reels / TikTok).
+  const primedNeighbor =
+    !!playback && !playback.isDesktop && distance === 1 && activeIdx >= 0;
+
+  const playing =
+    hasVideo && (playback ? isListActive || primedNeighbor : legacyInView);
+
+  // Dopóki karta jest tylko primowana (neighbor), wymuszamy mute — dźwięk
+  // odzywa się dopiero gdy karta faktycznie staje się aktywna.
+  const effectiveMuted = isListActive ? muted : true;
 
   useEffect(() => {
     if (visualOnly || playback) return;
@@ -154,11 +164,10 @@ export function VideoCard({
     ? [
         "relative aspect-[9/16] w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-900 shadow-[var(--shadow-cinematic)]",
         "transition-[box-shadow,transform] duration-300",
-        "ring-1 ring-white/10 hover:ring-white/25 hover:shadow-[0_0_0_1px_rgba(242,101,34,0.2),var(--shadow-cinematic)]",
+        "ring-1 ring-white/10 group-hover:ring-white/25 group-hover:shadow-[0_0_0_1px_rgba(242,101,34,0.2),var(--shadow-cinematic)]",
       ].join(" ")
     : "relative aspect-[9/16] w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-800";
 
-  // Top badges (index number + Nowość). Drobne, w rogu — nie zasłaniają właściwego kadru.
   const topRowClass = [
     isHero
       ? "absolute top-3 left-3 right-3 md:top-4 md:left-4 md:right-4"
@@ -171,23 +180,31 @@ export function VideoCard({
     ? "font-display text-[12px] md:text-[13px] text-white/60 leading-none tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
     : "font-display text-[13px] text-white/60 leading-none tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]";
 
-  // Tekst pod filmem — jednakowy układ w obu motywach (katalog i hero strony głównej).
-  // Kadr filmu pozostaje czysty, a istotne elementy nagrania nie znikają pod overlayem.
-  // Motyw hero używa kompaktowych rozmiarów (ciemne tło, mniejsze kafelki w 4 kolumnach / horizontal scroll).
+  // Tekst pod filmem — ten sam układ w katalogu i hero strony głównej.
   const textWrapClass = isHero ? "pt-3 md:pt-3.5" : "pt-4 md:pt-5 px-0.5";
   const eyebrowClass = isHero
     ? "text-[10px] uppercase tracking-[0.18em] text-white/55"
     : "text-[10.5px] uppercase tracking-[0.18em] text-ink-500";
   const titleTextClass = isHero
     ? "mt-1 font-display text-[15px] sm:text-[16px] md:text-[16.5px] leading-[1.15] text-white line-clamp-2 text-balance"
-    : "mt-1.5 font-display text-[20px] md:text-[22px] leading-[1.14] text-ink-950 line-clamp-2 text-balance";
+    : "mt-1.5 font-display text-[20px] md:text-[22px] leading-[1.14] text-ink-950 line-clamp-2 text-balance group-hover:text-brand-600 transition-colors";
   const metaRowClass = isHero
     ? "mt-2 flex items-center justify-between text-[11px] md:text-[11.5px] text-white/65 tabular-nums"
     : "mt-3 flex items-center justify-between text-[12.5px] text-ink-600 tabular-nums";
   const priceClass = isHero ? "font-medium text-white" : "font-medium text-ink-900";
 
+  const hoverArrowClass = isHero
+    ? "mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-white/80 group-hover:text-accent-400 transition-colors"
+    : "mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-ink-900 group-hover:text-brand-500 transition-colors";
+
+  // Cała karta = jeden klikalny link do oferty (shell + tekst + szczegóły).
+  // Dzięki temu klik w tytuł, cenę, miasto itp. też przenosi do oferty.
   return (
-    <div className="video-card group relative">
+    <Link
+      href={`/oferty/${offer.slug}`}
+      aria-label={`Zobacz ofertę: ${offer.title}`}
+      className="video-card group relative block rounded-[var(--radius-lg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
+    >
       <div
         ref={mediaShellRef}
         className={shellClass}
@@ -220,7 +237,7 @@ export function VideoCard({
                 posterUrl={clipPosterUrl}
                 mounted={mountVideo}
                 playing={playing}
-                muted={muted}
+                muted={effectiveMuted}
                 posterPriority={index === 0}
               />
             ) : (
@@ -234,8 +251,7 @@ export function VideoCard({
             )}
           </div>
 
-          {/* Góra: delikatny gradient dla czytelności numeru/"Nowość" na jasnych kadrach.
-              Dół kadru zostawiamy czysty — tekst siedzi pod filmem, nie na nim. */}
+          {/* Górny gradient: czytelność numeru/„Nowość" na jasnych kadrach. */}
           <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-ink-950/55 via-ink-950/15 to-transparent z-[1] pointer-events-none" />
 
           <div className={topRowClass}>
@@ -250,15 +266,7 @@ export function VideoCard({
           </div>
         </div>
 
-        <Link
-          href={`/oferty/${offer.slug}`}
-          className="absolute inset-0 z-[10] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950 rounded-[var(--radius-lg)]"
-          aria-label={`Zobacz ofertę: ${offer.title}`}
-        >
-          <span className="sr-only">{offer.title}</span>
-        </Link>
-
-        {canToggleSound && (
+        {canToggleSound && isListActive && (
           <div className="pointer-events-auto absolute top-2.5 right-2.5 z-[50] md:top-3 md:right-3">
             <VideoSoundIconButton
               muted={muted}
@@ -272,7 +280,6 @@ export function VideoCard({
         )}
       </div>
 
-      {/* Tekst POD filmem — wspólny układ dla katalogu i hero strony głównej. */}
       {!visualOnly && (
         <div className={textWrapClass}>
           <p className={eyebrowClass}>
@@ -297,18 +304,15 @@ export function VideoCard({
           </div>
 
           {showFooter && !isHero && (
-            <Link
-              href={`/oferty/${offer.slug}`}
-              className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-ink-900 hover:text-brand-500 transition-colors"
-            >
+            <span className={hoverArrowClass}>
               Zobacz ofertę
               <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden>
                 <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-            </Link>
+            </span>
           )}
         </div>
       )}
-    </div>
+    </Link>
   );
 }

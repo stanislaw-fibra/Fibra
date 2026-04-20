@@ -257,26 +257,6 @@ export function SprzedajZFibraLanding({
                   konkretni kupujący.
                 </p>
               </Reveal>
-              <Reveal delay={160} className="mt-10 max-w-xl">
-                <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-500 mb-4">Po spacerze 3D online</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="rounded-[var(--radius-md)] border border-ink-200/90 bg-white/60 px-5 py-4 shadow-[var(--shadow-soft)]">
-                    <p className="font-display text-ink-950 leading-none" style={{ fontSize: "clamp(2.25rem, 5vw, 3rem)" }}>
-                      73%
-                    </p>
-                    <p className="mt-2 text-[14px] md:text-[15px] text-ink-600 leading-snug">średnio deklaruje wizytę w nieruchomości</p>
-                  </div>
-                  <div className="rounded-[var(--radius-md)] border border-ink-200/90 bg-paper-warm/95 px-5 py-4">
-                    <p className="font-display text-ink-700 leading-none" style={{ fontSize: "clamp(2.25rem, 5vw, 3rem)" }}>
-                      12%
-                    </p>
-                    <p className="mt-2 text-[14px] md:text-[15px] text-ink-600 leading-snug">gdy nie ma wirtualnego spaceru</p>
-                  </div>
-                </div>
-                <p className="mt-4 text-[13px] text-ink-500 leading-relaxed">
-                  Statystyki orientacyjne - pokazują różnicę w zaangażowaniu kupujących.
-                </p>
-              </Reveal>
             </div>
             <Reveal delay={80}>
               <div className="space-y-3">
@@ -385,8 +365,8 @@ export function SprzedajZFibraLanding({
           <ul className="mt-14 md:mt-16 divide-y divide-ink-200/90">
             {COMPARE.map((row, i) => (
               <Reveal key={row.left} delay={i * 45} as="li" className="list-none py-6 md:py-7">
-                <div className="grid sm:grid-cols-2 gap-6 sm:gap-8">
-                  <div className="flex gap-4 items-start">
+                <div className="grid sm:grid-cols-2 gap-3 sm:gap-8">
+                  <div className="flex gap-4 items-start rounded-lg px-3.5 py-3.5 sm:px-0 sm:py-0">
                     <IconX />
                     <div>
                       <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500 mb-1.5">Zwykłe biuro</p>
@@ -404,11 +384,6 @@ export function SprzedajZFibraLanding({
               </Reveal>
             ))}
           </ul>
-          <Reveal delay={120} className="mt-12 md:mt-14 max-w-2xl">
-            <p className="text-ink-600 text-[16px] md:text-[17px] leading-relaxed">
-              To nie jest kwestia budżetu. To kwestia podejścia. Nasze wynagrodzenie ustalamy indywidualnie - porozmawiaj z nami.
-            </p>
-          </Reveal>
         </div>
       </section>
 

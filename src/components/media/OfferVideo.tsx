@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Hls from "hls.js";
-import { VideoSoundIconButton } from "@/components/media/VideoSoundIconButton";
 import { cloudflareStreamThumbnailUrl } from "@/lib/cloudflare-stream";
 
 type Props = {
@@ -57,8 +56,6 @@ export function OfferVideo({
     }
     return poster;
   }, [streamId, poster]);
-
-  const canToggleSound = Boolean(hlsSrc || videoSrc);
 
   const setMuted = (next: boolean) => {
     if (!controlled) setInternalMuted(next);
@@ -148,7 +145,7 @@ export function OfferVideo({
   };
 
   return (
-    <div className="absolute inset-0 pointer-events-none bg-ink-950">
+    <div className="absolute inset-0 bg-ink-950">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={posterLayerUrl}
@@ -160,34 +157,33 @@ export function OfferVideo({
       />
       <div
         className={[
-          "pointer-events-none absolute inset-0 z-[1] transition-opacity duration-200 ease-out",
+          "absolute inset-0 z-[1] transition-opacity duration-150 ease-out",
           revealVideo ? "opacity-100" : "opacity-0",
         ].join(" ")}
       >
+        {/* Na stronie oferty pokazujemy natywne controls — play/pause, seek, głośność,
+            fullscreen (na mobile krytyczne, bo natywny fullscreen iPhone'owy działa
+            tylko z kontrolkami HTML5 video). Autoplay muted loop działa jak dotąd,
+            ale user może przejąć kontrolę w każdej chwili. */}
         <video
           ref={videoRef}
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover"
           muted={muted}
           loop
           playsInline
+          controls
+          controlsList="nodownload"
           preload={priority ? "auto" : "metadata"}
           aria-label={title}
+          onLoadedData={() => setRevealVideo(true)}
           onPlaying={() => setRevealVideo(true)}
+          onVolumeChange={(e) => {
+            const v = e.currentTarget;
+            setMuted(v.muted);
+          }}
           onEnded={handleEnded}
         />
       </div>
-      {canToggleSound && !hideSoundButton && (
-        <div className="pointer-events-auto absolute top-2.5 right-2.5 z-[40] md:top-3 md:right-3">
-          <VideoSoundIconButton
-            muted={muted}
-            onToggle={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setMuted(!muted);
-            }}
-          />
-        </div>
-      )}
     </div>
   );
 }
