@@ -365,15 +365,15 @@ export function SprzedajZFibraLanding({
           <ul className="mt-14 md:mt-16 divide-y divide-ink-200/90">
             {COMPARE.map((row, i) => (
               <Reveal key={row.left} delay={i * 45} as="li" className="list-none py-6 md:py-7">
-                <div className="grid sm:grid-cols-2 gap-3 sm:gap-8">
-                  <div className="flex gap-4 items-start rounded-lg px-3.5 py-3.5 sm:px-0 sm:py-0">
+                <div className="grid sm:grid-cols-2 gap-3 sm:gap-8 sm:items-stretch">
+                  <div className="flex gap-4 items-center rounded-lg px-3.5 py-3.5 sm:px-0 sm:py-0">
                     <IconX />
                     <div>
                       <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500 mb-1.5">Zwykłe biuro</p>
                       <p className="text-ink-800 text-[16px] leading-snug">{row.left}</p>
                     </div>
                   </div>
-                  <div className="flex gap-4 items-start rounded-lg bg-emerald-50/30 px-3.5 py-3.5 sm:px-5 sm:py-3.5">
+                  <div className="flex gap-4 items-center rounded-lg bg-emerald-50/30 px-3.5 py-3.5 sm:px-5 sm:py-3.5">
                     <IconCheck className="!bg-emerald-500/12 !text-emerald-700" />
                     <div>
                       <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-emerald-800/85 mb-1.5">Fibra</p>

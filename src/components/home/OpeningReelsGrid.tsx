@@ -51,7 +51,7 @@ export function OpeningReelsGrid({ offers }: { offers: Offer[] }) {
         <div className="px-5 pt-2 flex justify-between items-center text-[11px] uppercase tracking-[0.18em] text-white/35">
           <span>Przesuń w bok</span>
           <Link
-            href="/oferty"
+            href="/oferty?view=video"
             className="text-white/70 hover:text-accent-400 transition-colors normal-case tracking-normal text-[13px] font-medium"
           >
             Wszystkie oferty →

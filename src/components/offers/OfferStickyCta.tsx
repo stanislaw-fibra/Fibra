@@ -1,14 +1,13 @@
-import { priceFormat } from "@/lib/offers";
 import { firstName as getFirstName, firstNameGenitive } from "@/lib/polish-names";
 import { AgentAvatar } from "@/components/offers/AgentAvatar";
 
 export function OfferStickyCta({
-  priceFrom,
   title,
   agentName,
   agentPhone,
   agentPhotoUrl,
 }: {
+  /** Props kept for back-compat; price is no longer shown in the sticky bar. */
   priceFrom?: number;
   title: string;
   refNumber?: string;
@@ -25,16 +24,11 @@ export function OfferStickyCta({
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-ink-200/90 bg-[var(--color-paper)]/92 backdrop-blur-xl shadow-[0_-8px_32px_-12px_rgba(11,15,20,0.12)]">
-      <div className="container-xl flex flex-wrap items-center justify-between gap-3 py-3 md:py-3.5">
-        <div className="min-w-0 flex items-baseline gap-3 md:gap-4">
-          <p className="font-display text-[20px] md:text-[24px] text-ink-950 tabular-nums shrink-0">
-            {priceFormat(priceFrom)}
-          </p>
-          <p className="hidden md:block text-[12.5px] text-ink-500 truncate">
-            {title}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 md:gap-3">
+      <div className="container-xl flex items-center justify-between gap-3 py-2.5 md:py-3">
+        <p className="hidden md:block min-w-0 flex-1 text-[12.5px] text-ink-500 truncate">
+          {title}
+        </p>
+        <div className="flex items-center gap-2 md:gap-3 ml-auto">
           <a
             href={askHref}
             className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-brand-500"

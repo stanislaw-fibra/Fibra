@@ -54,12 +54,31 @@ export function Footer() {
               Raz w miesiącu krótki list z najciekawszymi ofertami premium, prosto na Twoją skrzynkę.
             </p>
             <NewsletterForm />
-            <div className="mt-8 flex gap-4">
-              {["Instagram", "YouTube", "LinkedIn"].map((s) => (
-                <a key={s} href="#" className="text-[13px] text-ink-400 hover:text-white transition-colors">
-                  {s}
-                </a>
-              ))}
+            <div className="mt-8 flex items-center gap-3">
+              <a
+                href="https://www.facebook.com/fibra.radlin"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Fibra na Facebooku"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-ink-300 transition-colors hover:border-accent-400/60 hover:bg-white/10 hover:text-accent-400"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                  <path d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.87.25-1.47 1.54-1.47H16.5V4.4c-.29-.04-1.3-.12-2.47-.12-2.45 0-4.13 1.5-4.13 4.24V10.5H7.5v3h2.4V21h3.6z" />
+                </svg>
+              </a>
+              <a
+                href="https://www.instagram.com/grupa_fibra/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Fibra na Instagramie"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-ink-300 transition-colors hover:border-accent-400/60 hover:bg-white/10 hover:text-accent-400"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <rect x="3" y="3" width="18" height="18" rx="5" />
+                  <circle cx="12" cy="12" r="4" />
+                  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+                </svg>
+              </a>
             </div>
           </div>
         </div>

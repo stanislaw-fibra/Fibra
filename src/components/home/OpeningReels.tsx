@@ -37,7 +37,7 @@ export function OpeningReels({ offers }: { offers: Offer[] }) {
 
         <div className="flex flex-wrap items-center gap-3 lg:justify-end lg:pb-1">
           <Link
-            href="/oferty"
+            href="/oferty?view=video"
             className="inline-flex items-center gap-2 rounded-full bg-white text-ink-950 px-6 py-3 text-[13px] font-medium hover:bg-accent-400 hover:text-ink-950 transition-colors duration-300 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.45)]"
           >
             Przeglądaj oferty
@@ -71,7 +71,7 @@ export function OpeningReels({ offers }: { offers: Offer[] }) {
       <div className="container-xl relative shrink-0 pb-10 md:pb-14">
         <div className="hairline-dark-t pt-10 md:pt-14 flex flex-col items-center">
           <Link
-            href="/oferty"
+            href="/oferty?view=video"
             className="inline-flex items-center gap-2.5 rounded-full bg-white text-ink-950 pl-7 pr-6 py-3.5 text-[13px] font-medium hover:bg-accent-400 hover:text-ink-950 transition-colors duration-300 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.45)]"
           >
             Przeglądaj oferty

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 type PopoverProps = {
@@ -30,6 +30,13 @@ export function FilterPopover({
   const btnRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const id = useId();
+  /**
+   * Na mobile panele filtrów potrafiły wychodzić poza lewy/prawy brzeg viewportu
+   * (button przy krawędzi + `min-w-[280px]`). Liczymy ofset horyzontalny
+   * względem kontenera relative tak, żeby panel mieścił się w 100vw z paddingiem.
+   */
+  const [mobileLeft, setMobileLeft] = useState<number | null>(null);
+  const VIEWPORT_PAD = 12; // px, minimalny margines od krawędzi viewportu
 
   useEffect(() => {
     if (!open) return;
@@ -46,6 +53,37 @@ export function FilterPopover({
     return () => {
       document.removeEventListener("mousedown", onDoc);
       document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setMobileLeft(null);
+      return;
+    }
+    const recalc = () => {
+      const btn = btnRef.current;
+      const panel = panelRef.current;
+      if (!btn || !panel) return;
+      if (window.innerWidth >= 640) {
+        setMobileLeft(null); // desktop: zostaw klasowe left-0/right-0
+        return;
+      }
+      const btnRect = btn.getBoundingClientRect();
+      const panelWidth = Math.min(panel.offsetWidth, window.innerWidth - 2 * VIEWPORT_PAD);
+      // Idealny start = button.left; potem clampuj do viewportu.
+      const idealLeft = btnRect.left;
+      const maxLeft = window.innerWidth - VIEWPORT_PAD - panelWidth;
+      const minLeft = VIEWPORT_PAD;
+      const targetLeft = Math.max(minLeft, Math.min(idealLeft, maxLeft));
+      setMobileLeft(targetLeft - btnRect.left); // offset względem buttona (parent relative)
+    };
+    recalc();
+    window.addEventListener("resize", recalc);
+    window.addEventListener("scroll", recalc, { passive: true });
+    return () => {
+      window.removeEventListener("resize", recalc);
+      window.removeEventListener("scroll", recalc);
     };
   }, [open]);
 
@@ -105,11 +143,18 @@ export function FilterPopover({
           ref={panelRef}
           id={id}
           role="dialog"
+          style={
+            mobileLeft != null
+              ? { left: mobileLeft, right: "auto", maxWidth: `calc(100vw - ${VIEWPORT_PAD * 2}px)` }
+              : undefined
+          }
           className={[
             "absolute z-50 mt-2 rounded-[var(--radius-md)] border border-ink-200/80 bg-paper",
             "shadow-[0_24px_60px_-20px_rgba(11,15,20,0.3)] ring-1 ring-ink-900/5",
             "animate-[fadeUp_.18s_ease-out]",
-            align === "end" ? "right-0" : "left-0",
+            // klasowe pozycjonowanie tylko gdy nie nadpisujemy JS-em
+            mobileLeft != null ? "" : align === "end" ? "right-0" : "left-0",
+            "max-w-[calc(100vw-1.5rem)]",
             width,
           ].join(" ")}
         >
