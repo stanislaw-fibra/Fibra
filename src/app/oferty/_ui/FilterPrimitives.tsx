@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 
 type PopoverProps = {
@@ -9,13 +10,39 @@ type PopoverProps = {
   isActive?: boolean;
   icon?: ReactNode;
   children: (close: () => void) => ReactNode;
+  /** Desktop: po której stronie względem trigger-a otwiera się panel. */
   align?: "start" | "end";
+  /** Desktop: minimalna szerokość panelu (Tailwind). */
   width?: string;
+  /** Tytuł wyświetlany w nagłówku bottom-sheet na mobile. Fallback: `label`. */
+  mobileTitle?: string;
 };
 
+const MOBILE_BREAKPOINT = 640; // <= inline bottom-sheet przez portal
+
+function useIsMobile(): boolean {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+    const update = () => setMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return mobile;
+}
+
 /**
- * Lekki Popover przycisk-trigger + overlay z panelem. Bez Radixa — chcemy w 100%
- * kontrolować look & feel. Klikniecie poza panelem, Escape i blur zamykają.
+ * Popover zbudowany pod Fibra-UI:
+ *
+ * - **Desktop (≥640 px)**: zwykły dropdown pod buttonem, align start/end,
+ *   absolutne pozycjonowanie, z-50.
+ * - **Mobile (<640 px)**: bottom-sheet renderowany przez portal do `body`
+ *   z własnym backdropem (z-[70]/z-[71]). Dzięki portalowi panel NIE jest
+ *   uwięziony w żadnym stacking contextcie strony (sticky bar, kontenery z
+ *   transform/filter/etc.) — jest zawsze on top, nawet nad odtwarzanym wideo.
+ *   Dodatkowo na mobile blokujemy scroll body, żeby gesty działały tylko
+ *   na liście opcji.
  */
 export function FilterPopover({
   label,
@@ -25,18 +52,18 @@ export function FilterPopover({
   children,
   align = "start",
   width = "min-w-[280px]",
+  mobileTitle,
 }: PopoverProps) {
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const id = useId();
-  /**
-   * Na mobile panele filtrów potrafiły wychodzić poza lewy/prawy brzeg viewportu
-   * (button przy krawędzi + `min-w-[280px]`). Liczymy ofset horyzontalny
-   * względem kontenera relative tak, żeby panel mieścił się w 100vw z paddingiem.
-   */
-  const [mobileLeft, setMobileLeft] = useState<number | null>(null);
-  const VIEWPORT_PAD = 12; // px, minimalny margines od krawędzi viewportu
+  const isMobile = useIsMobile();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -56,38 +83,70 @@ export function FilterPopover({
     };
   }, [open]);
 
-  useLayoutEffect(() => {
-    if (!open) {
-      setMobileLeft(null);
-      return;
-    }
-    const recalc = () => {
-      const btn = btnRef.current;
-      const panel = panelRef.current;
-      if (!btn || !panel) return;
-      if (window.innerWidth >= 640) {
-        setMobileLeft(null); // desktop: zostaw klasowe left-0/right-0
-        return;
-      }
-      const btnRect = btn.getBoundingClientRect();
-      const panelWidth = Math.min(panel.offsetWidth, window.innerWidth - 2 * VIEWPORT_PAD);
-      // Idealny start = button.left; potem clampuj do viewportu.
-      const idealLeft = btnRect.left;
-      const maxLeft = window.innerWidth - VIEWPORT_PAD - panelWidth;
-      const minLeft = VIEWPORT_PAD;
-      const targetLeft = Math.max(minLeft, Math.min(idealLeft, maxLeft));
-      setMobileLeft(targetLeft - btnRect.left); // offset względem buttona (parent relative)
-    };
-    recalc();
-    window.addEventListener("resize", recalc);
-    window.addEventListener("scroll", recalc, { passive: true });
+  // Lock scroll body tylko dla bottom-sheeta na mobile.
+  useEffect(() => {
+    if (!open || !isMobile) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     return () => {
-      window.removeEventListener("resize", recalc);
-      window.removeEventListener("scroll", recalc);
+      document.body.style.overflow = prev;
     };
-  }, [open]);
+  }, [open, isMobile]);
 
   const close = () => setOpen(false);
+
+  const headerTitle =
+    typeof mobileTitle === "string"
+      ? mobileTitle
+      : typeof label === "string"
+        ? label
+        : "Filtr";
+
+  const sheet =
+    open && isMobile && mounted ? (
+      <div
+        className="fixed inset-0 z-[70] flex flex-col justify-end"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`${id}-title`}
+      >
+        <button
+          type="button"
+          aria-label="Zamknij"
+          onClick={close}
+          className="absolute inset-0 bg-ink-950/55 backdrop-blur-[2px] animate-[sheetFade_.22s_ease-out] cursor-default"
+        />
+        <div
+          ref={panelRef}
+          className="relative z-[71] mx-auto w-full max-w-[520px] rounded-t-[var(--radius-lg)] bg-paper shadow-[0_-24px_60px_-20px_rgba(11,15,20,0.45)] ring-1 ring-ink-900/5 animate-[sheetUp_.28s_cubic-bezier(0.22,1,0.36,1)] max-h-[78dvh] flex flex-col pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+        >
+          <style>{`
+            @keyframes sheetFade { from { opacity: 0 } to { opacity: 1 } }
+            @keyframes sheetUp { from { transform: translateY(100%); opacity: 0.7 } to { transform: translateY(0); opacity: 1 } }
+          `}</style>
+          <div className="flex flex-col pt-2.5 pb-2">
+            <span className="mx-auto h-1 w-10 rounded-full bg-ink-300/80" aria-hidden />
+            <div className="mt-2.5 flex items-center justify-between gap-3 px-5">
+              <h3 id={`${id}-title`} className="font-medium text-ink-950 text-[15px]">
+                {headerTitle}
+              </h3>
+              <button
+                type="button"
+                onClick={close}
+                aria-label="Zamknij"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-500 hover:bg-ink-100 hover:text-ink-900 transition-colors cursor-pointer"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+                  <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div className="h-px bg-ink-200/80" />
+          <div className="flex-1 overflow-y-auto px-2 pt-2 pb-3">{children(close)}</div>
+        </div>
+      </div>
+    ) : null;
 
   return (
     <div className="relative inline-block">
@@ -138,23 +197,18 @@ export function FilterPopover({
         </svg>
       </button>
 
-      {open && (
+      {/* Desktop dropdown (inline, absolute). Nie renderujemy gdy jesteśmy na mobile
+          — tam obsługuje to bottom-sheet przez portal. */}
+      {open && !isMobile && (
         <div
           ref={panelRef}
           id={id}
           role="dialog"
-          style={
-            mobileLeft != null
-              ? { left: mobileLeft, right: "auto", maxWidth: `calc(100vw - ${VIEWPORT_PAD * 2}px)` }
-              : undefined
-          }
           className={[
             "absolute z-50 mt-2 rounded-[var(--radius-md)] border border-ink-200/80 bg-paper",
             "shadow-[0_24px_60px_-20px_rgba(11,15,20,0.3)] ring-1 ring-ink-900/5",
             "animate-[fadeUp_.18s_ease-out]",
-            // klasowe pozycjonowanie tylko gdy nie nadpisujemy JS-em
-            mobileLeft != null ? "" : align === "end" ? "right-0" : "left-0",
-            "max-w-[calc(100vw-1.5rem)]",
+            align === "end" ? "right-0" : "left-0",
             width,
           ].join(" ")}
         >
@@ -162,6 +216,8 @@ export function FilterPopover({
           {children(close)}
         </div>
       )}
+
+      {sheet && mounted ? createPortal(sheet, document.body) : null}
     </div>
   );
 }
