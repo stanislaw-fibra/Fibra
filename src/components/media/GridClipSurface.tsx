@@ -41,8 +41,15 @@ function destroyHls(hlsRef: { current: Hls | null }, video: HTMLVideoElement | n
 }
 
 /**
- * Klip na karcie listy: poster zawsze pod wideo; wideo z fade dopiero po `onPlaying`.
- * Przy `mounted` i `!playing` - pauza zamiast niszczenia HLS (sąsiednie karty preloadują segmenty).
+ * Klip na karcie listy: poster zawsze pod wideo; reveal ekspozycją po
+ * `onLoadedData` (pierwsza klatka gotowa) — to najszybszy moment, w którym
+ * możemy pokazać wideo zamiast miniatury. Po ujawnieniu klatki wideo
+ * NIE chowamy go przy pauzie — żeby kolejne scrolle nie „mrugały"
+ * w rytmie plakat → film → plakat. Efekt netto: TikTok-owe przewijanie.
+ *
+ * Sąsiednie, niegrające sloty (w ringu) są „priming" — HLS dopala
+ * pierwszy segment, więc przy zmianie aktywnej karty `play()` zachodzi
+ * praktycznie natychmiast.
  */
 export function GridClipSurface({
   title,
@@ -57,15 +64,12 @@ export function GridClipSurface({
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [revealVideo, setRevealVideo] = useState(false);
+  const [firstFrameReady, setFirstFrameReady] = useState(false);
 
   const hlsSrc = useMemo(() => {
     if (!streamId) return null;
     return `https://videodelivery.net/${streamId}/manifest/video.m3u8`;
   }, [streamId]);
-
-  useEffect(() => {
-    if (!playing) setRevealVideo(false);
-  }, [playing]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -76,6 +80,8 @@ export function GridClipSurface({
   useEffect(() => {
     if (!mounted) {
       destroyHls(hlsRef, videoRef.current);
+      setFirstFrameReady(false);
+      setRevealVideo(false);
       return;
     }
 
@@ -94,9 +100,19 @@ export function GridClipSurface({
       if (canNativeHls) {
         video.src = hlsSrc;
       } else if (Hls.isSupported()) {
+        // Tuning pod szybki pierwszy frame (Tik-Tok-like):
+        //  - startLevel 0 (najniższa jakość najpierw = najszybciej),
+        //  - krótki bufor (minimum potrzebne by start był płynny),
+        //  - agresywny prefetch + fast ABR.
         const hls = new Hls({
           enableWorker: true,
           lowLatencyMode: true,
+          startLevel: 0,
+          maxBufferLength: 6,
+          maxMaxBufferLength: 20,
+          backBufferLength: 0,
+          testBandwidth: false,
+          progressive: true,
         });
         hls.loadSource(hlsSrc);
         hls.attachMedia(video);
@@ -108,7 +124,6 @@ export function GridClipSurface({
 
     return () => {
       destroyHls(hlsRef, videoRef.current);
-      setRevealVideo(false);
     };
   }, [mounted, hlsSrc, videoSrc]);
 
@@ -116,6 +131,8 @@ export function GridClipSurface({
     const v = videoRef.current;
     if (!mounted || !v) return;
     if (playing) {
+      // Jeśli pierwsza klatka już jest, od razu pokaż wideo (nie czekamy na onPlaying).
+      if (firstFrameReady) setRevealVideo(true);
       void v.play().catch(() => void 0);
     } else {
       try {
@@ -124,7 +141,7 @@ export function GridClipSurface({
         // ignore
       }
     }
-  }, [playing, mounted]);
+  }, [playing, mounted, firstFrameReady]);
 
   return (
     <div className="absolute inset-0 bg-ink-950">
@@ -140,7 +157,7 @@ export function GridClipSurface({
       {mounted ? (
         <div
           className={[
-            "absolute inset-0 z-[1] pointer-events-none transition-opacity duration-200 ease-out",
+            "absolute inset-0 z-[1] pointer-events-none transition-opacity duration-100 ease-out",
             revealVideo ? "opacity-100" : "opacity-0",
           ].join(" ")}
         >
@@ -152,6 +169,13 @@ export function GridClipSurface({
             playsInline
             preload="auto"
             aria-label={title}
+            onLoadedData={() => {
+              setFirstFrameReady(true);
+              if (playing) setRevealVideo(true);
+            }}
+            onCanPlay={() => {
+              if (playing) setRevealVideo(true);
+            }}
             onPlaying={() => setRevealVideo(true)}
           />
         </div>

@@ -18,6 +18,8 @@ import { RelatedOffersWithPlayback } from "@/components/offers/RelatedOffersWith
 import { OfferHeroMedia } from "@/components/offers/OfferHeroMedia";
 import { OfferMatterport } from "@/components/offers/OfferMatterport";
 import { OfferYouTube } from "@/components/offers/OfferYouTube";
+import { GalleryLightboxProvider } from "@/components/offers/GalleryLightbox";
+import { OfferMiniGallery } from "@/components/offers/OfferMiniGallery";
 import { firstNameInstrumental } from "@/lib/polish-names";
 
 export const revalidate = 60;
@@ -80,6 +82,7 @@ export default async function OfferPage({
   return (
     <>
       <Nav />
+      <GalleryLightboxProvider images={gallery} title={offer.title}>
       <main className="flex-1 pt-[72px] pb-28 md:pb-32">
         <section className="relative py-10 md:py-16 border-b border-ink-200/80">
           <div className="container-xl">
@@ -98,8 +101,8 @@ export default async function OfferPage({
             <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
               <div className={`${heroStreamId ? "lg:col-span-5" : "lg:col-span-6"} order-1 lg:sticky lg:top-[88px]`}>
                 {heroStreamId ? (
-                  <>
-                    <div className="relative aspect-[9/15] w-full max-w-[520px] mx-auto lg:mx-0 overflow-hidden rounded-[var(--radius-lg)] bg-ink-900 shadow-[var(--shadow-cinematic)] ring-1 ring-ink-200/60">
+                  <div className="max-w-[520px] mx-auto lg:mx-0">
+                    <div className="relative aspect-[9/15] w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-900 shadow-[var(--shadow-cinematic)] ring-1 ring-ink-200/60">
                       <OfferVideo
                         title={offer.title}
                         poster={offer.poster}
@@ -121,7 +124,10 @@ export default async function OfferPage({
                         )}
                       </div>
                     </div>
-                  </>
+                    {gallery.length > 0 && (
+                      <OfferMiniGallery images={gallery} className="mt-5" />
+                    )}
+                  </div>
                 ) : (
                   <OfferHeroMedia
                     title={offer.title}
@@ -407,6 +413,7 @@ export default async function OfferPage({
           </div>
         </section>
       </main>
+      </GalleryLightboxProvider>
       <OfferStickyCta
         priceFrom={offer.priceFrom}
         title={offer.title}
