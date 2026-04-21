@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   createContext,
   useCallback,
@@ -35,6 +36,9 @@ const SWIPE_PX = 56;
  * Provider pokazujący wspólny lightbox dla wszystkich miniaturek galerii na stronie oferty
  * (mini-strip pod hero + pełna siatka w sekcji #galeria). Dzięki jednemu źródłu stanu
  * kliknięcie miniaturki otwiera pełny podgląd natychmiast — bez przewijania do sekcji galerii.
+ *
+ * Obrazy są serwowane przez `next/image` (AVIF/WebP + responsywność), a sąsiedzi
+ * (open−1, open+1) są preloadowani w tle, żeby strzałki/swipe działały natychmiast.
  */
 export function GalleryLightboxProvider({
   images,
@@ -50,6 +54,20 @@ export function GalleryLightboxProvider({
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const lastTriggerRef = useRef<HTMLElement | null>(null);
   const touchStartX = useRef<number | null>(null);
+  const thumbsRef = useRef<HTMLDivElement>(null);
+
+  // Track which images already finished loading — pozwala pokazać spinner tylko
+  // dla tych, które user otworzył pierwszy raz. Kolejne wejścia w to samo
+  // zdjęcie są natychmiastowe (HTTP cache + browser image cache).
+  const [loadedSet, setLoadedSet] = useState<Set<number>>(() => new Set());
+  const markLoaded = useCallback((idx: number) => {
+    setLoadedSet((prev) => {
+      if (prev.has(idx)) return prev;
+      const next = new Set(prev);
+      next.add(idx);
+      return next;
+    });
+  }, []);
 
   useEffect(() => setMounted(true), []);
 
@@ -103,6 +121,16 @@ export function GalleryLightboxProvider({
     closeBtnRef.current?.focus({ preventScroll: true });
   }, [open]);
 
+  // Przewiń aktywną miniaturkę do widoku w pasku (żeby user widział kontekst).
+  useEffect(() => {
+    if (open === null) return;
+    const container = thumbsRef.current;
+    if (!container) return;
+    const active = container.querySelector<HTMLButtonElement>(`[data-thumb-idx="${open}"]`);
+    if (!active) return;
+    active.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [open]);
+
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0]?.clientX ?? null;
   };
@@ -123,6 +151,19 @@ export function GalleryLightboxProvider({
     [images, title, open, openAt, close, go],
   );
 
+  // Pozycje, które trzymamy zamontowane w DOM-ie (obok aktywnej - preload).
+  // Dzięki temu next-/prev- obraz jest już pobrany zanim user machnie palcem.
+  const mountedIdxs = useMemo(() => {
+    if (open === null || images.length === 0) return new Set<number>();
+    const n = images.length;
+    const set = new Set<number>([open]);
+    if (n > 1) {
+      set.add((open + 1) % n);
+      set.add((open - 1 + n) % n);
+    }
+    return set;
+  }, [open, images.length]);
+
   const portal =
     mounted && images.length > 0 ? (
       <AnimatePresence>
@@ -134,7 +175,7 @@ export function GalleryLightboxProvider({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.24, ease }}
+            transition={{ duration: 0.2, ease }}
           >
             <motion.button
               type="button"
@@ -143,7 +184,7 @@ export function GalleryLightboxProvider({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.3, ease }}
+              transition={{ duration: 0.22, ease }}
               onClick={close}
             />
 
@@ -152,10 +193,10 @@ export function GalleryLightboxProvider({
               aria-modal="true"
               aria-label={`Powiększona galeria: ${title}`}
               className="pointer-events-none relative z-10 flex max-h-[min(92vh,920px)] w-full max-w-[min(1240px,calc(100vw-2rem))] flex-col items-center"
-              initial={{ opacity: 0, scale: 0.97, y: 10 }}
+              initial={{ opacity: 0, scale: 0.98, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98, y: 8 }}
-              transition={{ duration: 0.34, ease }}
+              exit={{ opacity: 0, scale: 0.99, y: 4 }}
+              transition={{ duration: 0.22, ease }}
             >
               <div
                 className="pointer-events-auto relative flex w-full max-w-full flex-col items-center"
@@ -204,28 +245,59 @@ export function GalleryLightboxProvider({
                 )}
 
                 <div
-                  className="mt-12 w-full flex min-h-0 flex-1 items-center justify-center"
+                  className="mt-12 relative w-full min-h-[min(78vh,760px)] flex items-center justify-center select-none"
                   onTouchStart={onTouchStart}
                   onTouchEnd={onTouchEnd}
                 >
-                  <AnimatePresence mode="wait" initial={false}>
-                    <motion.div
-                      key={open}
-                      className="relative flex max-h-[min(78vh,760px)] w-full items-center justify-center"
-                      initial={{ opacity: 0, scale: 0.99 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.995 }}
-                      transition={{ duration: 0.2, ease }}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={images[open]}
-                        alt={`${title} - zdjęcie ${open + 1} z ${images.length}`}
-                        className="max-h-[min(78vh,760px)] w-auto max-w-full object-contain rounded-[var(--radius-md)] shadow-[0_24px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/10"
-                        draggable={false}
-                      />
-                    </motion.div>
-                  </AnimatePresence>
+                  {/* Warstwa preloadowanych sąsiadów: wszystkie są w DOM,
+                      widoczny jest tylko `open`. Przejścia strzałka/swipe są natychmiastowe. */}
+                  {images.map((src, i) => {
+                    if (!mountedIdxs.has(i)) return null;
+                    const isActive = i === open;
+                    const isLoaded = loadedSet.has(i);
+                    return (
+                      <div
+                        key={`slide-${i}`}
+                        className={[
+                          "absolute inset-0 flex items-center justify-center",
+                          "transition-opacity duration-150 ease-out",
+                          isActive ? "opacity-100 z-[2]" : "opacity-0 z-0 pointer-events-none",
+                        ].join(" ")}
+                        aria-hidden={!isActive}
+                      >
+                        {/* Skeleton/spinner do czasu, aż obraz się zdekoduje. */}
+                        {isActive && !isLoaded && (
+                          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                            <div
+                              className="h-12 w-12 rounded-full border-2 border-white/25 border-t-white/85 animate-spin"
+                              aria-label="Wczytywanie zdjęcia"
+                              role="status"
+                            />
+                          </div>
+                        )}
+                        <Image
+                          src={src}
+                          alt={isActive ? `${title} - zdjęcie ${i + 1} z ${images.length}` : ""}
+                          width={1600}
+                          height={1200}
+                          sizes="(min-width: 1280px) 1240px, 95vw"
+                          quality={78}
+                          priority={isActive}
+                          fetchPriority={isActive ? "high" : "auto"}
+                          onLoad={() => markLoaded(i)}
+                          onError={() => markLoaded(i)}
+                          unoptimized={false}
+                          className={[
+                            "max-h-[min(78vh,760px)] w-auto max-w-full object-contain rounded-[var(--radius-md)]",
+                            "shadow-[0_24px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
+                            isLoaded ? "opacity-100" : "opacity-0",
+                            "transition-opacity duration-200 ease-out",
+                          ].join(" ")}
+                          draggable={false}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <p className="mt-4 text-center text-[11px] uppercase tracking-[0.22em] text-white/45 sm:hidden tabular-nums">
@@ -233,11 +305,15 @@ export function GalleryLightboxProvider({
                 </p>
 
                 {images.length > 1 && (
-                  <div className="mt-5 flex max-w-full gap-2 overflow-x-auto pb-1 pt-1 [scrollbar-width:thin]">
+                  <div
+                    ref={thumbsRef}
+                    className="mt-5 flex max-w-full gap-2 overflow-x-auto pb-1 pt-1 [scrollbar-width:thin]"
+                  >
                     {images.map((src, i) => (
                       <button
                         key={`thumb-${i}`}
                         type="button"
+                        data-thumb-idx={i}
                         onClick={() => setOpen(i)}
                         aria-label={`Miniatura ${i + 1}`}
                         aria-current={i === open ? "true" : undefined}
@@ -246,8 +322,14 @@ export function GalleryLightboxProvider({
                           i === open ? "ring-white opacity-100" : "ring-transparent opacity-55 hover:opacity-90",
                         ].join(" ")}
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={src} alt="" className="h-full w-full object-cover" />
+                        <Image
+                          src={src}
+                          alt=""
+                          fill
+                          sizes="56px"
+                          quality={60}
+                          className="object-cover"
+                        />
                       </button>
                     ))}
                   </div>
