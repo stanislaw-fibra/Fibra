@@ -44,7 +44,7 @@ export function VideoCard({
 
   const clipPosterUrl = useMemo(() => {
     if (offer.streamId) {
-      const u = cloudflareStreamThumbnailUrl(offer.streamId, { time: "1s", height: 720 });
+      const u = cloudflareStreamThumbnailUrl(offer.streamId, { time: "1s", height: 600 });
       if (u) return u;
     }
     return offer.poster;
@@ -229,6 +229,8 @@ export function VideoCard({
                 alt={offer.title}
                 className="absolute inset-0 h-full w-full object-cover"
                 loading={priority ? "eager" : "lazy"}
+                fetchPriority={priority ? "high" : "auto"}
+                decoding={priority ? "sync" : "async"}
               />
             ) : hasVideo ? (
               <GridClipSurface
@@ -248,6 +250,8 @@ export function VideoCard({
                 alt={offer.title}
                 className="absolute inset-0 h-full w-full object-cover"
                 loading={priority ? "eager" : "lazy"}
+                fetchPriority={priority ? "high" : "auto"}
+                decoding={priority ? "sync" : "async"}
               />
             )}
           </div>

@@ -51,7 +51,7 @@ export function OfferVideo({
 
   const posterLayerUrl = useMemo(() => {
     if (streamId) {
-      const u = cloudflareStreamThumbnailUrl(streamId, { time: "1s", height: 720 });
+      const u = cloudflareStreamThumbnailUrl(streamId, { time: "1s", height: 600 });
       if (u) return u;
     }
     return poster;

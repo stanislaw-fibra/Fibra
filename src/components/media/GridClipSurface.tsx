@@ -151,6 +151,8 @@ export function GridClipSurface({
         alt=""
         className="absolute inset-0 z-0 h-full w-full object-cover"
         loading={posterPriority ? "eager" : "lazy"}
+        fetchPriority={posterPriority ? "high" : "auto"}
+        decoding={posterPriority ? "sync" : "async"}
         draggable={false}
         aria-hidden
       />

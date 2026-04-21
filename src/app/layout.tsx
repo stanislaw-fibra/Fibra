@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Instrument_Serif } from "next/font/google";
 import { AnalyticsScripts } from "@/components/consent/AnalyticsScripts";
 import { CookieConsent } from "@/components/consent/CookieConsent";
+import { getCloudflareStreamCustomerCode } from "@/lib/cloudflare-stream";
 import "./globals.css";
 
 const inter = Inter({
@@ -34,11 +35,38 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const cfCustomerCode = getCloudflareStreamCustomerCode();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "") ?? null;
+
   return (
     <html
       lang="pl"
       className={`${inter.variable} ${instrument.variable} h-full scroll-smooth`}
     >
+      <head>
+        {/* Preconnect do źródeł LCP (posterów wideo). Oszczędza ~300 ms TTFB dla pierwszych kafelków hero. */}
+        <link rel="preconnect" href="https://videodelivery.net" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://videodelivery.net" />
+        {cfCustomerCode ? (
+          <>
+            <link
+              rel="preconnect"
+              href={`https://customer-${cfCustomerCode}.cloudflarestream.com`}
+              crossOrigin="anonymous"
+            />
+            <link
+              rel="dns-prefetch"
+              href={`https://customer-${cfCustomerCode}.cloudflarestream.com`}
+            />
+          </>
+        ) : null}
+        {supabaseUrl ? (
+          <>
+            <link rel="preconnect" href={supabaseUrl} crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href={supabaseUrl} />
+          </>
+        ) : null}
+      </head>
       <body className="min-h-full flex flex-col bg-[var(--color-paper)] text-ink-900">
         {children}
         <CookieConsent />

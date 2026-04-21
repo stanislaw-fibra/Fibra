@@ -118,14 +118,14 @@ export function HomeIntro() {
                 src={FOUNDER_PHOTO}
                 alt="Bartosz Nosiadek - Założyciel, Prezes Zarządu Fibra"
                 fill
-                sizes="(min-width: 1024px) 40vw, (min-width: 768px) 70vw, 90vw"
+                sizes="(min-width: 1024px) 40vw, (min-width: 640px) 60vw, 92vw"
                 className="object-cover"
                 style={{
                   objectPosition: "center 58%",
                   transform: "scale(1.1)",
                   transformOrigin: "center 45%",
                 }}
-                quality={82}
+                quality={72}
               />
               <div
                 className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-ink-950/75 via-ink-950/25 to-transparent"

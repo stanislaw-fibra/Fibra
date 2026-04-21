@@ -42,7 +42,11 @@ export function cloudflareStreamThumbnailViaDeliveryNet(
 export type CloudflareThumbnailOpts = {
   /** Domyślnie `1s` - klatka z treści, nie czarny start. */
   time?: string;
-  /** Domyślnie 720. */
+  /**
+   * Domyślnie 600 px - wystarcza dla retina (card ~300 px wide × 2 DPR),
+   * a jednocześnie oszczędza ~17% wagi względem poprzedniego 720
+   * (Lighthouse: miniatura 404×720 vs wyświetlane 300×535 flagowała jako za duża).
+   */
   height?: number;
 };
 
@@ -55,7 +59,7 @@ export function cloudflareStreamThumbnailUrl(
   const id = sanitizeCloudflareVideoId(videoId);
   if (!code || !id) return null;
   const time = opts?.time ?? "1s";
-  const height = opts?.height ?? 720;
+  const height = opts?.height ?? 600;
   const base = `https://customer-${code}.cloudflarestream.com/${encodeURIComponent(id)}/thumbnails/thumbnail.jpg`;
   return `${base}?time=${encodeURIComponent(time)}&height=${height}`;
 }

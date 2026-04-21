@@ -75,6 +75,10 @@ export function ListVideoPlaybackProvider({
   const [hoverSlug, setHoverSlug] = useState<string | null>(null);
   const [debouncedHoverSlug, setDebouncedHoverSlug] = useState<string | null>(null);
   const [mobilePick, setMobilePick] = useState<string | null>(() => orderedSlugs[0] ?? null);
+  // Gate mountu wideo: zanim plakat pierwszego kafelka nie wygra wyścigu LCP,
+  // nie inicjalizujemy HLS/manifestów. Odpalamy `ready` po rAF + krótkim idle,
+  // czyli praktycznie po pierwszym malowaniu strony. To zwalnia sieć pod LCP.
+  const [ready, setReady] = useState(false);
   const ratiosRef = useRef<Map<string, number>>(new Map());
   const rafRef = useRef<number | null>(null);
 
@@ -83,6 +87,18 @@ export function ListVideoPlaybackProvider({
     setMobilePick(orderedSlugs[0] ?? null);
     ratiosRef.current.clear();
   }, [slugOrderKey, orderedSlugs]);
+
+  useEffect(() => {
+    let raf = 0;
+    let timeoutId = 0;
+    raf = window.requestAnimationFrame(() => {
+      timeoutId = window.setTimeout(() => setReady(true), 250);
+    });
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
 
   useEffect(() => {
     setHoverSlug(null);
@@ -139,13 +155,14 @@ export function ListVideoPlaybackProvider({
 
   const activeSlug = useMemo(() => {
     if (!enabled) return null;
+    if (!ready) return null;
     const first = orderedSlugs[0] ?? null;
     if (isDesktop) {
       if (desktopRequireHover) return debouncedHoverSlug ?? null;
       return debouncedHoverSlug ?? first;
     }
     return mobilePick ?? first;
-  }, [enabled, desktopRequireHover, debouncedHoverSlug, isDesktop, mobilePick, orderedSlugs]);
+  }, [enabled, ready, desktopRequireHover, debouncedHoverSlug, isDesktop, mobilePick, orderedSlugs]);
 
   const value = useMemo(
     (): ListVideoPlaybackContextValue => ({
