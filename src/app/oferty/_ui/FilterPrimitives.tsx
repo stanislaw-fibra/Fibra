@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 
@@ -265,14 +265,28 @@ export function PopoverToggle({
   );
 }
 
-/** Para pól od-do. */
+function numDraft(v: number | undefined): string {
+  return v != null && Number.isFinite(v) ? String(v) : "";
+}
+
+function parseNumDraft(s: string): number | undefined {
+  const t = s.trim().replace(/\s/g, "").replace(",", ".");
+  if (t === "") return undefined;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+/**
+ * Para pól od-do — wartości w URL / filtrach aktualizujemy dopiero po **zakończeniu edycji**
+ * (blur lub Enter), żeby nie odpalać `router.replace` i przeładowywać listy przy każdej cyfrze.
+ */
 export function RangeInputs({
   min,
   max,
   onMin,
   onMax,
   unit,
-  step = 1,
+  step: _step = 1,
   placeholderMin,
   placeholderMax,
 }: {
@@ -281,39 +295,71 @@ export function RangeInputs({
   onMin: (v?: number) => void;
   onMax: (v?: number) => void;
   unit: string;
+  /** Zarezerwowane na przyszłość (wcześniej przekazywane do `<input type="number">`). */
   step?: number;
   placeholderMin?: string;
   placeholderMax?: string;
 }) {
+  const [draftMin, setDraftMin] = useState(() => numDraft(min));
+  const [draftMax, setDraftMax] = useState(() => numDraft(max));
+
+  useEffect(() => {
+    setDraftMin(numDraft(min));
+    setDraftMax(numDraft(max));
+  }, [min, max]);
+
+  const commitMin = () => {
+    const v = parseNumDraft(draftMin);
+    if (v !== min) onMin(v);
+  };
+  const commitMax = () => {
+    const v = parseNumDraft(draftMax);
+    if (v !== max) onMax(v);
+  };
+
+  const onEnter = (e: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    commitMin();
+    commitMax();
+    e.currentTarget.blur();
+  };
+
   return (
     <div className="grid grid-cols-2 gap-2">
       <label className="relative">
         <input
-          type="number"
-          inputMode="numeric"
-          step={step}
-          value={min ?? ""}
-          onChange={(e) => onMin(e.target.value === "" ? undefined : Number(e.target.value))}
+          type="text"
+          inputMode="decimal"
+          value={draftMin}
+          onChange={(e) => setDraftMin(e.target.value)}
+          onBlur={commitMin}
+          onKeyDown={onEnter}
           placeholder={placeholderMin ?? "od"}
           className="w-full rounded-[var(--radius-sm)] border border-ink-200 bg-paper px-3 py-2.5 text-[13.5px] text-ink-900 placeholder:text-ink-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
         />
-        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-ink-500">
-          {unit}
-        </span>
+        {unit ? (
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-ink-500">
+            {unit}
+          </span>
+        ) : null}
       </label>
       <label className="relative">
         <input
-          type="number"
-          inputMode="numeric"
-          step={step}
-          value={max ?? ""}
-          onChange={(e) => onMax(e.target.value === "" ? undefined : Number(e.target.value))}
+          type="text"
+          inputMode="decimal"
+          value={draftMax}
+          onChange={(e) => setDraftMax(e.target.value)}
+          onBlur={commitMax}
+          onKeyDown={onEnter}
           placeholder={placeholderMax ?? "do"}
           className="w-full rounded-[var(--radius-sm)] border border-ink-200 bg-paper px-3 py-2.5 text-[13.5px] text-ink-900 placeholder:text-ink-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
         />
-        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-ink-500">
-          {unit}
-        </span>
+        {unit ? (
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-ink-500">
+            {unit}
+          </span>
+        ) : null}
       </label>
     </div>
   );

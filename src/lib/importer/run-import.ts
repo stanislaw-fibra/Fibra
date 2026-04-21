@@ -31,6 +31,10 @@ export interface ImportSummary {
   message?: string;
 }
 
+// Gałąź biznesowa Fibry, z której pochodzi dany eksport XML-owy.
+// Na razie free-text; produkcyjnie używamy 'developerka' | 'posrednictwo' | 'finansowanie' | 'unknown'.
+export type SourceBranch = string;
+
 export interface RunImportOptions {
   // Ścieżka do lokalnego XML (dev / testy). Pomija FTP.
   localXmlPath?: string;
@@ -47,11 +51,20 @@ export interface RunImportOptions {
   force?: boolean;
   // Dry-run: parsuj XML, pokazuj ile zdjęć by się wgrało, ale NIC nie wysyłaj do Supabase.
   dryRun?: boolean;
+  // Gałąź biznesowa, której dotyczy TEN konkretny plik wejściowy. Zapisywana do
+  // offers.source_branch (tylko przy INSERT — patrz offer-sync) i import_runs.source_branch.
+  sourceBranch?: SourceBranch;
+  // Przy eksporcie 'calosc' dezaktywuj oferty z TEJ SAMEJ gałęzi, których nie ma
+  // w pliku. Domyślnie WYŁĄCZONE — bez wyraźnej zgody nie ruszamy stanu is_active
+  // (unikamy przypadkowego wyczyszczenia drugiej gałęzi, gdy nie wiemy jeszcze,
+  // jak Galactica rozbije eksporty per branch).
+  deactivateMissingInBranch?: boolean;
 }
 
 export async function runImport(opts: RunImportOptions = {}): Promise<ImportSummary> {
   const started = Date.now();
   const supabase = createSupabaseAdmin();
+  const sourceBranch = (opts.sourceBranch ?? "unknown").trim() || "unknown";
 
   const summary: ImportSummary = {
     runId: null,
@@ -124,21 +137,32 @@ export async function runImport(opts: RunImportOptions = {}): Promise<ImportSumm
   summary.import_type =
     parsed.header.zawartosc_pliku === "calosc" ? "full" : "diff";
 
-  // 3. Zaloguj start w import_runs
+  // 3. Zaloguj start w import_runs. Kolumna `source_branch` jest dołożona osobną
+  //    migracją — jeśli jeszcze nie jest wdrożona w tej instancji Supabase,
+  //    upadamy na fallback bez tego pola zamiast wywalać import.
   try {
-    const { data: run, error } = await supabase
+    const payload: Record<string, unknown> = {
+      status: "running",
+      source_filename: sourceFilename,
+      import_type: summary.import_type,
+      source_branch: sourceBranch,
+    };
+    let insert = await supabase
       .from("import_runs")
-      .insert({
-        status: "running",
-        source_filename: sourceFilename,
-        import_type: summary.import_type,
-      })
+      .insert(payload)
       .select("id")
       .single();
-    if (error) throw error;
-    summary.runId = run.id;
+    if (insert.error && /source_branch/i.test(insert.error.message ?? "")) {
+      delete payload.source_branch;
+      insert = await supabase
+        .from("import_runs")
+        .insert(payload)
+        .select("id")
+        .single();
+    }
+    if (insert.error) throw insert.error;
+    summary.runId = insert.data?.id ?? null;
   } catch (e) {
-    // Jeśli logowanie się wywali — kontynuuj, ale zapisz błąd.
     summary.errors.push({ step: "import_runs.insert", message: errMsg(e) });
   }
 
@@ -169,7 +193,7 @@ export async function runImport(opts: RunImportOptions = {}): Promise<ImportSumm
       }
 
       // 4b. Oferta
-      const offerResult = await upsertOffer(supabase, mapped, agentId);
+      const offerResult = await upsertOffer(supabase, mapped, agentId, sourceBranch);
       if (offerResult.action === "created") summary.offers_created++;
       else if (offerResult.action === "updated") summary.offers_updated++;
       else if (offerResult.action === "skipped") summary.offers_skipped++;
@@ -219,11 +243,14 @@ export async function runImport(opts: RunImportOptions = {}): Promise<ImportSumm
     }
   }
 
-  // 6. Eksport pełny → dezaktywuj brakujące (poza MANUAL-*)
-  if (summary.import_type === "full") {
+  // 6. Eksport pełny → dezaktywuj brakujące, ALE tylko w obrębie tej samej gałęzi
+  //    i TYLKO jeżeli wywołujący wyraźnie na to zgodził się (deactivateMissingInBranch).
+  //    Bez flagi nie ruszamy is_active — unikamy wyczyszczenia drugiej gałęzi,
+  //    zanim będziemy mieli pewność, co dokładnie zawiera każdy eksport z Galactiki.
+  if (summary.import_type === "full" && opts.deactivateMissingInBranch) {
     try {
       const presentIds = parsed.offers.map((o) => o.id);
-      const deactivated = await deactivateMissingOffers(supabase, presentIds);
+      const deactivated = await deactivateMissingOffers(supabase, presentIds, sourceBranch);
       summary.offers_deleted += deactivated;
     } catch (e) {
       summary.errors.push({ step: "full_diff_deactivate", message: errMsg(e) });

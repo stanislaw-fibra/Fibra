@@ -121,6 +121,11 @@ export default async function OfferPage({
                             {statusLabel(offer.statusOferty)}
                           </span>
                         )}
+                        {offer.virtualTourUrl && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-950/55 backdrop-blur-md text-white px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em]">
+                            Spacer 3D
+                          </span>
+                        )}
                       </div>
                     </div>
                     {gallery.length > 0 && (
@@ -267,6 +272,8 @@ export default async function OfferPage({
                 Krótki kontakt
               </p>
               <OfferAgentMini
+                offerId={offer.id}
+                galacticaOfferId={offer.refNumber}
                 offerTitle={offer.title}
                 agentName={offer.agentName}
                 agentEmail={offer.agentEmail}
@@ -374,6 +381,8 @@ export default async function OfferPage({
             </Reveal>
             <Reveal delay={120} className="max-w-3xl">
               <OfferContactForm
+                offerId={offer.id}
+                galacticaOfferId={offer.refNumber}
                 offerTitle={offer.title}
                 refNumber={offer.refNumber}
                 agentName={offer.agentName}

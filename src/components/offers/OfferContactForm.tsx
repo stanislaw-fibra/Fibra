@@ -6,6 +6,7 @@ import {
   firstNameGenitive,
   firstNameInstrumental,
 } from "@/lib/polish-names";
+import { submitLead } from "@/lib/leads-client";
 
 type Topic = "prezentacja" | "materialy" | "inne";
 
@@ -32,12 +33,16 @@ function topicFromHash(hash: string): Topic | null {
 }
 
 export function OfferContactForm({
+  offerId,
+  galacticaOfferId,
   offerTitle,
   refNumber,
   agentName,
   agentEmail,
   agentPhone,
 }: {
+  offerId?: string;
+  galacticaOfferId?: string;
   offerTitle: string;
   refNumber?: string;
   agentName?: string;
@@ -46,6 +51,9 @@ export function OfferContactForm({
 }) {
   const [topic, setTopic] = useState<Topic>("inne");
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [newsletter, setNewsletter] = useState(false);
 
   useEffect(() => {
     const applyFromHash = () => {
@@ -89,9 +97,39 @@ export function OfferContactForm({
         </div>
       ) : (
         <form
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
-            setSent(true);
+            if (sending) return;
+            setError(null);
+            setSending(true);
+            try {
+              const fd = new FormData(e.currentTarget);
+              const name = String(fd.get("name") || "").trim();
+              const phone = String(fd.get("phone") || "").trim();
+              const email = String(fd.get("email") || "").trim();
+              const message = String(fd.get("message") || "").trim();
+              const topicVal = String(fd.get("topic") || "").trim();
+              const composed =
+                [topicVal ? `Temat: ${TOPIC_LABELS[topicVal as Topic] ?? topicVal}` : null, message || null]
+                  .filter(Boolean)
+                  .join("\n\n") || null;
+
+              await submitLead({
+                source: "offer_page",
+                offer_id: offerId ?? null,
+                galactica_offer_id: galacticaOfferId ?? refNumber ?? null,
+                full_name: name,
+                phone,
+                email,
+                message: composed,
+                newsletter_consent: newsletter,
+              });
+              setSent(true);
+            } catch (err) {
+              setError(err instanceof Error ? err.message : "Nie udało się wysłać. Spróbuj ponownie.");
+            } finally {
+              setSending(false);
+            }
           }}
         >
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -155,13 +193,13 @@ export function OfferContactForm({
           <div className="mt-7 grid gap-5 md:grid-cols-2">
             <label className="block">
               <span className="text-[12px] font-medium uppercase tracking-[0.14em] text-ink-500">
-                Imię
+                Imię i nazwisko
               </span>
               <input
                 name="name"
                 required
                 autoComplete="given-name"
-                placeholder="np. Anna"
+                placeholder="np. Anna Kowalska"
                 className="mt-2 w-full rounded-[var(--radius-sm)] border border-ink-200 bg-ink-50/80 px-4 py-3 text-[15px] outline-none transition-colors focus:border-brand-500 focus:bg-white"
               />
             </label>
@@ -209,6 +247,24 @@ export function OfferContactForm({
           {agentEmail && <input type="hidden" name="agent_email" value={agentEmail} />}
           {agentName && <input type="hidden" name="agent_name" value={agentName} />}
 
+          <div className="mt-6">
+            <label className="flex items-start gap-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={newsletter}
+                onChange={(e) => setNewsletter(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-200"
+              />
+              <span className="text-[13px] leading-relaxed text-ink-700">
+                Chcę otrzymywać informacje o nowych ofertach
+              </span>
+            </label>
+          </div>
+
+          {error ? (
+            <p className="mt-4 text-[13px] text-red-600">{error}</p>
+          ) : null}
+
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <p className="order-2 text-[11.5px] leading-relaxed text-ink-500 sm:order-1 sm:max-w-[22rem]">
               Wiadomość trafi
@@ -232,9 +288,17 @@ export function OfferContactForm({
             </p>
             <button
               type="submit"
-              className="order-1 inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-ink-900 px-7 py-3.5 text-[14px] font-medium text-white transition-colors hover:bg-brand-500 sm:order-2"
+              disabled={sending}
+              className={[
+                "order-1 inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full px-7 py-3.5 text-[14px] font-medium text-white transition-colors sm:order-2",
+                sending ? "bg-ink-900/70 cursor-wait" : "bg-ink-900 hover:bg-brand-500",
+              ].join(" ")}
             >
-              {firstNameGen ? `Wyślij do ${firstNameGen}` : "Wyślij wiadomość"}
+              {sending
+                ? "Wysyłanie…"
+                : firstNameGen
+                  ? `Wyślij do ${firstNameGen}`
+                  : "Wyślij wiadomość"}
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                 <path
                   d="M3 7h8M7 3l4 4-4 4"

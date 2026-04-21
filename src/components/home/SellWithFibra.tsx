@@ -51,15 +51,6 @@ export function SellWithFibra() {
                   <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </Link>
-              <Link
-                href="/sprzedaj-z-fibra#jak-dzialamy"
-                className="inline-flex items-center gap-2 text-[13px] font-medium text-ink-900 hover:text-brand-500 transition-colors"
-              >
-                Zobacz jak działamy
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-                  <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </Link>
             </div>
           </motion.div>
 

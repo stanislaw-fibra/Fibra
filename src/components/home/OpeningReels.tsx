@@ -59,7 +59,7 @@ export function OpeningReels({ offers }: { offers: Offer[] }) {
             Aktualne <em className="italic text-accent-400">oferty</em>
           </h2>
           <p className="mt-4 text-[15px] md:text-[16px] text-white/55 max-w-[52ch] leading-[1.55]">
-            Przeglądaj oferty w formie krótkich wideo i wchodź dalej tylko wtedy, gdy naprawdę coś Cię zatrzyma.
+            Przeglądaj nasze oferty w formie krótkich filmów.
           </p>
         </div>
       </div>

@@ -38,6 +38,7 @@ export function VideoCard({
   const [legacyInView, setLegacyInView] = useState(false);
 
   const hasVideo = !!offer.videoSrc || !!offer.streamId;
+  const hasTour3d = Boolean(offer.virtualTourUrl?.trim());
   const showFooter = showCardFooter && variant === "primary";
   const canToggleSound = !visualOnly && hasVideo;
 
@@ -260,6 +261,11 @@ export function VideoCard({
               {offer.isNew && (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-400 text-ink-950 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] shadow-[0_2px_10px_-2px_rgba(0,0,0,0.4)]">
                   Nowość
+                </span>
+              )}
+              {hasTour3d && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-950/70 backdrop-blur-md text-white px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] shadow-[0_2px_10px_-2px_rgba(0,0,0,0.35)]">
+                  Spacer 3D
                 </span>
               )}
             </div>

@@ -12,27 +12,27 @@ const STEPS: { n: string; title: string; body: string }[] = [
   {
     n: "01",
     title: "Wycena i strategia",
-    body: "Oglądamy nieruchomość, analizujemy rynek i ustalamy strategię cenową. Nie „widełki 400–500 tysięcy\" - konkretna cena z uzasadnieniem.",
+    body: "Oglądamy nieruchomość, analizujemy lokalny rynek i pomagamy ustalić cenę, która ma uzasadnienie w realiach rynku. To ważny etap, bo dobrze ustawiona oferta daje lepszy start całemu procesowi sprzedaży.",
   },
   {
     n: "02",
     title: "Film i spacer 3D",
-    body: "Nagrywamy profesjonalny film i robimy wirtualny spacer Matterport. Kupujący zobaczą każdy pokój, każdy kąt, każdy widok z okna - zanim umówią się na wizytę. Do Twoich drzwi trafiają tylko poważni ludzie.",
+    body: "Przygotowujemy film oraz wirtualny spacer 3D Matterport, dzięki którym kupujący mogą lepiej poznać nieruchomość jeszcze przed wizytą. To ułatwia podjęcie decyzji o kontakcie i pozwala lepiej zaprezentować układ oraz charakter wnętrza.",
   },
   {
     n: "03",
-    title: "Oferta, nie ogłoszenie",
-    body: "Tworzymy materiały, które wyglądają jak katalog, nie jak tablica ogłoszeń. Profesjonalne zdjęcia, przemyślany opis, rzuty 2D, karta oferty PDF. Wszystko spójne, wszystko dopracowane.",
+    title: "Oferta, która jest dopracowana",
+    body: "Tworzymy profesjonalne materiały sprzedażowe: zdjęcia, opis, rzuty 2D i kartę oferty PDF. Dbamy o to, żeby całość była spójna, estetyczna i czytelna dla osoby, która realnie rozważa zakup.",
   },
   {
     n: "04",
-    title: "Promocja, nie publikacja",
-    body: "Oferta trafia na portale, do naszych baz, kampanii reklamowych i sieci kontaktów. Nie czekamy - aktywnie szukamy kupującego.",
+    title: "Promocja oferty",
+    body: "Publikujemy ofertę w odpowiednich miejscach i dbamy o jej dobrą ekspozycję. W zależności od nieruchomości korzystamy z portali, własnych kanałów oraz sieci kontaktów, żeby dotrzeć do potencjalnych kupujących.",
   },
   {
     n: "05",
-    title: "Finalizacja",
-    body: "Prowadzimy formalną stronę transakcji. Kredyt, umowy, notariusz - jeśli chcesz, robimy to za Ciebie. Ty podpisujesz, my ogarniamy resztę.",
+    title: "Finalizacja transakcji",
+    body: "Pomagamy przejść przez formalną stronę sprzedaży. Jeśli jest taka potrzeba, wspieramy również w kwestiach związanych z dokumentami, kredytem czy organizacją spotkania u notariusza.",
   },
 ];
 
@@ -52,12 +52,12 @@ const CLIENT_QUOTES: { quote: string; name: string; context: string }[] = [
 ];
 
 const COMPARE: { left: string; right: string }[] = [
-  { left: "Zdjęcia telefonem", right: "Profesjonalna sesja + film" },
-  { left: "Opis z szablonu", right: "Przemyślany tekst pod kupującego" },
-  { left: "Ogłoszenie na portalu", right: "Strategia promocji na wielu kanałach" },
-  { left: "Czekanie na telefon", right: "Aktywne dotarcie do kupujących" },
-  { left: "„Zadzwoń po szczegóły\"", right: "Spacer 3D, rzuty, karta PDF - wszystko online" },
-  { left: "Cena „widełki\"", right: "Konkretna wycena z analizą rynku" },
+  { left: "Standardowa galeria zdjęć", right: "Profesjonalne zdjęcia, film i spacer 3D" },
+  { left: "Krótki, schematyczny opis", right: "Dopracowana prezentacja oferty" },
+  { left: "Samo ogłoszenie na portalu", right: "Szersze przygotowanie i promocja oferty" },
+  { left: "Kontakt dopiero po publikacji", right: "Proces zaplanowany od początku" },
+  { left: "Podstawowe informacje", right: "Zdjęcia, rzuty, karta PDF i prezentacja 3D" },
+  { left: "Orientacyjna wycena", right: "Cena oparta na analizie rynku" },
 ];
 
 function IconX({ className }: { className?: string }) {
@@ -105,16 +105,16 @@ export function SprzedajZFibraLanding({
                   Twoja nieruchomość
                 </Reveal>
                 <Reveal as="span" className="block" delay={90}>
-                  zasługuje na więcej
+                  zasługuje na
                 </Reveal>
                 <Reveal as="span" className="block" delay={180}>
-                  niż zdjęcie i ogłoszenie.
+                  <span className="text-accent-400 italic">więcej niż tylko ogłoszenie.</span>
                 </Reveal>
               </h1>
               <Reveal delay={260} className="mt-8 md:mt-10 max-w-xl">
                 <p className="text-lg md:text-xl text-ink-400 leading-relaxed">
-                  Fibra to nie biuro ogłoszeń. To zespół, który pokaże Twoją nieruchomość tak, że kupujący poczują ją,
-                  zanim przekroczą próg.
+                  W Fibrze dbamy o to, żeby oferta była dobrze przygotowana, atrakcyjnie pokazana i trafiała do właściwych osób.
+                  Łączymy doświadczenie w nieruchomościach z nowoczesną prezentacją, dzięki czemu sprzedaż jest lepiej zaplanowana od samego początku.
                 </p>
               </Reveal>
               <Reveal delay={340} className="mt-10 md:mt-12 flex flex-col sm:flex-row flex-wrap gap-4">
@@ -154,28 +154,34 @@ export function SprzedajZFibraLanding({
       <section className="relative py-24 md:py-32 bg-paper-warm" aria-labelledby="sprzedaj-problem-heading">
         <div className="container-xl">
           <h2 id="sprzedaj-problem-heading" className="eyebrow mb-14 md:mb-20 max-w-3xl">
-            DLACZEGO ZWYKŁE OGŁOSZENIE NIE WYSTARCZA
+            DLACZEGO SAMO OGŁOSZENIE CZĘSTO NIE WYSTARCZA
           </h2>
           <div className="grid md:grid-cols-3 gap-12 md:gap-0 md:divide-x md:divide-ink-200/80">
             <Reveal className="md:pr-10 lg:pr-14" delay={0}>
-              <p className="font-display text-ink-950 text-2xl md:text-[1.65rem] leading-snug tracking-tight mb-4">Zdjęcia telefonem, opis z szablonu</p>
+              <p className="font-display text-ink-950 text-2xl md:text-[1.65rem] leading-snug tracking-tight mb-4">
+                Brak uwagi klienta
+              </p>
               <p className="text-ink-600 text-[17px] leading-relaxed max-w-md">
-                Większość ogłoszeń wygląda tak samo. Kupujący przewija setki identycznych ofert i nie zatrzymuje się na żadnej. Twoja
-                nieruchomość ginie w tłumie - nawet jeśli jest wyjątkowa.
+                Wiele ofert wygląda bardzo podobnie. Kupujący przeglądają dziesiątki ogłoszeń i często zatrzymują się tylko przy tych,
+                które od razu przyciągają uwagę. Nawet dobra nieruchomość może zostać pominięta, jeśli nie zostanie odpowiednio pokazana.
               </p>
             </Reveal>
             <Reveal className="md:px-10 lg:px-14" delay={100}>
-              <p className="font-display text-ink-950 text-2xl md:text-[1.65rem] leading-snug tracking-tight mb-4">Strategia „czekamy na klienta”</p>
+              <p className="font-display text-ink-950 text-2xl md:text-[1.65rem] leading-snug tracking-tight mb-4">
+                Publikacja bez konkretnego planu
+              </p>
               <p className="text-ink-600 text-[17px] leading-relaxed max-w-md">
-                Tradycyjne biuro wrzuca ogłoszenie i czeka. Nikt nie zastanawia się, kto jest idealnym kupującym, jak do niego dotrzeć i co
-                go przekona. To loteria, nie sprzedaż.
+                Samo dodanie ogłoszenia to dopiero początek. Liczy się także to, do kogo oferta ma trafić, jak ją zaprezentować i jak
+                poprowadzić cały proces, żeby zwiększyć szansę na sprawną sprzedaż.
               </p>
             </Reveal>
             <Reveal className="md:pl-10 lg:pl-14" delay={200}>
-              <p className="font-display text-ink-950 text-2xl md:text-[1.65rem] leading-snug tracking-tight mb-4">Miesiące na rynku, obniżki ceny</p>
+              <p className="font-display text-ink-950 text-2xl md:text-[1.65rem] leading-snug tracking-tight mb-4">
+                Długi czas sprzedaży i presja na obniżki
+              </p>
               <p className="text-ink-600 text-[17px] leading-relaxed max-w-md">
-                Im dłużej nieruchomość stoi na portalu, tym gorzej wygląda w oczach kupujących. Każda obniżka to sygnał: „coś jest nie
-                tak”. A wystarczyło dobrze zacząć.
+                Kiedy nieruchomość długo pozostaje na rynku, kupujący zaczynają zadawać sobie pytanie, z czego to wynika. Dlatego tak
+                ważne jest dobre przygotowanie oferty już na starcie.
               </p>
             </Reveal>
           </div>
@@ -191,15 +197,15 @@ export function SprzedajZFibraLanding({
             <div className="lg:col-span-5 lg:sticky lg:top-28 lg:self-start">
               <Reveal>
                 <h2 className="font-display text-white tracking-tight leading-[0.98]" style={{ fontSize: "clamp(2rem, 4vw, 3.25rem)" }}>
-                  Nie wrzucamy ogłoszenia.
+                  Nie zaczynamy od publikacji,
                   <br />
-                  Budujemy ofertę.
+                  tylko od przygotowania oferty.
                 </h2>
               </Reveal>
               <Reveal delay={80} className="mt-6">
                 <p className="text-ink-400 text-lg md:text-xl leading-relaxed max-w-md">
-                  Każda nieruchomość przechodzi u nas ten sam proces - bo to on sprawia, że kupujący dzwonią w pierwszym tygodniu, a nie po
-                  trzech miesiącach.
+                  Każdą nieruchomość prowadzimy według uporządkowanego procesu. Dzięki temu oferta od początku jest przemyślana, spójna i
+                  gotowa do pokazania kupującym w najlepszy możliwy sposób.
                 </p>
               </Reveal>
             </div>
@@ -242,19 +248,18 @@ export function SprzedajZFibraLanding({
                 <h2 className="font-display text-ink-950 tracking-tight leading-[0.98] max-w-[18ch]" style={{ fontSize: "clamp(2rem, 4vw, 3.15rem)" }}>
                   Wirtualny spacer 3D
                   <br />
-                  to u nas standard.
+                  to u nas ważny element
                   <br />
-                  Nie opcja premium.
+                  prezentacji oferty.
                 </h2>
               </Reveal>
               <Reveal delay={90} className="mt-8 space-y-5 text-ink-600 text-[17px] md:text-lg leading-relaxed max-w-xl">
                 <p>
-                  Kupujący wchodzą do środka nieruchomości przed przyjazdem. Widzą rzeczywisty układ, mierzą ściany do centymetra,
-                  sprawdzają czy sofa zmieści się w salonie.
+                  Dzięki spacerowi 3D kupujący mogą zobaczyć układ nieruchomości jeszcze przed wizytą na miejscu. To wygodna forma
+                  prezentacji, która pozwala lepiej zrozumieć przestrzeń i ocenić, czy dana oferta rzeczywiście odpowiada ich potrzebom.
                 </p>
                 <p>
-                  Efekt: do Twoich drzwi trafiają ludzie, którzy już wiedzą, że chcą tę nieruchomość. Nie turyści, nie ciekawscy -
-                  konkretni kupujący.
+                  W praktyce oznacza to lepiej przygotowane zapytania i bardziej świadome wizyty.
                 </p>
               </Reveal>
             </div>
@@ -289,19 +294,21 @@ export function SprzedajZFibraLanding({
             <div className="min-w-0 w-full max-w-xl shrink lg:pr-2">
               <Reveal>
                 <h2 className="font-display text-white tracking-tight leading-[0.98] break-words" style={{ fontSize: "clamp(2rem, 4.5vw, 3.5rem)" }}>
-                  30 sekund filmu
+                  Krótki film
                   <br />
-                  mówi więcej niż
+                  potrafi pokazać więcej
                   <br />
-                  30 zdjęć.
+                  niż sama galeria zdjęć.
                 </h2>
               </Reveal>
               <Reveal delay={90} className="mt-8 space-y-5 text-ink-400 text-[17px] md:text-lg leading-relaxed">
                 <p>
-                  Każda nieruchomość w Fibrze ma swój krótki film. Nie slideshow ze zdjęć z muzyką - prawdziwe wideo, które oddaje klimat,
-                  przestrzeń i światło.
+                  Dlatego do prezentacji nieruchomości przygotowujemy również krótkie wideo. Taki materiał pomaga pokazać przestrzeń,
+                  światło i ogólny charakter wnętrza w sposób, którego same zdjęcia często nie oddają.
                 </p>
-                <p>Kupujący przewijają oferty jak stories. Film zatrzymuje ich palec. Zdjęcie - nie.</p>
+                <p>
+                  Dla kupującego to szybki i wygodny sposób, żeby lepiej poczuć nieruchomość jeszcze przed kontaktem.
+                </p>
               </Reveal>
             </div>
             <div className="flex w-full shrink-0 justify-center lg:w-[clamp(300px,32vw,420px)] lg:justify-end">
@@ -429,8 +436,8 @@ export function SprzedajZFibraLanding({
           </Reveal>
           <Reveal delay={100} className="mt-8">
             <p className="text-ink-400 text-lg md:text-xl leading-relaxed">
-              Opowiedz nam o swojej nieruchomości. Powiemy Ci, ile jest warta, jak ją pokażemy i ile czasu zajmie sprzedaż. Jeśli uznasz, że
-              to ma sens - działamy.
+              Opowiedz nam o swojej nieruchomości. Powiemy Ci, jak widzimy jej potencjał, jak możemy ją pokazać i jak wyglądałby cały
+              proces sprzedaży. Jeśli uznasz, że to dobre rozwiązanie, przejdziemy do kolejnych kroków.
             </p>
           </Reveal>
           <Reveal delay={180} className="mt-12 md:mt-14 flex flex-col sm:flex-row flex-wrap justify-center gap-4">

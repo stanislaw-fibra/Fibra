@@ -73,19 +73,19 @@ const PILLARS: { n: string; title: string; body: string }[] = [
     n: "01",
     title: "Deweloperka",
     body:
-      "Budujemy osiedla mieszkaniowe w regionie rybnickim. Ponad 170 apartamentów w siedmiu budynkach. Każda inwestycja pod klucz — od projektu po zarządzanie najmem.",
+      "Realizujemy własne inwestycje mieszkaniowe w regionie rybnickim. Prowadzimy je od etapu projektu, przez budowę, aż po sprzedaż gotowych lokali.",
   },
   {
     n: "02",
     title: "Pośrednictwo",
     body:
-      "Pomagamy w sprzedaży, kupnie i wynajmie nieruchomości. Jedno z największych biur w regionie, ponad 100 transakcji rocznie.",
+      "Pomagamy w sprzedaży, zakupie i wynajmie nieruchomości. Wspieramy klientów na każdym etapie i dbamy o to, żeby cały proces był dobrze zorganizowany.",
   },
   {
     n: "03",
     title: "Finansowanie",
     body:
-      "Dobieramy kredyt hipoteczny dopasowany do Twojej sytuacji. Bez dodatkowych kosztów — prowizję pokrywa bank.",
+      "Pomagamy w uzyskaniu kredytu hipotecznego dopasowanego do konkretnej sytuacji. Klient nie ponosi kosztu naszej obsługi, ponieważ wynagrodzenie doradcy pokrywa bank.",
   },
 ];
 
@@ -119,8 +119,9 @@ export default function OFibrzePage() {
               </Reveal>
               <Reveal delay={180}>
                 <p className="mt-5 md:mt-8 text-[16px] md:text-[19px] leading-[1.55] text-ink-600 text-pretty">
-                  Fibra to deweloper, biuro nieruchomości i doradca finansowy w jednym. Działamy na
-                  Śląsku od 2011 roku.
+                  Fibra to zespół, który łączy doświadczenie w budowie mieszkań, obrocie nieruchomościami i
+                  finansowaniu zakupu. Działamy na Śląsku od 2011 roku, koncentrując się przede wszystkim na rynku
+                  lokalnym i na tym, żeby dobrze przeprowadzić klienta przez cały proces.
                 </p>
               </Reveal>
             </div>
@@ -145,7 +146,7 @@ export default function OFibrzePage() {
                   className="font-display text-white tracking-tight leading-[1.05] text-balance"
                   style={{ fontSize: "clamp(1.75rem, 4vw, 3rem)" }}
                 >
-                  Trzy filary, jedna odpowiedzialność.
+                  Trzy obszary, które dobrze się uzupełniają.
                 </h2>
               </Reveal>
             </div>

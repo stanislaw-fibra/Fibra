@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { submitLead } from "@/lib/leads-client";
 
 const TOPICS = ["Sprzedaż", "Kupno", "Wynajem", "Inne"] as const;
 
@@ -14,6 +15,9 @@ export function KontaktPage() {
   const [topic, setTopic] = useState<string | null>(null);
   const [topicError, setTopicError] = useState(false);
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [newsletter, setNewsletter] = useState(false);
 
   return (
     <>
@@ -36,14 +40,45 @@ export function KontaktPage() {
                   </div>
                 ) : (
                   <form
-                    onSubmit={(e) => {
+                    onSubmit={async (e) => {
                       e.preventDefault();
+                      if (sending) return;
                       if (!topic) {
                         setTopicError(true);
                         return;
                       }
                       setTopicError(false);
-                      setSent(true);
+                      setError(null);
+                      setSending(true);
+                      try {
+                        const fd = new FormData(e.currentTarget);
+                        const full_name = String(fd.get("name") || "").trim();
+                        const contact = String(fd.get("contact") || "").trim();
+                        const message = String(fd.get("message") || "").trim();
+                        const email = contact.includes("@") ? contact : "";
+                        const phone = email ? "" : contact;
+                        const composed =
+                          [
+                            topic ? `Temat: ${topic}` : null,
+                            message || null,
+                          ]
+                            .filter(Boolean)
+                            .join("\n\n") || null;
+
+                        await submitLead({
+                          source: "contact_page",
+                          full_name,
+                          email,
+                          phone,
+                          message: composed,
+                          newsletter_consent: newsletter,
+                        });
+                        setSent(true);
+                      } catch (err) {
+                        setError(err instanceof Error ? err.message : "Nie udało się wysłać. Spróbuj ponownie.");
+                      } finally {
+                        setSending(false);
+                      }
                     }}
                   >
                     <h2 className="font-display text-ink-950 tracking-tight" style={{ fontSize: "clamp(1.65rem, 3vw, 2.1rem)" }}>
@@ -106,6 +141,22 @@ export function KontaktPage() {
                       </label>
                     </div>
 
+                    <div className="mt-6">
+                      <label className="flex items-start gap-3 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={newsletter}
+                          onChange={(e) => setNewsletter(e.target.checked)}
+                          className="mt-1 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-200"
+                        />
+                        <span className="text-[13px] leading-relaxed text-ink-700">
+                          Chcę otrzymywać informacje o nowych ofertach
+                        </span>
+                      </label>
+                    </div>
+
+                    {error ? <p className="mt-4 text-[13px] text-red-600">{error}</p> : null}
+
                     <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                       <p className="order-2 text-[11.5px] leading-relaxed text-ink-500 sm:order-1 sm:max-w-[20rem]">
                         Wysyłając, zgadzasz się na przetwarzanie danych zgodnie z{" "}
@@ -119,9 +170,13 @@ export function KontaktPage() {
                       </p>
                       <button
                         type="submit"
-                        className="order-1 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-ink-900 px-8 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-brand-500 sm:order-2 sm:w-auto"
+                        disabled={sending}
+                        className={[
+                          "order-1 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full px-8 py-3.5 text-[15px] font-medium text-white transition-colors sm:order-2 sm:w-auto",
+                          sending ? "bg-ink-900/70 cursor-wait" : "bg-ink-900 hover:bg-brand-500",
+                        ].join(" ")}
                       >
-                        Wyślij wiadomość
+                        {sending ? "Wysyłanie…" : "Wyślij wiadomość"}
                         <span aria-hidden>→</span>
                       </button>
                     </div>

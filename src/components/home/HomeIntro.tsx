@@ -55,15 +55,16 @@ export function HomeIntro() {
               variants={fadeUp}
               className="mt-8 max-w-[48ch] text-[17px] md:text-[18px] leading-[1.6] text-ink-700"
             >
-              Fibra to specjaliści od obrotu nieruchomościami, budownictwa, architektury i finansowania - zebrani w
-              jednym miejscu. Działamy w powiecie rybnickim i wodzisławskim od ponad 15 lat.
+              Fibra Nieruchomości to ludzie, którzy od lat zajmują się nieruchomościami, budownictwem, architekturą i
+              finansowaniem. Działamy głównie w powiecie rybnickim i wodzisławskim, pomagając klientom przejść przez
+              cały proces zakupu, sprzedaży lub znalezienia odpowiedniej nieruchomości.
             </motion.p>
             <motion.p
               variants={fadeUp}
               className="mt-5 max-w-[48ch] text-[17px] md:text-[18px] leading-[1.6] text-ink-700"
             >
-              Obsługujemy zarówno kupujących własne mieszkanie, jak i inwestorów szukających lokali na wynajem. Znamy tu
-              każdy blok i każdą ulicę.
+              Pracujemy zarówno z osobami, które szukają miejsca do życia, jak i z inwestorami kupującymi mieszkania na
+              wynajem. Ważna jest dla nas uczciwość, zaufanie i dobra, konkretna obsługa.
             </motion.p>
             <motion.div variants={fadeUp} className="mt-10 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
               <Link

@@ -3,23 +3,15 @@
 import Link from "next/link";
 import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { submitLead } from "@/lib/leads-client";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-const BUDGETS = [
-  { id: "lt1", label: "< 1 mln", hint: "zł" },
-  { id: "1-2", label: "1–2 mln", hint: "zł" },
-  { id: "2-5", label: "2–5 mln", hint: "zł" },
-  { id: "5-10", label: "5–10 mln", hint: "zł" },
-  { id: "gt10", label: "> 10 mln", hint: "zł" },
-] as const;
-
-const INTENTS = ["Kupić", "Sprzedać", "Wynająć", "Zainwestować", "Inne"] as const;
-
 export function LeadCapture() {
-  const [budget, setBudget] = useState<string | null>(null);
-  const [intent, setIntent] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [newsletter, setNewsletter] = useState(false);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
 
@@ -83,9 +75,31 @@ export function LeadCapture() {
           >
             <form
               className="bg-white text-ink-900 p-8 md:p-10 rounded-[var(--radius-lg)] shadow-[var(--shadow-cinematic)]"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                setSent(true);
+                if (sending) return;
+                setError(null);
+                setSending(true);
+                try {
+                  const fd = new FormData(e.currentTarget);
+                  const full_name = String(fd.get("name") || "").trim();
+                  const phone = String(fd.get("phone") || "").trim();
+                  const message = String(fd.get("message") || "").trim();
+
+                  await submitLead({
+                    source: "home_form",
+                    full_name,
+                    phone,
+                    message: message.length ? message : null,
+                    newsletter_consent: newsletter,
+                  });
+
+                  setSent(true);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Nie udało się wysłać. Spróbuj ponownie.");
+                } finally {
+                  setSending(false);
+                }
               }}
             >
               {sent ? (
@@ -102,58 +116,45 @@ export function LeadCapture() {
                   </div>
                   <h3 className="font-display text-[34px] text-ink-950 mb-3">Dziękujemy.</h3>
                   <p className="text-[15px] text-ink-600 max-w-sm mx-auto">
-                    Odezwiemy się w ciągu 24h z pierwszą, przemyślaną rekomendacją.
+                    Oddzwonimy możliwie szybko — zwykle w ciągu kilku godzin w dni robocze.
                   </p>
                 </motion.div>
               ) : (
                 <>
-                  <p className="eyebrow text-ink-500 mb-6">Krótka wiadomość - 60 sekund</p>
-
-                  <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <Field label="Imię" name="name" required placeholder="Anna" />
-                    <Field label="E-mail" name="email" type="email" required placeholder="anna@example.com" />
-                    <Field label="Telefon" name="phone" type="tel" placeholder="+48 …" />
-                    <Field label="Miasto / lokalizacja" name="city" placeholder="Radlin, Rybnik, Wodzisław…" />
+                    <Field label="Telefon" name="phone" type="tel" required placeholder="+48 ..." />
                   </div>
 
-                  <div className="mt-8">
-                    <p className="text-[12px] font-medium uppercase tracking-[0.14em] text-ink-500 mb-3">Chcę</p>
-                    <div className="flex flex-wrap gap-2">
-                      {INTENTS.map((k) => (
-                        <Chip key={k} active={intent === k} onClick={() => setIntent(k)}>
-                          {k}
-                        </Chip>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mt-6">
-                    <p className="text-[12px] font-medium uppercase tracking-[0.14em] text-ink-500 mb-3">Budżet</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-                      {BUDGETS.map((b) => (
-                        <BudgetTile
-                          key={b.id}
-                          active={budget === b.id}
-                          onClick={() => setBudget(b.id)}
-                          label={b.label}
-                          hint={b.hint}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mt-6">
+                  <div className="mt-4">
                     <label className="block">
                       <span className="text-[12px] font-medium uppercase tracking-[0.14em] text-ink-500">
-                        Notatka (opcjonalnie)
+                        Wiadomość <span className="text-ink-400 normal-case tracking-normal">(opcjonalnie)</span>
                       </span>
                       <textarea
+                        name="message"
                         rows={3}
-                        placeholder="Czego szukasz? Co jest ważne?"
+                        placeholder="Czym możemy Ci pomóc?"
                         className="mt-2 w-full bg-ink-50 focus:bg-white border border-ink-200 focus:border-brand-500 rounded-[var(--radius-sm)] px-4 py-3 text-[14px] outline-none transition-colors resize-none"
                       />
                     </label>
                   </div>
+
+                  <div className="mt-6">
+                    <label className="flex items-start gap-3 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={newsletter}
+                        onChange={(e) => setNewsletter(e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-200"
+                      />
+                      <span className="text-[13px] leading-relaxed text-ink-700">
+                        Chcę otrzymywać informacje o nowych ofertach
+                      </span>
+                    </label>
+                  </div>
+
+                  {error ? <p className="mt-4 text-[13px] text-red-600">{error}</p> : null}
 
                   <div className="mt-8 flex flex-wrap items-center gap-4 justify-between">
                     <p className="text-[11.5px] text-ink-400 max-w-md">
@@ -165,9 +166,13 @@ export function LeadCapture() {
                     </p>
                     <button
                       type="submit"
-                      className="inline-flex items-center gap-2 rounded-full bg-ink-900 hover:bg-brand-500 text-white px-7 py-3.5 text-[13px] font-medium transition-colors duration-300"
+                      disabled={sending}
+                      className={[
+                        "inline-flex items-center gap-2 rounded-full text-white px-7 py-3.5 text-[13px] font-medium transition-colors duration-300",
+                        sending ? "bg-ink-900/70 cursor-wait" : "bg-ink-900 hover:bg-brand-500",
+                      ].join(" ")}
                     >
-                      Wyślij
+                      {sending ? "Wysyłanie…" : "Wyślij →"}
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                         <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
@@ -212,58 +217,3 @@ function Field({
   );
 }
 
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active?: boolean;
-  onClick?: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        "rounded-full px-4 py-2 text-[13px] transition-all duration-200",
-        active
-          ? "bg-ink-900 text-white"
-          : "bg-ink-50 text-ink-700 hover:bg-ink-100",
-      ].join(" ")}
-    >
-      {children}
-    </button>
-  );
-}
-
-function BudgetTile({
-  label,
-  hint,
-  active,
-  onClick,
-}: {
-  label: string;
-  hint: string;
-  active?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        "relative flex flex-col items-start rounded-[var(--radius-sm)] border px-3 py-3 text-left transition-all duration-200 min-h-[72px]",
-        active
-          ? "border-brand-500 bg-brand-500/10 shadow-[0_0_0_1px_rgba(0,0,0,0.04)]"
-          : "border-ink-200 bg-ink-50/80 hover:border-ink-300 hover:bg-white",
-      ].join(" ")}
-    >
-      <span className="font-display text-[17px] text-ink-950 leading-none tabular-nums">{label}</span>
-      <span className="mt-1 text-[11px] font-medium uppercase tracking-[0.12em] text-ink-500">{hint}</span>
-      {active && (
-        <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-brand-500" aria-hidden />
-      )}
-    </button>
-  );
-}

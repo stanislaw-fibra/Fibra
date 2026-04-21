@@ -19,10 +19,17 @@ function deriveUniqueSlugFallback(baseSlug: string): string {
 }
 
 // Upsert oferty po galactica_offer_id. Oferty MANUAL-* nie są nadpisywane.
+//
+// `sourceBranch` działa asymetrycznie:
+// - przy INSERT  → zapisujemy wartość przekazaną z runu importera,
+// - przy UPDATE  → NIE nadpisujemy. Jeżeli ktoś ręcznie przypisał gałąź
+//   w panelu / SQL-em, import jej nie cofnie. Null-safe: gdy offers.source_branch
+//   jest pusty ('unknown' / null) i dostajemy konkretną gałąź, uzupełniamy.
 export async function upsertOffer(
   supabase: SupabaseClient,
   mapped: MappedOffer,
   agentId: string | null,
+  sourceBranch: string = "unknown",
 ): Promise<OfferSyncResult> {
   if (mapped.galactica_offer_id.startsWith("MANUAL-")) {
     // Spec: nie nadpisuj ofert ręcznych — ale taki ID nie powinien nigdy trafić z Galactiki.
@@ -84,23 +91,31 @@ export async function upsertOffer(
     is_active: true,
   };
 
-  // Sprawdź czy istnieje (i pobierz istniejący slug — NIE nadpisujemy przy update,
-  // żeby zmiana tytułu nie łamała linków/SEO).
+  // Sprawdź czy istnieje (i pobierz istniejący slug + source_branch).
+  // - slug zostawiamy bez zmian (SEO/linki),
+  // - source_branch backfill-ujemy tylko jeśli był pusty/unknown.
   const { data: existing, error: selErr } = await supabase
     .from("offers")
-    .select("id, slug")
+    .select("id, slug, source_branch")
     .eq("galactica_offer_id", mapped.galactica_offer_id)
     .maybeSingle();
   if (selErr) throw selErr;
 
   if (existing?.id) {
-    // Backfill slug-a tylko gdy brakuje; istniejący zostaje bez zmian.
     const patch: Record<string, unknown> = { ...row };
     if (!existing.slug || existing.slug.trim().length === 0) {
       patch.slug = await resolveInsertableSlug(
         supabase,
         makeOfferSlug(mapped.advertisement_text || mapped.title, mapped.galactica_offer_id),
       );
+    }
+    const existingBranch = (existing.source_branch ?? "").trim();
+    const incomingBranch = (sourceBranch ?? "unknown").trim() || "unknown";
+    if (
+      (existingBranch === "" || existingBranch === "unknown") &&
+      incomingBranch !== "unknown"
+    ) {
+      patch.source_branch = incomingBranch;
     }
     const { error } = await supabase.from("offers").update(patch).eq("id", existing.id);
     if (error) throw error;
@@ -113,7 +128,7 @@ export async function upsertOffer(
   );
   const { data: inserted, error } = await supabase
     .from("offers")
-    .insert({ ...row, slug })
+    .insert({ ...row, slug, source_branch: (sourceBranch ?? "unknown").trim() || "unknown" })
     .select("id")
     .single();
   if (error) throw error;
@@ -154,16 +169,26 @@ export async function deactivateOffer(
   return (count ?? 0) > 0;
 }
 
-// Dezaktywuj wszystkie oferty, których galactica_offer_id nie ma w presentIds i nie są MANUAL-*.
+// Dezaktywuj oferty z podanej gałęzi (sourceBranch), których galactica_offer_id nie ma
+// w presentIds i nie są MANUAL-*. Oferty z innych gałęzi zostają nietknięte.
 export async function deactivateMissingOffers(
   supabase: SupabaseClient,
   presentIds: string[],
+  sourceBranch: string,
 ): Promise<number> {
-  // Wczytaj listę aktywnych ofert z Galactiki
+  const branch = (sourceBranch ?? "").trim();
+  if (!branch) {
+    // Bez jawnej gałęzi nie dezaktywujemy niczego — zabezpieczenie przed
+    // masowym zgaszeniem cudzych ofert.
+    return 0;
+  }
+
+  // Wczytaj listę aktywnych ofert z Galactiki w obrębie tej gałęzi
   const { data: all, error: selErr } = await supabase
     .from("offers")
     .select("id, galactica_offer_id")
     .eq("is_active", true)
+    .eq("source_branch", branch)
     .not("galactica_offer_id", "like", "MANUAL-%");
   if (selErr) throw selErr;
 
