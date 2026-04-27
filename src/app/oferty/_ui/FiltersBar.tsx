@@ -90,6 +90,11 @@ export function FiltersBar({
 }: Props) {
   const cities = uniqueCities(offers);
   const pricePresets = filters.listing === "wynajem" ? PRICE_PRESETS_RENT : PRICE_PRESETS_SELL;
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(Boolean(filters.query?.trim()));
+
+  useEffect(() => {
+    if (filters.query?.trim()) setMobileSearchOpen(true);
+  }, [filters.query]);
 
   // Sentinel umieszczony tuż pod pełnym paskiem — gdy wyjedzie z widoku
   // (przechodzi pod górny Nav), aktywujemy fixed mini-toolbar. Gdy wraca,
@@ -424,11 +429,13 @@ export function FiltersBar({
                 kolejne opcje). */}
         <div className="lg:hidden">
           <div className="container-xl pt-3 pb-3 space-y-2.5">
-            <SearchInput
-              value={filters.query}
-              onChange={(q) => apply({ query: q })}
-              variant="wide"
-            />
+            {mobileSearchOpen ? (
+              <SearchInput
+                value={filters.query}
+                onChange={(q) => apply({ query: q })}
+                variant="wide"
+              />
+            ) : null}
             <div className="flex items-center gap-2">
               <span
                 className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-400 select-none"
@@ -448,6 +455,28 @@ export function FiltersBar({
             <div className="relative">
               <div className="flex gap-2 overflow-x-auto pb-1 pr-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0">
                 {sortPopover("start")}
+                <button
+                  type="button"
+                  onClick={() => setMobileSearchOpen((v) => !v)}
+                  aria-label={mobileSearchOpen ? "Zwiń wyszukiwanie" : "Pokaż wyszukiwanie"}
+                  className={[
+                    "relative inline-flex items-center justify-center rounded-full border px-3.5 py-2 text-[12.5px] font-medium whitespace-nowrap",
+                    "cursor-pointer select-none transition-[background-color,border-color,color,transform,box-shadow] duration-150 active:scale-[0.97]",
+                    filters.query?.trim()
+                      ? "border-ink-900 bg-ink-900 text-white shadow-[0_4px_14px_-6px_rgba(11,15,20,0.35)]"
+                      : "border-ink-200 bg-paper text-ink-700 hover:border-ink-400 hover:text-ink-950 hover:shadow-[0_2px_8px_-4px_rgba(11,15,20,0.12)]",
+                  ].join(" ")}
+                >
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden>
+                    <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.5" />
+                    <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                  {filters.query?.trim() ? (
+                    <span className="ml-2 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-white/20 px-1 text-[10px] font-semibold tabular-nums text-white">
+                      1
+                    </span>
+                  ) : null}
+                </button>
                 {categoryPopover}
                 {listingPopover}
                 {pricePopover}
@@ -486,6 +515,9 @@ export function FiltersBar({
         <div className="container-xl py-2.5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             {sortPopover("start")}
+            <span className="hidden sm:inline text-[10.5px] uppercase tracking-[0.14em] text-ink-500 whitespace-nowrap">
+              {totalMatches} ofert · {totalVideoMatches} z filmem
+            </span>
             <button
               type="button"
               onClick={onOpenDrawer}

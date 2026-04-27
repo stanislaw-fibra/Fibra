@@ -30,7 +30,7 @@ export default async function OfertyPage() {
             mobile i na desktop. Pełny opisowy hero przeniesiony jest pod
             paskiem filtrów (sticky-like flow), ten blok służy tylko jako
             jednowierszowy „chleb" katalogu. */}
-        <section className="relative overflow-hidden border-b border-ink-200/70 bg-paper">
+        <section className="hidden sm:block relative overflow-hidden border-b border-ink-200/70 bg-paper">
           <div className="absolute inset-0 -z-10 grad-radial-brand opacity-25" />
           <div className="container-xl py-3 md:py-4 flex items-center justify-between gap-4">
             <Reveal className="flex items-baseline gap-3 md:gap-4 min-w-0">
@@ -55,12 +55,6 @@ export default async function OfertyPage() {
                   <OfertyHeaderViewToggle />
                 </Suspense>
               </div>
-            </Reveal>
-            <Reveal
-              delay={60}
-              className="sm:hidden text-[10.5px] uppercase tracking-[0.14em] text-ink-500 whitespace-nowrap"
-            >
-              {offers.length} {offersWord} · {videoCount} wideo
             </Reveal>
           </div>
         </section>
