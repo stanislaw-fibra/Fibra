@@ -428,7 +428,7 @@ export function FiltersBar({
                 (z delikatnym fade-right sygnalizującym, że za krawędzią są
                 kolejne opcje). */}
         <div className="lg:hidden">
-          <div className="container-xl pt-3 pb-3 space-y-2.5">
+          <div className="container-xl pt-4 pb-3 space-y-2.5">
             {mobileSearchOpen ? (
               <SearchInput
                 value={filters.query}
@@ -866,7 +866,7 @@ function ViewToggleWide({
 }) {
   return (
     <div
-      className="grid grid-cols-2 rounded-full border border-ink-200 bg-ink-50 p-1 text-[12px] font-medium shadow-inner"
+      className="relative z-[5] pointer-events-auto grid grid-cols-2 rounded-full border border-ink-200 bg-ink-50 p-1 text-[12px] font-medium shadow-inner"
       role="group"
       aria-label="Widok katalogu"
     >

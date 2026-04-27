@@ -230,7 +230,7 @@ function VideoTailCta({ extra, onSwitch }: { extra: number; onSwitch: () => void
       >
         <p className="eyebrow text-ink-500 mb-2">Nie znalazłeś tego, czego szukasz?</p>
         <p className="font-display text-[22px] md:text-[28px] leading-tight text-ink-950 max-w-[26ch]">
-          Przełącz na widok zdjęciowy — jest tam {extra}{" "}
+          Przełącz na widok klasyczny — jest tam {extra}{" "}
           {extra === 1 ? "dodatkowa oferta" : extra < 5 ? "dodatkowe oferty" : "dodatkowych ofert"}.
         </p>
         <span className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink-950 group-hover:bg-brand-500 text-white px-5 py-2.5 text-[13px] font-medium transition-colors">
