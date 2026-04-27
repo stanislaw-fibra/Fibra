@@ -8,6 +8,7 @@ import { VideoSoundIconButton } from "@/components/media/VideoSoundIconButton";
 import { GridClipSurface } from "@/components/media/GridClipSurface";
 import { useOptionalListVideoPlayback } from "@/components/media/ListVideoPlayback";
 import { cloudflareStreamThumbnailUrl } from "@/lib/cloudflare-stream";
+import { OfferListingTypeTag } from "@/components/offers/OfferListingTypeTag";
 
 interface VideoCardProps {
   offer: Offer;
@@ -20,6 +21,9 @@ interface VideoCardProps {
   visualOnly?: boolean;
   /** Hero strony głównej - typografia i obramowanie jak w sekcji „Aktualne oferty” */
   surfaceTheme?: "default" | "hero";
+  /** Tailwind aspect klasa kafla mediów (domyślnie 9:16). Pozwala stronie hostującej
+   *  spłaszczyć kafel w siatkach 2-kolumnowych mobile, gdzie 9:16 jest za wysokie. */
+  aspectClass?: string;
 }
 
 export function VideoCard({
@@ -31,6 +35,7 @@ export function VideoCard({
   showPrice = true,
   visualOnly = false,
   surfaceTheme = "default",
+  aspectClass = "aspect-[9/16]",
 }: VideoCardProps) {
   const mediaShellRef = useRef<HTMLDivElement>(null);
   const playback = useOptionalListVideoPlayback();
@@ -38,7 +43,6 @@ export function VideoCard({
   const [legacyInView, setLegacyInView] = useState(false);
 
   const hasVideo = !!offer.videoSrc || !!offer.streamId;
-  const hasTour3d = Boolean(offer.virtualTourUrl?.trim());
   const showFooter = showCardFooter && variant === "primary";
   const canToggleSound = !visualOnly && hasVideo;
 
@@ -60,9 +64,16 @@ export function VideoCard({
     playback && myIdx >= 0 && activeIdx >= 0 ? Math.abs(myIdx - activeIdx) : Infinity;
 
   // Preload ring (ile `<video>` trzymamy w DOM bez niszczenia HLS):
-  //  - desktop: ±1 — hover zmienia często, szerszy ring zjada pasmo bez sensu.
-  //  - mobile : ±2 — kolejny klip zdąży się podciągnąć, zanim user do niego dotrze.
-  const preloadRing = playback ? (playback.isDesktop ? 1 : 2) : 0;
+  //  - desktop:    ±1 — hover zmienia często, szerszy ring zjada pasmo bez sensu.
+  //  - mobile:     ±2 — kolejny klip zdąży się podciągnąć, zanim user do niego dotrze.
+  //  - grid-first:  0 — w 2x2 grid mobile gra tylko 1 kafel, reszta to plakaty.
+  const preloadRing = playback
+    ? playback.isDesktop
+      ? 1
+      : playback.mobileMode === "grid-first"
+        ? 0
+        : 2
+    : 0;
   const withinRing =
     !!playback && activeIdx >= 0 && myIdx >= 0 && distance <= preloadRing;
 
@@ -71,10 +82,16 @@ export function VideoCard({
   const isListActive = Boolean(
     playback && hasVideo && playback.activeSlug === offer.slug,
   );
-  // Priming sąsiedniej karty tylko na mobile (viewport pokazuje ~jeden klip naraz,
-  // więc wideo obok gra „w kulisach" muted — jak w Reels / TikTok).
+  // Priming sąsiedniej karty tylko na mobile w trybach scrollowanych (viewport pokazuje
+  // ~jeden klip naraz, więc wideo obok gra „w kulisach" muted — jak w Reels / TikTok).
+  // Dla grid-first nie primujemy nikogo — w 2x2 wszystkie 4 są jednocześnie widoczne
+  // i tylko pierwsza ma grać (reszta = plakaty).
   const primedNeighbor =
-    !!playback && !playback.isDesktop && distance === 1 && activeIdx >= 0;
+    !!playback &&
+    !playback.isDesktop &&
+    playback.mobileMode !== "grid-first" &&
+    distance === 1 &&
+    activeIdx >= 0;
 
   const playing =
     hasVideo && (playback ? isListActive || primedNeighbor : legacyInView);
@@ -163,40 +180,48 @@ export function VideoCard({
 
   const shellClass = isHero
     ? [
-        "relative aspect-[9/16] w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-900 shadow-[var(--shadow-cinematic)]",
+        `relative ${aspectClass} w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-900 shadow-[var(--shadow-cinematic)]`,
         "transition-[box-shadow,transform] duration-300",
         "ring-1 ring-white/10 group-hover:ring-white/25 group-hover:shadow-[0_0_0_1px_rgba(242,101,34,0.2),var(--shadow-cinematic)]",
       ].join(" ")
-    : "relative aspect-[9/16] w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-800";
+    : `relative ${aspectClass} w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-800`;
 
+  // Insety topRow są mniejsze na mobile (kafle 2x2 są wąskie - nie chcemy żeby
+  // numer/tag zjadały połowę szerokości kafla).
   const topRowClass = [
     isHero
-      ? "absolute top-3 left-3 right-3 md:top-4 md:left-4 md:right-4"
-      : "absolute top-4 left-4 right-4",
+      ? "absolute top-2 left-2 right-2 sm:top-3 sm:left-3 sm:right-3 md:top-4 md:left-4 md:right-4"
+      : "absolute top-2 left-2 right-2 sm:top-4 sm:left-4 sm:right-4",
     "flex items-start justify-between z-[3]",
-    canToggleSound ? "pr-11 sm:pr-12" : "",
+    canToggleSound ? "pr-9 sm:pr-11 md:pr-12" : "",
   ].join(" ");
 
   const idxClass = isHero
-    ? "font-display text-[12px] md:text-[13px] text-white/60 leading-none tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
-    : "font-display text-[13px] text-white/60 leading-none tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]";
+    ? "font-display text-[10px] sm:text-[12px] md:text-[13px] text-white/60 leading-none tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
+    : "font-display text-[10px] sm:text-[12px] md:text-[13px] text-white/60 leading-none tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]";
 
-  // Tekst pod filmem — ten sam układ w katalogu i hero strony głównej.
-  const textWrapClass = isHero ? "pt-3 md:pt-3.5" : "pt-4 md:pt-5 px-0.5";
+  // Tekst pod filmem — responsywny: na mobile (np. 2x2 grid) tekst i odstępy są
+  // mniejsze, by podpis nie wypychał kafla z viewportu i pozostał czytelny przy
+  // wąskich kolumnach. Od sm/md przechodzimy do pełnego, „premium" rozmiaru.
+  // Dla single-column mobile (np. /oferty) bazowe rozmiary są celowo na tyle
+  // duże, by tytuł i opis czytało się komfortowo bez zoomu.
+  const textWrapClass = isHero
+    ? "pt-2 sm:pt-3 md:pt-3.5"
+    : "pt-3 sm:pt-4 md:pt-5 px-0.5";
   const eyebrowClass = isHero
-    ? "text-[10px] uppercase tracking-[0.18em] text-white/55"
-    : "text-[10.5px] uppercase tracking-[0.18em] text-ink-500";
+    ? "text-[9px] sm:text-[10px] uppercase tracking-[0.16em] sm:tracking-[0.18em] text-white/55"
+    : "text-[10.5px] sm:text-[10.5px] uppercase tracking-[0.18em] text-ink-500";
   const titleTextClass = isHero
-    ? "mt-1 font-display text-[15px] sm:text-[16px] md:text-[16.5px] leading-[1.15] text-white line-clamp-2 text-balance"
-    : "mt-1.5 font-display text-[20px] md:text-[22px] leading-[1.14] text-ink-950 line-clamp-2 text-balance group-hover:text-brand-600 transition-colors";
+    ? "mt-1 font-display text-[12.5px] sm:text-[15px] md:text-[16.5px] leading-[1.18] sm:leading-[1.15] text-white line-clamp-2 text-balance"
+    : "mt-1.5 font-display text-[16.5px] sm:text-[18px] md:text-[20px] lg:text-[22px] leading-[1.2] sm:leading-[1.14] text-ink-950 line-clamp-2 text-balance group-hover:text-brand-600 transition-colors";
   const metaRowClass = isHero
-    ? "mt-2 flex items-center justify-between text-[11px] md:text-[11.5px] text-white/65 tabular-nums"
-    : "mt-3 flex items-center justify-between text-[12.5px] text-ink-600 tabular-nums";
+    ? "mt-1.5 sm:mt-2 flex items-center justify-between text-[10px] sm:text-[11px] md:text-[11.5px] text-white/65 tabular-nums"
+    : "mt-2.5 sm:mt-3 flex items-center justify-between text-[12px] sm:text-[12.5px] text-ink-600 tabular-nums";
   const priceClass = isHero ? "font-medium text-white" : "font-medium text-ink-900";
 
   const hoverArrowClass = isHero
-    ? "mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-white/80 group-hover:text-accent-400 transition-colors"
-    : "mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-ink-900 group-hover:text-brand-500 transition-colors";
+    ? "mt-2 sm:mt-3 inline-flex items-center gap-1.5 text-[11.5px] sm:text-[12.5px] font-medium text-white/80 group-hover:text-accent-400 transition-colors"
+    : "mt-2 sm:mt-3 inline-flex items-center gap-1.5 text-[11.5px] sm:text-[12.5px] font-medium text-ink-900 group-hover:text-brand-500 transition-colors";
 
   // Cała karta = jeden klikalny link do oferty (shell + tekst + szczegóły).
   // Dzięki temu klik w tytuł, cenę, miasto itp. też przenosi do oferty.
@@ -260,16 +285,14 @@ export function VideoCard({
           <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-ink-950/55 via-ink-950/15 to-transparent z-[1] pointer-events-none" />
 
           <div className={topRowClass}>
-            <span className={idxClass}>{String(index + 1).padStart(2, "0")}</span>
-            <div className="flex flex-col items-end gap-1.5">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <span className={idxClass}>{String(index + 1).padStart(2, "0")}</span>
+              <OfferListingTypeTag listingType={offer.listingType} variant="media-dark" />
+            </div>
+            <div className="flex flex-col items-end gap-1.5 shrink-0">
               {offer.isNew && (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-400 text-ink-950 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] shadow-[0_2px_10px_-2px_rgba(0,0,0,0.4)]">
                   Nowość
-                </span>
-              )}
-              {hasTour3d && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-950/70 backdrop-blur-md text-white px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] shadow-[0_2px_10px_-2px_rgba(0,0,0,0.35)]">
-                  Spacer 3D
                 </span>
               )}
             </div>
@@ -299,7 +322,7 @@ export function VideoCard({
           <h3 className={titleTextClass}>{offer.title}</h3>
 
           {showFooter && !isHero && offer.excerpt && (
-            <p className="mt-2 text-[13.5px] text-ink-600 leading-[1.55] line-clamp-2 text-pretty">
+            <p className="mt-2 text-[13.5px] sm:text-[14px] text-ink-600 leading-[1.5] line-clamp-2 sm:line-clamp-2 text-pretty">
               {offer.excerpt}
             </p>
           )}

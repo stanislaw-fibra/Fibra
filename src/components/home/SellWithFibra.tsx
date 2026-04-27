@@ -8,9 +8,9 @@ const ease = [0.22, 1, 0.36, 1] as const;
 
 const ITEMS: [string, string][] = [
   ["Wycena i strategia", "Oceniamy nieruchomość, ustalamy cenę i plan komunikacji."],
-  ["Wideo i spacer 3D", "Nagrywamy krótki film i robimy wirtualny spacer. Kupujący zobaczą wszystko, zanim do Ciebie zadzwonią - do Twoich drzwi trafiają tylko poważni klienci."],
-  ["Promocja, nie tylko publikacja", "Twoja oferta trafia na portale, do naszych kampanii reklamowych i do bazy zainteresowanych. Nie czekamy."],
-  ["Finalizacja", "Prowadzimy formalną stronę transakcji. Kredyt, umowy, notariusz - jeśli chcesz, robimy to za Ciebie."],
+  ["Wideo i spacer 3D", "O Twojej nieruchomości nagrywamy filmy i tworzymy wirtualne spacery. Kupujący zobaczą wszystko, zanim ich do Ciebie przyprowadzimy - do Twoich drzwi trafią tylko poważni klienci."],
+  ["Promocja, nie tylko publikacja", "Twoja oferta, prócz tradycyjnych publikacji na portalach ogłoszeniowych, objęta zostanie szeroko zakrojoną, płatną kampanią reklamową w internecie. Będzie również eksponowana na naszej nowatorskiej, wideo stronie www."],
+  ["Finalizacja", "Przeprowadzamy formalną stronę transakcji od A do Z. Kredyt, umowy, notariusz, urzędy, dokumenty - wszystko robimy za Ciebie."],
 ];
 
 export function SellWithFibra() {

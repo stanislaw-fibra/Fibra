@@ -41,7 +41,7 @@ export function Nav() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease }}
         className={[
-          "fixed top-0 inset-x-0 z-[60] transition-all duration-500",
+          "fixed top-0 inset-x-0 z-[120] transition-all duration-500",
           solid
             ? "bg-[rgba(250,250,248,0.72)] backdrop-blur-2xl shadow-[0_1px_0_rgba(11,15,20,0.06)]"
             : "bg-transparent",
@@ -110,7 +110,10 @@ export function Nav() {
         </div>
       </motion.header>
 
-      {/* Mobile overlay - z-50, żeby przysłonił sticky FiltersBar (z-40). */}
+      {/* Mobile overlay - z-[110], żeby przysłonił sticky FiltersBar (z-40),
+          drawer filtrów (z-[60]) oraz przyciski overlay'owe na kafelkach
+          wideo (np. ikona głośności z-[50] w VideoCard). Header pozostaje
+          najwyżej (z-[120]), żeby hamburger zawsze był klikalny. */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -118,7 +121,7 @@ export function Nav() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4, ease }}
-            className="fixed inset-0 z-50 bg-ink-950 lg:hidden"
+            className="fixed inset-0 z-[110] bg-ink-950 lg:hidden"
           >
             <div className="container-xl pt-28 pb-16 h-full flex flex-col">
               <nav className="flex flex-col gap-3">

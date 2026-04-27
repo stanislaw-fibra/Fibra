@@ -53,6 +53,15 @@ function boolFromCheckbox(v: FormDataEntryValue | null): boolean {
   return v === "on" || v === "true" || v === "1";
 }
 
+function normalizeHttpUrlFromForm(v: FormDataEntryValue | null): string | null {
+  const s = strOrNull(v);
+  if (!s) return null;
+  // Security: accept only explicit http(s) URLs to avoid accidental `javascript:` etc.
+  // (We still allow http in dev; production can provide https.)
+  if (!/^https?:\/\//i.test(s)) return null;
+  return s;
+}
+
 export async function toggleOfferActiveAction(formData: FormData) {
   await requireSessionUser();
   const id = strOrNull(formData.get("id"));
@@ -132,6 +141,8 @@ export async function createOfferAction(formData: FormData) {
     kitchen_type: strOrNull(formData.get("kitchen_type")),
     market_type: strOrNull(formData.get("market_type")),
     virtual_tour_url: strOrNull(formData.get("virtual_tour_url")),
+    floor_plan_image_url: normalizeHttpUrlFromForm(formData.get("floor_plan_image_url")),
+    floor_plan_pdf_url: normalizeHttpUrlFromForm(formData.get("floor_plan_pdf_url")),
     is_active,
     is_exclusive: boolFromCheckbox(formData.get("is_exclusive")),
     is_price_negotiable: boolFromCheckbox(formData.get("is_price_negotiable")),
@@ -215,6 +226,8 @@ export async function updateOfferAction(formData: FormData) {
     kitchen_type: strOrNull(formData.get("kitchen_type")),
     market_type: strOrNull(formData.get("market_type")),
     virtual_tour_url: strOrNull(formData.get("virtual_tour_url")),
+    floor_plan_image_url: normalizeHttpUrlFromForm(formData.get("floor_plan_image_url")),
+    floor_plan_pdf_url: normalizeHttpUrlFromForm(formData.get("floor_plan_pdf_url")),
     is_active,
     is_exclusive: boolFromCheckbox(formData.get("is_exclusive")),
     is_price_negotiable: boolFromCheckbox(formData.get("is_price_negotiable")),
@@ -292,6 +305,13 @@ export async function uploadOfferImageAction(formData: FormData) {
   redirect(`/panel/oferty/${offerId}?uploaded=1`);
 }
 
+function storagePathFromBucketPublicUrl(url: string, bucket: string): string | null {
+  const marker = `/${bucket}/`;
+  const i = url.indexOf(marker);
+  if (i === -1) return null;
+  return decodeURIComponent(url.slice(i + marker.length).split("?")[0]);
+}
+
 function storagePathFromPublicUrl(url: string): string | null {
   const marker = "/offer-images/";
   const i = url.indexOf(marker);
@@ -315,6 +335,203 @@ export async function deleteOfferImageAction(formData: FormData) {
   revalidatePath(`/panel/oferty/${offerId}`);
   await revalidateOfferPublicPath(admin, offerId);
   redirect(`/panel/oferty/${offerId}`);
+}
+
+const FLOORPLANS_BUCKET = "offer-floorplans";
+
+export async function uploadOfferFloorPlanImageAction(formData: FormData) {
+  await requireSessionUser();
+  const admin = createSupabaseAdmin();
+  const offerId = strOrNull(formData.get("offer_id"));
+  const galactica_offer_id = strOrNull(formData.get("galactica_offer_id"));
+  const files = formData.getAll("file").filter((f) => f instanceof File) as File[];
+  const realFiles = files.filter((f) => f.size > 0);
+  if (!offerId || !galactica_offer_id || realFiles.length === 0) {
+    redirect(`/panel/oferty/${offerId ?? ""}?error=${encodeURIComponent("Wybierz przynajmniej jedno zdjęcie rzutu.")}`);
+  }
+
+  const { count } = await admin
+    .from("offer_floorplans")
+    .select("id", { count: "exact", head: true })
+    .eq("offer_id", offerId)
+    .eq("kind", "image");
+  let startIndex = count ?? 0;
+
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "") ?? "";
+  const insertedUrls: string[] = [];
+
+  for (const file of realFiles) {
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+    const baseStem = file.name.replace(/\.[^.]+$/, "").replace(/[^\w.\-]/g, "_").slice(0, 72) || "floorplan";
+    const order_index = startIndex;
+    startIndex += 1;
+
+    const path = `${galactica_offer_id}/floorplan_image_${order_index}_${Date.now()}_${baseStem}.${ext}`;
+    const buf = Buffer.from(await file.arrayBuffer());
+    const { error: upErr } = await admin.storage.from(FLOORPLANS_BUCKET).upload(path, buf, {
+      contentType: file.type || "image/jpeg",
+      upsert: true,
+    });
+    if (upErr) {
+      redirect(`/panel/oferty/${offerId}?error=${encodeURIComponent(upErr.message)}`);
+    }
+
+    const publicUrl = `${base}/storage/v1/object/public/${FLOORPLANS_BUCKET}/${path}`;
+    insertedUrls.push(publicUrl);
+
+    const { error: insErr } = await admin.from("offer_floorplans").insert({
+      offer_id: offerId,
+      kind: "image",
+      label: file.name,
+      url: publicUrl,
+      storage_path: path,
+      order_index,
+    });
+    if (insErr) redirect(`/panel/oferty/${offerId}?error=${encodeURIComponent(insErr.message)}`);
+  }
+
+  // Backward-compat "primary": jeśli puste, ustawiamy na pierwszy dodany obraz.
+  const { data: off } = await admin.from("offers").select("floor_plan_image_url").eq("id", offerId).maybeSingle();
+  if (!off?.floor_plan_image_url && insertedUrls[0]) {
+    await admin.from("offers").update({ floor_plan_image_url: insertedUrls[0] }).eq("id", offerId);
+  }
+
+  revalidatePath(`/panel/oferty/${offerId}`);
+  await revalidateOfferPublicPath(admin, offerId);
+  redirect(`/panel/oferty/${offerId}?saved=1`);
+}
+
+export async function uploadOfferFloorPlanPdfAction(formData: FormData) {
+  await requireSessionUser();
+  const admin = createSupabaseAdmin();
+  const offerId = strOrNull(formData.get("offer_id"));
+  const galactica_offer_id = strOrNull(formData.get("galactica_offer_id"));
+  const files = formData.getAll("file").filter((f) => f instanceof File) as File[];
+  const realFiles = files.filter((f) => f.size > 0);
+  if (!offerId || !galactica_offer_id || realFiles.length === 0) {
+    redirect(`/panel/oferty/${offerId ?? ""}?error=${encodeURIComponent("Wybierz przynajmniej jeden plik PDF.")}`);
+  }
+
+  const { count } = await admin
+    .from("offer_floorplans")
+    .select("id", { count: "exact", head: true })
+    .eq("offer_id", offerId)
+    .eq("kind", "pdf");
+  let startIndex = count ?? 0;
+
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "") ?? "";
+  const insertedUrls: string[] = [];
+
+  for (const file of realFiles) {
+    // Security: basic content-type sanity check.
+    if (file.type && file.type !== "application/pdf") {
+      redirect(`/panel/oferty/${offerId}?error=${encodeURIComponent("To nie wygląda na plik PDF.")}`);
+    }
+    const baseStem = file.name.replace(/\.[^.]+$/, "").replace(/[^\w.\-]/g, "_").slice(0, 72) || "floorplan";
+    const order_index = startIndex;
+    startIndex += 1;
+    const path = `${galactica_offer_id}/floorplan_pdf_${order_index}_${Date.now()}_${baseStem}.pdf`;
+
+    const buf = Buffer.from(await file.arrayBuffer());
+    const { error: upErr } = await admin.storage.from(FLOORPLANS_BUCKET).upload(path, buf, {
+      contentType: "application/pdf",
+      upsert: true,
+    });
+    if (upErr) {
+      redirect(`/panel/oferty/${offerId}?error=${encodeURIComponent(upErr.message)}`);
+    }
+
+    const publicUrl = `${base}/storage/v1/object/public/${FLOORPLANS_BUCKET}/${path}`;
+    insertedUrls.push(publicUrl);
+
+    const { error: insErr } = await admin.from("offer_floorplans").insert({
+      offer_id: offerId,
+      kind: "pdf",
+      label: file.name,
+      url: publicUrl,
+      storage_path: path,
+      order_index,
+    });
+    if (insErr) redirect(`/panel/oferty/${offerId}?error=${encodeURIComponent(insErr.message)}`);
+  }
+
+  const { data: off } = await admin.from("offers").select("floor_plan_pdf_url").eq("id", offerId).maybeSingle();
+  if (!off?.floor_plan_pdf_url && insertedUrls[0]) {
+    await admin.from("offers").update({ floor_plan_pdf_url: insertedUrls[0] }).eq("id", offerId);
+  }
+
+  revalidatePath(`/panel/oferty/${offerId}`);
+  await revalidateOfferPublicPath(admin, offerId);
+  redirect(`/panel/oferty/${offerId}?saved=1`);
+}
+
+export async function deleteOfferFloorPlanImageAction(formData: FormData) {
+  await requireSessionUser();
+  const admin = createSupabaseAdmin();
+  const offerId = strOrNull(formData.get("offer_id"));
+  const floorplanId = strOrNull(formData.get("floorplan_id"));
+  if (!offerId || !floorplanId) return;
+
+  const { data: fp } = await admin
+    .from("offer_floorplans")
+    .select("id,url,storage_path")
+    .eq("id", floorplanId)
+    .maybeSingle();
+  if (fp?.storage_path) {
+    await admin.storage.from(FLOORPLANS_BUCKET).remove([fp.storage_path]);
+  } else if (fp?.url) {
+    const path = storagePathFromBucketPublicUrl(fp.url, FLOORPLANS_BUCKET);
+    if (path) await admin.storage.from(FLOORPLANS_BUCKET).remove([path]);
+  }
+  await admin.from("offer_floorplans").delete().eq("id", floorplanId);
+
+  // Refresh primary: pick next image (lowest order) or null.
+  const { data: rest } = await admin
+    .from("offer_floorplans")
+    .select("url,order_index")
+    .eq("offer_id", offerId)
+    .eq("kind", "image")
+    .order("order_index", { ascending: true })
+    .limit(1);
+  const nextUrl = rest?.[0]?.url?.trim() || null;
+  await admin.from("offers").update({ floor_plan_image_url: nextUrl }).eq("id", offerId);
+  revalidatePath(`/panel/oferty/${offerId}`);
+  await revalidateOfferPublicPath(admin, offerId);
+  redirect(`/panel/oferty/${offerId}?saved=1`);
+}
+
+export async function deleteOfferFloorPlanPdfAction(formData: FormData) {
+  await requireSessionUser();
+  const admin = createSupabaseAdmin();
+  const offerId = strOrNull(formData.get("offer_id"));
+  const floorplanId = strOrNull(formData.get("floorplan_id"));
+  if (!offerId || !floorplanId) return;
+
+  const { data: fp } = await admin
+    .from("offer_floorplans")
+    .select("id,url,storage_path")
+    .eq("id", floorplanId)
+    .maybeSingle();
+  if (fp?.storage_path) {
+    await admin.storage.from(FLOORPLANS_BUCKET).remove([fp.storage_path]);
+  } else if (fp?.url) {
+    const path = storagePathFromBucketPublicUrl(fp.url, FLOORPLANS_BUCKET);
+    if (path) await admin.storage.from(FLOORPLANS_BUCKET).remove([path]);
+  }
+  await admin.from("offer_floorplans").delete().eq("id", floorplanId);
+
+  const { data: rest } = await admin
+    .from("offer_floorplans")
+    .select("url,order_index")
+    .eq("offer_id", offerId)
+    .eq("kind", "pdf")
+    .order("order_index", { ascending: true })
+    .limit(1);
+  const nextUrl = rest?.[0]?.url?.trim() || null;
+  await admin.from("offers").update({ floor_plan_pdf_url: nextUrl }).eq("id", offerId);
+  revalidatePath(`/panel/oferty/${offerId}`);
+  await revalidateOfferPublicPath(admin, offerId);
+  redirect(`/panel/oferty/${offerId}?saved=1`);
 }
 
 function streamVideoIdOrRedirect(offerId: string, label: string, raw: string | null): string | null {

@@ -44,6 +44,14 @@ export interface Offer {
   statusOferty?: "wolna" | "w rozmowach" | "zarezerwowana";
   /** Z bazy: `sprzedaz` | `wynajem` */
   listingType?: "sprzedaz" | "wynajem";
+  /** URL obrazu rzutu / wizualizacji 3D układu — z `raw_params` (Galactica), gdy jest w imporcie. */
+  floorPlanImageUrl?: string;
+  /** PDF rzutu (panel/admin) — otwierany w nowej karcie. */
+  floorPlanPdfUrl?: string;
+  /** Dodatkowe zdjęcia rzutu (np. parter + piętro). */
+  floorPlanImages?: string[];
+  /** Dodatkowe PDF-y rzutu. */
+  floorPlanPdfs?: { url: string; label?: string }[];
   bedrooms?: number;
   bathrooms?: number;
   /** Pow. użytkowa (m²), gdy znana osobno od głównego `area`. */
@@ -364,6 +372,62 @@ export const OFFERS: Offer[] = [
 
 export function getOffer(slug: string): Offer | undefined {
   return OFFERS.find((o) => o.slug === slug);
+}
+
+/**
+ * Wybiera z galerii URL prawdopodobnie będący rzutem / wizualizacją układu (np. 3D z opisu pliku),
+ * gdy Galactica nie wysyła osobnego parametru. Heurystyka po ścieżce URL (nazwa pliku).
+ */
+export function pickFloorPlanImageFromGallery(gallery: string[] | undefined): string | undefined {
+  if (!gallery?.length) return undefined;
+
+  function pathParts(url: string): { raw: string; decoded: string } {
+    try {
+      const u = new URL(url);
+      const raw = `${u.pathname}${u.search}`.toLowerCase();
+      let decoded = raw;
+      try {
+        decoded = decodeURIComponent(raw);
+      } catch {
+        decoded = raw;
+      }
+      return { raw, decoded: decoded.toLowerCase() };
+    } catch {
+      const s = url.toLowerCase();
+      return { raw: s, decoded: s };
+    }
+  }
+
+  const patterns = [
+    /rzut/i,
+    /uklad|układ/i,
+    /floor[_-]?plan/i,
+    /layout[_-]?(mieszkan|apartment|flat|lokal)/i,
+    /plan[_-]?(mieszkan|lokalu|rzut|3d)/i,
+    /(^|\/|_|-)plan\.(png|jpe?g|webp)(\?|$)/i,
+    /karta[_-]?(lokal|mieszkan)/i,
+    /izometr|axonometr|isometric/i,
+    /wizualizacja[^/]{0,40}(rzut|plan|3d|uklad|układ)/i,
+    /(rzut|uklad|układ)[^/]{0,50}3d/i,
+    /3d[^/]{0,50}(rzut|uklad|układ|plan)/i,
+    /pomieszcze[^/]{0,30}(rzut|plan|3d)/i,
+  ];
+
+  for (const url of gallery) {
+    const u = url?.trim();
+    if (!u || !/^https?:\/\//i.test(u)) continue;
+    const { raw, decoded } = pathParts(u);
+    const hay = `${raw} ${decoded}`;
+    if (
+      /\b3d\b/i.test(hay) &&
+      /(m2|m²|%c2%b2)/i.test(hay) &&
+      /(rzut|plan|uklad|układ|layout|karta)/i.test(hay)
+    ) {
+      return u;
+    }
+    if (patterns.some((re) => re.test(hay))) return u;
+  }
+  return undefined;
 }
 
 export function priceFormat(pln?: number): string {

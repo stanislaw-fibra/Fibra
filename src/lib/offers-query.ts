@@ -17,6 +17,8 @@ const OFFER_SELECT = `
   advertisement_text,
   description,
   raw_params,
+  floor_plan_image_url,
+  floor_plan_pdf_url,
   updated_at,
   price,
   currency,
@@ -68,11 +70,49 @@ const OFFER_SELECT = `
     image_url,
     order_index,
     is_primary
+  ),
+  offer_floorplans (
+    kind,
+    label,
+    url,
+    order_index
   )
 `;
 
 /** Lista publiczna (homepage, /oferty): tylko oferty z krótkim filmem Stream. */
 const OFFER_SELECT_PUBLIC_LIST = OFFER_SELECT.replace("offer_media (", "offer_media!inner (");
+
+// Backward compatibility: zanim migracja dojdzie na środowisko docelowe,
+// kolumny `floor_plan_*` mogą jeszcze nie istnieć. Wtedy Supabase zwróci błąd
+// przy select-cie. Robimy retry na legacy select bez tych kolumn, zamiast
+// zrywać render / spamować warnami.
+const OFFER_SELECT_LEGACY = OFFER_SELECT.replace(
+  "  floor_plan_image_url,\n  floor_plan_pdf_url,\n",
+  "",
+);
+const OFFER_SELECT_PUBLIC_LIST_LEGACY = OFFER_SELECT_LEGACY.replace("offer_media (", "offer_media!inner (");
+
+// Legacy: `offer_floorplans` relacja może jeszcze nie istnieć (brak tabeli / brak FK cache).
+// Usuwamy cały fragment relacji, żeby select działał na starym schemacie.
+const OFFER_SELECT_NO_FLOORPLANS = OFFER_SELECT.replace(
+  /\s*,\s*offer_floorplans\s*\([\s\S]*?\)\s*\n/,
+  "\n",
+);
+const OFFER_SELECT_PUBLIC_LIST_NO_FLOORPLANS = OFFER_SELECT_NO_FLOORPLANS.replace("offer_media (", "offer_media!inner (");
+
+function isMissingFloorPlanColumnsError(msg: string): boolean {
+  const m = msg.toLowerCase();
+  return m.includes("does not exist") && (m.includes("floor_plan_image_url") || m.includes("floor_plan_pdf_url"));
+}
+
+function isMissingFloorPlansRelationError(msg: string): boolean {
+  const m = msg.toLowerCase();
+  return (
+    (m.includes("does not exist") && (m.includes("offer_floorplans") || m.includes("relation") || m.includes("table"))) ||
+    m.includes("could not find a relationship between") ||
+    (m.includes("schema cache") && m.includes("offer_floorplans"))
+  );
+}
 
 type MediaRow = {
   cloudflare_video_short_id: string | null;
@@ -97,6 +137,8 @@ type OfferRow = {
   advertisement_text: string | null;
   description: string | null;
   raw_params: Record<string, unknown> | null;
+  floor_plan_image_url: string | null;
+  floor_plan_pdf_url: string | null;
   updated_at: string | null;
   price: string | number | null;
   currency: string | null;
@@ -138,6 +180,12 @@ type OfferRow = {
   agents: { photo_url: string | null } | { photo_url: string | null }[] | null;
   offer_media: MediaRow | MediaRow[] | null;
   offer_images: ImageRow[] | null;
+  offer_floorplans?: {
+    kind: "image" | "pdf";
+    label: string | null;
+    url: string;
+    order_index: number | null;
+  }[] | null;
 };
 
 function num(v: string | number | null | undefined): number {
@@ -197,6 +245,54 @@ function pickYoutubeUrl(raw: Record<string, unknown> | null | undefined): string
   const candidates = [raw.wideo, raw.video, raw.film, raw.youtube];
   for (const c of candidates) {
     if (typeof c === "string" && c.trim().includes("youtu")) return c.trim();
+  }
+  return undefined;
+}
+
+function normalizeRawUrl(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const s = value.trim().replace(/&amp;/g, "&");
+  if (!/^https?:\/\//i.test(s)) return undefined;
+  return s;
+}
+
+/**
+ * Link do obrazu rzutu / wizualizacji układu z parametrów Galactica (trafiają do `raw_params`).
+ * Nazwy parametrów bywają różne — próbujemy znanych kluczy, potem heurystykę po nazwie pola.
+ */
+function pickFloorPlanImageUrl(raw: Record<string, unknown> | null | undefined): string | undefined {
+  if (!raw) return undefined;
+  const preferredKeys = [
+    "rzut3d",
+    "rzut_3d",
+    "plan3d",
+    "plan_3d",
+    "wizualizacja_rzutu",
+    "wizualizacja_rzutu_3d",
+    "rzut_wizualizacja",
+    "rzut_url",
+    "link_do_rzutu",
+    "rzut",
+    "plan_mieszkania",
+    "planmieszkania",
+    "uklad_mieszkania",
+    "rzut_mieszkania",
+  ];
+  for (const key of preferredKeys) {
+    const u = normalizeRawUrl(raw[key]);
+    if (u) return u;
+  }
+  for (const [key, val] of Object.entries(raw)) {
+    if (key.startsWith("__")) continue;
+    const u = normalizeRawUrl(val);
+    if (!u) continue;
+    const kl = key.toLowerCase();
+    if (
+      kl.includes("rzut") ||
+      (kl.includes("plan") && (kl.includes("3d") || kl.includes("mieszkan") || kl.includes("lokalu")))
+    ) {
+      return u;
+    }
   }
   return undefined;
 }
@@ -274,6 +370,20 @@ export function mapOfferRow(row: OfferRow): Offer {
     row.market_type?.trim() ||
     (row.is_primary_market === true ? "Rynek pierwotny" : row.is_primary_market === false ? "Rynek wtórny" : undefined);
 
+  const floorplans = [...(row.offer_floorplans ?? [])]
+    .filter((x) => x && typeof x.url === "string" && x.url.trim().length > 0)
+    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+
+  const floorPlanImages = floorplans
+    .filter((x) => x.kind === "image")
+    .map((x) => x.url)
+    .filter(Boolean);
+
+  const floorPlanPdfs = floorplans
+    .filter((x) => x.kind === "pdf")
+    .map((x) => ({ url: x.url, label: x.label?.trim() || undefined }))
+    .filter((x) => Boolean(x.url));
+
   return {
     id: row.id,
     slug: row.slug?.trim() || row.id,
@@ -321,6 +431,11 @@ export function mapOfferRow(row: OfferRow): Offer {
     hasAirConditioning: row.has_air_conditioning ?? undefined,
     isPriceNegotiable: row.is_price_negotiable ?? undefined,
     virtualTourUrl: row.virtual_tour_url?.trim() || undefined,
+    floorPlanImageUrl:
+      row.floor_plan_image_url?.trim() || floorPlanImages[0]?.trim() || pickFloorPlanImageUrl(row.raw_params),
+    floorPlanPdfUrl: row.floor_plan_pdf_url?.trim() || floorPlanPdfs[0]?.url?.trim() || undefined,
+    floorPlanImages: floorPlanImages.length ? floorPlanImages : undefined,
+    floorPlanPdfs: floorPlanPdfs.length ? floorPlanPdfs : undefined,
     agentName: row.agent_name?.trim() || undefined,
     agentPhone: row.agent_phone_mobile?.trim() || undefined,
     agentPhoneOffice: row.agent_phone_office?.trim() || undefined,
@@ -344,7 +459,45 @@ async function fetchPublicListingOfferRows(): Promise<OfferRow[] | null> {
     .order("updated_at", { ascending: false });
 
   if (error) {
-    console.warn("[offers-query] Supabase public offers list:", error.message);
+    // If `offer_floorplans` isn't available yet, retry without it.
+    if (isMissingFloorPlansRelationError(error.message)) {
+      const retry = await supabase
+        .from("offers")
+        .select(OFFER_SELECT_PUBLIC_LIST_NO_FLOORPLANS)
+        .eq("is_active", true)
+        .not("offer_media.cloudflare_video_short_id", "is", null)
+        .order("updated_at", { ascending: false });
+      if (retry.error) {
+        console.warn("[offers-query] Supabase public offers list:", retry.error.message);
+        return null;
+      }
+      const rows = ((retry.data ?? []) as unknown) as OfferRow[];
+      return rows.filter((row) => {
+        const m = firstRel(row.offer_media);
+        return Boolean(m?.cloudflare_video_short_id?.trim());
+      });
+    }
+    if (isMissingFloorPlanColumnsError(error.message)) {
+      const retry = await supabase
+        .from("offers")
+        .select(OFFER_SELECT_PUBLIC_LIST_LEGACY)
+        .eq("is_active", true)
+        .not("offer_media.cloudflare_video_short_id", "is", null)
+        .order("updated_at", { ascending: false });
+      if (retry.error) {
+        console.warn("[offers-query] Supabase public offers list:", retry.error.message);
+        return null;
+      }
+      const rows = ((retry.data ?? []) as unknown) as OfferRow[];
+      return rows.filter((row) => {
+        const m = firstRel(row.offer_media);
+        return Boolean(m?.cloudflare_video_short_id?.trim());
+      });
+    }
+    // Avoid noisy logs for expected transitional states (local schema cache).
+    if (!isMissingFloorPlansRelationError(error.message)) {
+      console.warn("[offers-query] Supabase public offers list:", error.message);
+    }
     return null;
   }
   const rows = ((data ?? []) as unknown) as OfferRow[];
@@ -365,7 +518,33 @@ async function fetchAllActiveOfferRows(): Promise<OfferRow[] | null> {
     .order("updated_at", { ascending: false });
 
   if (error) {
-    console.warn("[offers-query] Supabase all active offers:", error.message);
+    if (isMissingFloorPlansRelationError(error.message)) {
+      const retry = await supabase
+        .from("offers")
+        .select(OFFER_SELECT_NO_FLOORPLANS)
+        .eq("is_active", true)
+        .order("updated_at", { ascending: false });
+      if (retry.error) {
+        console.warn("[offers-query] Supabase all active offers:", retry.error.message);
+        return null;
+      }
+      return ((retry.data ?? []) as unknown) as OfferRow[];
+    }
+    if (isMissingFloorPlanColumnsError(error.message)) {
+      const retry = await supabase
+        .from("offers")
+        .select(OFFER_SELECT_LEGACY)
+        .eq("is_active", true)
+        .order("updated_at", { ascending: false });
+      if (retry.error) {
+        console.warn("[offers-query] Supabase all active offers:", retry.error.message);
+        return null;
+      }
+      return ((retry.data ?? []) as unknown) as OfferRow[];
+    }
+    if (!isMissingFloorPlansRelationError(error.message)) {
+      console.warn("[offers-query] Supabase all active offers:", error.message);
+    }
     return null;
   }
   return ((data ?? []) as unknown) as OfferRow[];
@@ -385,11 +564,57 @@ async function fetchOfferRow(
 
   const { data, error } = await q.maybeSingle();
 
+  async function attachFloorplansIfPossible(row: OfferRow | null): Promise<OfferRow | null> {
+    if (!row) return null;
+    // Jeśli relacja została już zaciągnięta i coś w niej jest — nie dublujemy.
+    if (Array.isArray(row.offer_floorplans) && row.offer_floorplans.length > 0) return row;
+    if (!supabase) return row;
+    try {
+      const { data: fps, error: fpErr } = await supabase
+        .from("offer_floorplans")
+        .select("kind,label,url,order_index")
+        .eq("offer_id", row.id)
+        .order("kind", { ascending: true })
+        .order("order_index", { ascending: true });
+      if (fpErr) return row;
+      (row as unknown as { offer_floorplans?: unknown }).offer_floorplans = fps ?? [];
+    } catch {
+      // brak tabeli / brak uprawnień — ignorujemy (fallback zostaje na primary URL)
+    }
+    return row;
+  }
+
   if (error) {
-    console.warn("[offers-query] Supabase offer one:", error.message);
+    if (isMissingFloorPlansRelationError(error.message)) {
+      let q2 = supabase.from("offers").select(OFFER_SELECT_NO_FLOORPLANS).eq("is_active", true);
+      if (filter.slug) q2 = q2.eq("slug", filter.slug);
+      else if (filter.id) q2 = q2.eq("id", filter.id);
+      else if (filter.galactica_offer_id) q2 = q2.eq("galactica_offer_id", filter.galactica_offer_id);
+      const retry = await q2.maybeSingle();
+      if (retry.error) {
+        console.warn("[offers-query] Supabase offer one:", retry.error.message);
+        return null;
+      }
+      return attachFloorplansIfPossible((((retry.data as unknown) as OfferRow) ?? null));
+    }
+    if (isMissingFloorPlanColumnsError(error.message)) {
+      let q2 = supabase.from("offers").select(OFFER_SELECT_LEGACY).eq("is_active", true);
+      if (filter.slug) q2 = q2.eq("slug", filter.slug);
+      else if (filter.id) q2 = q2.eq("id", filter.id);
+      else if (filter.galactica_offer_id) q2 = q2.eq("galactica_offer_id", filter.galactica_offer_id);
+      const retry = await q2.maybeSingle();
+      if (retry.error) {
+        console.warn("[offers-query] Supabase offer one:", retry.error.message);
+        return null;
+      }
+      return attachFloorplansIfPossible((((retry.data as unknown) as OfferRow) ?? null));
+    }
+    if (!isMissingFloorPlansRelationError(error.message)) {
+      console.warn("[offers-query] Supabase offer one:", error.message);
+    }
     return null;
   }
-  return (data as OfferRow) ?? null;
+  return attachFloorplansIfPossible(((data as OfferRow) ?? null));
 }
 
 /** Lista publiczna z krótkim filmem (homepage, tryb Video w /oferty). */

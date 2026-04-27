@@ -28,6 +28,8 @@ type Defaults = Partial<{
   kitchen_type: string;
   market_type: string;
   virtual_tour_url: string;
+  floor_plan_image_url: string;
+  floor_plan_pdf_url: string;
   is_active: boolean;
   is_exclusive: boolean;
   is_price_negotiable: boolean;
@@ -235,6 +237,8 @@ export function OfferFormFields({ action, agents, defaults, submitLabel }: Props
         {inp("kitchen_type", "Typ kuchni", { defaultValue: d.kitchen_type })}
         {inp("market_type", "Rynek (tekst)", { defaultValue: d.market_type })}
         {inp("virtual_tour_url", "Link wirtualnej wizyty", { defaultValue: d.virtual_tour_url })}
+        {inp("floor_plan_image_url", "Rzut (zdjęcie URL)", { defaultValue: d.floor_plan_image_url })}
+        {inp("floor_plan_pdf_url", "Rzut (PDF URL)", { defaultValue: d.floor_plan_pdf_url })}
       </div>
 
       <label className="block max-w-md">

@@ -68,7 +68,7 @@ export function OfertyPageClient({ allOffers }: Props) {
         isPending={isPending}
       />
 
-      <section className="py-10 md:py-14">
+      <section className="py-5 md:py-8">
         <div className="container-xl">
           <ActiveFilterChips filters={filters} apply={apply} />
 
@@ -122,12 +122,27 @@ export function OfertyPageClient({ allOffers }: Props) {
 
 function VideoView({ offers, orderedSlugs }: { offers: Offer[]; orderedSlugs: string[] }) {
   if (offers.length === 0) return null;
+  // Mobile: pojedyncza kolumna scrollowana w pionie (Reels-style, ale z widocznym
+  // tytułem i kawałkiem opisu pod każdym filmem - clean, professional). Mode
+  // "viewport-center" oznacza, że gra TEN kafel, który jest najbardziej widoczny;
+  // reszta zostaje pre-loaded jako sąsiad (±1) i muted.
+  // Aspect 3/4 na mobile - na tyle pionowy, by film dominował, ale zostawia
+  // pod kafelkem realne miejsce na podpis: eyebrow, tytuł, 2-liniowy excerpt
+  // i meta z ceną. Dzięki temu pierwszy film mieści się w viewportcie razem
+  // z początkiem opisu (clean, professional).
+  // Desktop wraca do klasycznej siatki 9:16 z 3-4 kolumnami.
   return (
     <ListVideoPlaybackProvider orderedSlugs={orderedSlugs} mobileMode="viewport-center">
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-7 md:gap-5 lg:gap-6 max-w-[520px] md:max-w-none mx-auto">
         {offers.map((o, i) => (
           <Reveal key={o.slug} delay={(i % 6) * 70}>
-            <VideoCard offer={o} index={i} showCardFooter />
+            <VideoCard
+              offer={o}
+              index={i}
+              priority={i < 2}
+              showCardFooter
+              aspectClass="aspect-[3/4] md:aspect-[5/7] lg:aspect-[9/16]"
+            />
           </Reveal>
         ))}
       </div>
@@ -137,8 +152,10 @@ function VideoView({ offers, orderedSlugs }: { offers: Offer[]; orderedSlugs: st
 
 function GalleryView({ offers }: { offers: Offer[] }) {
   if (offers.length === 0) return null;
+  // Galeria zostaje 1-kol na mobile (specs i opis potrzebują szerokości),
+  // 2-kol od sm i 3-kol od lg.
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 lg:gap-8">
       {offers.map((o, i) => (
         <Reveal key={o.slug} delay={(i % 6) * 60}>
           <OfferGalleryCard offer={o} priority={i < 3} />

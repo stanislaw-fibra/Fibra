@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Offer } from "@/lib/offers";
 import { priceShort } from "@/lib/offers";
+import { OfferListingTypeTag } from "@/components/offers/OfferListingTypeTag";
 
 type Props = {
   offer: Offer;
@@ -45,7 +46,6 @@ export function OfferGalleryCard({ offer, priority = false }: Props) {
     offer.poster ||
     "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&h=1500&q=82";
   const hasVideo = Boolean(offer.hasShortVideo || offer.youtubeUrl);
-  const hasTour3d = Boolean(offer.virtualTourUrl?.trim());
   const price = priceShort(offer.priceFrom);
   const priceSuffix = offer.listingType === "wynajem" ? " / mies." : "";
 
@@ -68,18 +68,9 @@ export function OfferGalleryCard({ offer, priority = false }: Props) {
 
         <div className="pointer-events-none absolute top-3 left-3 right-3 flex flex-wrap items-start justify-between gap-1.5 gap-y-1.5">
           <div className="flex flex-wrap gap-1.5">
-            {offer.listingType === "wynajem" && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/90 text-ink-900 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em]">
-                Wynajem
-              </span>
-            )}
+            <OfferListingTypeTag listingType={offer.listingType} variant="media-light" />
           </div>
           <div className="flex flex-wrap justify-end gap-1.5">
-            {hasTour3d && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-950/70 backdrop-blur-md text-white px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em]">
-                Spacer 3D
-              </span>
-            )}
             {hasVideo && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-950/70 backdrop-blur-md text-white px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em]">
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden>

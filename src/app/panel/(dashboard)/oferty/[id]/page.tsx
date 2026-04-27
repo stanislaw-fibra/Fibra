@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { deleteOfferImageAction, updateOfferAction } from "@/app/panel/actions/offers";
 import { OfferFilmSection } from "@/app/panel/_components/OfferFilmSection";
 import { OfferFormFields } from "@/app/panel/_components/OfferFormFields";
+import { OfferFloorPlanUploadForm } from "@/app/panel/_components/OfferFloorPlanUploadForm";
 import { OfferImageUploadForm } from "@/app/panel/_components/OfferImageUploadForm";
 import { cloudflareStreamIframeUrl } from "@/lib/cloudflare-stream";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
@@ -41,6 +42,8 @@ type OfferRecord = {
   kitchen_type: string | null;
   market_type: string | null;
   virtual_tour_url: string | null;
+  floor_plan_image_url: string | null;
+  floor_plan_pdf_url: string | null;
   is_active: boolean;
   is_exclusive: boolean | null;
   is_price_negotiable: boolean | null;
@@ -66,6 +69,14 @@ type OfferMediaRow = {
   cloudflare_video_long_id: string | null;
 };
 
+type FloorPlanRow = {
+  id: string;
+  kind: "image" | "pdf";
+  label: string | null;
+  url: string;
+  order_index: number | null;
+};
+
 export default async function PanelOfferEditPage({ params, searchParams }: Props) {
   const { id } = await params;
   const sp = (await searchParams) ?? {};
@@ -76,10 +87,16 @@ export default async function PanelOfferEditPage({ params, searchParams }: Props
 
   const row = offer as OfferRecord;
 
-  const [{ data: agents }, { data: images, error: imgErr }, { data: media, error: mediaErr }] = await Promise.all([
+  const [
+    { data: agents },
+    { data: images, error: imgErr },
+    { data: media, error: mediaErr },
+    { data: floorplans, error: fpErr },
+  ] = await Promise.all([
     admin.from("agents").select("id, name").order("name", { ascending: true }),
     admin.from("offer_images").select("id, image_url, order_index, is_primary").eq("offer_id", id).order("order_index", { ascending: true }),
     admin.from("offer_media").select("cloudflare_video_short_id, cloudflare_video_long_id").eq("offer_id", id).maybeSingle(),
+    admin.from("offer_floorplans").select("id, kind, label, url, order_index").eq("offer_id", id).order("kind", { ascending: true }).order("order_index", { ascending: true }),
   ]);
 
   if (imgErr) {
@@ -98,7 +115,16 @@ export default async function PanelOfferEditPage({ params, searchParams }: Props
     );
   }
 
+  if (fpErr) {
+    return (
+      <div className="max-w-3xl">
+        <p className="text-accent-400">{fpErr.message}</p>
+      </div>
+    );
+  }
+
   const sortedImages = (images ?? []) as ImageRow[];
+  const floorplanRows = (floorplans ?? []) as FloorPlanRow[];
   const mediaRow = (media ?? null) as OfferMediaRow | null;
   const shortIframeSrc = mediaRow?.cloudflare_video_short_id
     ? cloudflareStreamIframeUrl(mediaRow.cloudflare_video_short_id)
@@ -166,6 +192,8 @@ export default async function PanelOfferEditPage({ params, searchParams }: Props
             kitchen_type: row.kitchen_type ?? "",
             market_type: row.market_type ?? "",
             virtual_tour_url: row.virtual_tour_url ?? "",
+            floor_plan_image_url: row.floor_plan_image_url ?? "",
+            floor_plan_pdf_url: row.floor_plan_pdf_url ?? "",
             is_active: row.is_active,
             is_exclusive: !!row.is_exclusive,
             is_price_negotiable: !!row.is_price_negotiable,
@@ -183,9 +211,7 @@ export default async function PanelOfferEditPage({ params, searchParams }: Props
 
       <section className="rounded-[var(--radius-md)] border border-white/10 bg-white/[0.04] p-6 md:p-8">
         <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500 mb-2">Zdjęcia oferty</h2>
-        <p className="text-[13px] text-ink-400 mb-6">
-          Galeria na stronie www - pliki w Supabase (<code className="text-ink-200">offer-images</code>), powiązane z tą ofertą.
-        </p>
+        <p className="text-[13px] text-ink-400 mb-6">Galeria na stronie www.</p>
 
         <OfferImageUploadForm offerId={row.id} galacticaOfferId={row.galactica_offer_id} />
 
@@ -215,6 +241,19 @@ export default async function PanelOfferEditPage({ params, searchParams }: Props
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="rounded-[var(--radius-md)] border border-white/10 bg-white/[0.04] p-6 md:p-8 mt-10">
+        <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500 mb-2">Rzut (zdjęcie / PDF)</h2>
+        <p className="text-[13px] text-ink-400 mb-6">
+          Pliki dodane tutaj pojawią się w przycisku „Rzut 3D” na publicznej stronie oferty.
+        </p>
+        <OfferFloorPlanUploadForm
+          offerId={row.id}
+          galacticaOfferId={row.galactica_offer_id}
+          images={floorplanRows.filter((x) => x.kind === "image")}
+          pdfs={floorplanRows.filter((x) => x.kind === "pdf")}
+        />
       </section>
 
       <OfferFilmSection

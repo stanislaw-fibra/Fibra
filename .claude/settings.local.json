@@ -6,7 +6,8 @@
       "Read(//private/tmp/**)",
       "Bash(npx create-next-app@latest fibra-app --typescript --tailwind --app --src-dir --import-alias \"@/*\" --no-eslint --use-npm --yes --turbopack)",
       "Bash(cp -R /tmp/fibra-app/. /Users/stanislawdrozniak/strony_www/Fibra/)",
-      "Bash(rm -rf /tmp/fibra-app)"
+      "Bash(rm -rf /tmp/fibra-app)",
+      "Bash(npx tsc *)"
     ]
   }
 }

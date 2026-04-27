@@ -31,6 +31,9 @@ export type SortMode = "newest" | "price-asc" | "price-desc" | "area-asc" | "are
 export type Filters = {
   view: ViewMode;
   sort: SortMode;
+  /** Wolny tekst (lupka) — szukane słowa kluczowe; matchowane w tytule,
+   * mieście, dzielnicy, kategorii, opisie i numerze referencyjnym. */
+  query: string;
   categories: string[];       // mieszkania|domy|dzialki|lokale|obiekty
   listing: "all" | "sprzedaz" | "wynajem";
   cities: string[];
@@ -51,6 +54,7 @@ export type Filters = {
 export const DEFAULT_FILTERS: Filters = {
   view: "video",
   sort: "newest",
+  query: "",
   categories: [],
   listing: "all",
   cities: [],
@@ -132,10 +136,20 @@ function view(v: string | null): ViewMode {
   return v === "gallery" ? "gallery" : "video";
 }
 
+function readQuery(raw: string | null): string {
+  if (!raw) return "";
+  const trimmed = raw.trim();
+  // Defensywnie: jeśli ktoś (np. zewnętrzne narzędzie) zapisze do URL
+  // literal "undefined"/"null" - traktujemy jako pusty string.
+  if (trimmed === "undefined" || trimmed === "null") return "";
+  return trimmed;
+}
+
 export function parseFiltersFromSearchParams(sp: URLSearchParams): Filters {
   return {
     view: view(sp.get("view")),
     sort: sort(sp.get("sort")),
+    query: readQuery(sp.get("q")),
     categories: csv(sp.get("category")),
     listing: listing(sp.get("listing")),
     cities: csv(sp.get("city")),
@@ -160,6 +174,7 @@ export function filtersToSearchParams(f: Filters): URLSearchParams {
   const out = new URLSearchParams();
   if (f.view !== DEFAULT_FILTERS.view) out.set("view", f.view);
   if (f.sort !== DEFAULT_FILTERS.sort) out.set("sort", f.sort);
+  if (f.query.trim()) out.set("q", f.query.trim());
   if (f.categories.length) out.set("category", f.categories.join(","));
   if (f.listing !== "all") out.set("listing", f.listing);
   if (f.cities.length) out.set("city", f.cities.join(","));
@@ -241,6 +256,7 @@ export function useFilters() {
  */
 export function activeFilterCount(f: Filters): number {
   let n = 0;
+  if (f.query.trim()) n++;
   if (f.categories.length) n++;
   if (f.listing !== "all") n++;
   if (f.cities.length) n++;
@@ -255,6 +271,41 @@ export function activeFilterCount(f: Filters): number {
   return n;
 }
 
+/**
+ * Normalizacja stringa do dopasowania case-insensitive i diacritic-insensitive
+ * (np. "łodź" matchuje "LODZ"). Używana wyłącznie przy filtrze tekstowym.
+ */
+function normalize(s: string | undefined | null): string {
+  if (!s) return "";
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ł/g, "l");
+}
+
+function offerSearchHaystack(o: Offer): string {
+  return [
+    o.title,
+    o.subtitle,
+    o.tagline,
+    o.excerpt,
+    o.fullDescription,
+    o.kindLabel,
+    o.city,
+    o.district,
+    o.refNumber,
+    ...(o.body ?? []),
+    ...(o.highlights ?? []),
+  ]
+    .map((x) => normalize(x))
+    .join(" ");
+}
+
+function tokenize(q: string): string[] {
+  return normalize(q).split(/\s+/).filter(Boolean);
+}
+
 function withinNum(v: number | undefined, min?: number, max?: number): boolean {
   if (v == null) return min == null && max == null ? true : false;
   if (min != null && v < min) return false;
@@ -263,7 +314,12 @@ function withinNum(v: number | undefined, min?: number, max?: number): boolean {
 }
 
 export function applyFilters(offers: Offer[], f: Filters): Offer[] {
+  const tokens = tokenize(f.query);
   const filtered = offers.filter((o) => {
+    if (tokens.length) {
+      const hay = offerSearchHaystack(o);
+      if (!tokens.every((t) => hay.includes(t))) return false;
+    }
     if (f.categories.length) {
       const cat = categoryFromOffer(o);
       if (!f.categories.includes(cat)) return false;

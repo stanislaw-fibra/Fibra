@@ -18,6 +18,8 @@ import { RelatedOffersWithPlayback } from "@/components/offers/RelatedOffersWith
 import { OfferHeroMedia } from "@/components/offers/OfferHeroMedia";
 import { OfferMatterport } from "@/components/offers/OfferMatterport";
 import { OfferYouTube } from "@/components/offers/OfferYouTube";
+import { OfferListingHighlight } from "@/components/offers/OfferListingHighlight";
+import { OfferQuickMedia } from "@/components/offers/OfferQuickMedia";
 import { GalleryLightboxProvider } from "@/components/offers/GalleryLightbox";
 import { OfferMiniGallery } from "@/components/offers/OfferMiniGallery";
 import { firstNameInstrumental } from "@/lib/polish-names";
@@ -100,6 +102,9 @@ export default async function OfferPage({
 
             <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
               <div className={`${heroStreamId ? "lg:col-span-5" : "lg:col-span-6"} order-1 lg:sticky lg:top-[88px]`}>
+                <div className="md:hidden max-w-[520px] mx-auto lg:mx-0">
+                  <OfferListingHighlight listingType={offer.listingType} />
+                </div>
                 {heroStreamId ? (
                   <div className="max-w-[520px] mx-auto lg:mx-0">
                     <div className="relative aspect-[9/15] w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-900 shadow-[var(--shadow-cinematic)] ring-1 ring-ink-200/60">
@@ -121,11 +126,6 @@ export default async function OfferPage({
                             {statusLabel(offer.statusOferty)}
                           </span>
                         )}
-                        {offer.virtualTourUrl && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-950/55 backdrop-blur-md text-white px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em]">
-                            Spacer 3D
-                          </span>
-                        )}
                       </div>
                     </div>
                     {gallery.length > 0 && (
@@ -144,6 +144,9 @@ export default async function OfferPage({
 
               <div className={`${heroStreamId ? "lg:col-span-7" : "lg:col-span-6"} order-2`}>
                 <Reveal>
+                  <div className="hidden md:block">
+                    <OfferListingHighlight listingType={offer.listingType} />
+                  </div>
                   <div className="flex flex-wrap items-center gap-3 mb-5">
                     <span className="text-[11px] uppercase tracking-[0.16em] text-ink-500">
                       {offer.city}
@@ -160,13 +163,26 @@ export default async function OfferPage({
                   )}
                 </Reveal>
 
+                <Reveal delay={80} className="mt-8">
+                  <OfferQuickMedia
+                    offerTitle={offer.title}
+                    virtualTourUrl={offer.virtualTourUrl}
+                    floorPlanImageUrl={offer.floorPlanImageUrl}
+                    floorPlanPdfUrl={offer.floorPlanPdfUrl}
+                    floorPlanImages={offer.floorPlanImages}
+                    floorPlanPdfs={offer.floorPlanPdfs}
+                    gallery={gallery.length ? gallery : undefined}
+                    youtubeUrl={offer.youtubeUrl}
+                  />
+                </Reveal>
+
                 <Reveal delay={100} className="mt-10 grid sm:grid-cols-2 gap-4">
                   <SpecCard
                     label={offer.kind === "grunt" ? "Powierzchnia działki" : "Powierzchnia użytkowa"}
                     value={`${offer.area} m²`}
                   />
                   {offer.rooms != null && <SpecCard label="Liczba pokoi" value={String(offer.rooms)} />}
-                  <SpecCard label="Cena" value={priceFormat(offer.priceFrom)} />
+                  <SpecCard label={offer.priceLabel ?? "Cena"} value={priceFormat(offer.priceFrom)} />
                   {offer.pietro && <SpecCard label="Piętro / budynek" value={offer.pietro} />}
                   {offer.rokBudowy != null && <SpecCard label="Rok budowy" value={String(offer.rokBudowy)} />}
                   {offer.miejscParkingowych != null && (
@@ -196,23 +212,14 @@ export default async function OfferPage({
                   </Reveal>
                 )}
 
-                <Reveal delay={260} className="mt-10 flex flex-wrap gap-4">
+                <Reveal delay={260} className="mt-10">
                   <a
-                    href="#kontakt-prezentacja"
+                    href="#kontakt"
                     className="inline-flex items-center gap-2 rounded-full bg-ink-950 hover:bg-brand-500 text-white px-7 py-3.5 text-[14px] font-medium transition-colors"
                   >
-                    Umów rozmowę lub prezentację
+                    Dowiedz się więcej
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                       <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </a>
-                  <a
-                    href="#kontakt-materialy"
-                    className="inline-flex items-center gap-2 rounded-full border border-ink-300 bg-paper hover:border-brand-500 hover:text-brand-600 text-ink-900 px-7 py-3.5 text-[14px] font-medium transition-colors"
-                  >
-                    Poproś o materiały (rzuty, portfolio)
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-                      <path d="M7 2v8M3 7l4 3 4-3M2 12h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </a>
                 </Reveal>

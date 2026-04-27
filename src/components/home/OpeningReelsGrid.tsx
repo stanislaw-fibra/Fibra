@@ -1,63 +1,67 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import type { Offer } from "@/lib/offers";
 import { VideoCard } from "@/components/home/VideoCard";
 import { ListVideoPlaybackProvider } from "@/components/media/ListVideoPlayback";
 
-/** Maks. liczba kafelków w hero - wyłącznie unikalne oferty (bez powtórki 1–4 jako 5–8). */
-const HERO_MAX = 8;
+/** Maks. liczba kafli w hero — desktop wymaga 4-kolumnowej, jednej linii. */
+const HERO_MAX_DESKTOP = 4;
+/** Mobile: dokładnie 4 kafle (2x2 grid w stylu YT Shorts) — pierwszy gra, reszta to plakaty. */
+const HERO_MAX_MOBILE = 4;
 
 export function OpeningReelsGrid({ offers }: { offers: Offer[] }) {
-  const featured = useMemo(() => offers.slice(0, HERO_MAX), [offers]);
-  const slugs = useMemo(() => featured.map((o) => o.slug), [featured]);
-  const mobileScrollRef = useRef<HTMLDivElement>(null);
+  const desktopFeatured = useMemo(() => offers.slice(0, HERO_MAX_DESKTOP), [offers]);
+  const mobileFeatured = useMemo(() => offers.slice(0, HERO_MAX_MOBILE), [offers]);
+  const desktopSlugs = useMemo(() => desktopFeatured.map((o) => o.slug), [desktopFeatured]);
+  const mobileSlugs = useMemo(() => mobileFeatured.map((o) => o.slug), [mobileFeatured]);
 
   return (
-    <ListVideoPlaybackProvider orderedSlugs={slugs} mobileMode="horizontal-scroll" mobileRootRef={mobileScrollRef}>
-      <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 xl:gap-5 w-full items-stretch">
-        {featured.map((o, i) => (
-          <div key={o.slug} className="flex justify-center min-w-0">
-            <div className="w-full max-w-[300px] lg:max-w-none">
+    <>
+      {/* DESKTOP — 4 kafle obok siebie, pełny premium look.
+          Od md+ wymuszamy 4 kolumny (a nie 2) aby na laptopie ofery były widoczne
+          nad fold zaraz po wejściu. Aspect spłaszczony do 4:5 / 5:7 na średnich
+          ekranach, dopiero od xl wracamy do pełnego pionowego 9:16. */}
+      <div className="hidden md:block">
+        <ListVideoPlaybackProvider orderedSlugs={desktopSlugs} mobileMode="horizontal-scroll">
+          <div className="grid md:grid-cols-4 gap-3 lg:gap-4 xl:gap-5 w-full items-stretch">
+            {desktopFeatured.map((o, i) => (
               <VideoCard
+                key={o.slug}
                 offer={o}
                 index={i}
                 priority={i < 3}
                 showCardFooter={false}
                 showPrice={false}
                 surfaceTheme="hero"
+                aspectClass="aspect-[4/5] lg:aspect-[5/7] xl:aspect-[9/16]"
               />
-            </div>
+            ))}
           </div>
-        ))}
+        </ListVideoPlaybackProvider>
       </div>
 
-      <div className="md:hidden -mx-5 flex-1 flex flex-col justify-center min-h-0">
-        <div ref={mobileScrollRef} className="snap-x-strong flex gap-3 overflow-x-auto px-5 pb-3 pt-1">
-          {featured.map((o, i) => (
-            <div key={o.slug} className="snap-item shrink-0 w-[76vw] max-w-[300px]">
+      {/* MOBILE — siatka 2x2 (Reels-style). Pierwszy kafel auto-play, reszta to
+          podgląd-plakat. Aspect 3:4 zamiast 9:16, by całość zmieściła się
+          w pierwszym ekranie razem z podpisami i nagłówkiem. */}
+      <div className="md:hidden w-full">
+        <ListVideoPlaybackProvider orderedSlugs={mobileSlugs} mobileMode="grid-first">
+          <div className="grid grid-cols-2 gap-2.5 w-full">
+            {mobileFeatured.map((o, i) => (
               <VideoCard
+                key={o.slug}
                 offer={o}
                 index={i}
                 priority={i === 0}
                 showCardFooter={false}
                 showPrice={false}
                 surfaceTheme="hero"
+                aspectClass="aspect-[3/4]"
               />
-            </div>
-          ))}
-        </div>
-        <div className="px-5 pt-2 flex justify-between items-center text-[11px] uppercase tracking-[0.18em] text-white/35">
-          <span>Przesuń w bok</span>
-          <Link
-            href="/oferty?view=video"
-            className="text-white/70 hover:text-accent-400 transition-colors normal-case tracking-normal text-[13px] font-medium"
-          >
-            Wszystkie oferty →
-          </Link>
-        </div>
+            ))}
+          </div>
+        </ListVideoPlaybackProvider>
       </div>
-    </ListVideoPlaybackProvider>
+    </>
   );
 }

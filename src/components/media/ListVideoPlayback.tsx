@@ -13,7 +13,7 @@ import {
   type RefObject,
 } from "react";
 
-export type ListVideoMobileMode = "horizontal-scroll" | "viewport-center";
+export type ListVideoMobileMode = "horizontal-scroll" | "viewport-center" | "grid-first";
 
 type ListVideoPlaybackContextValue = {
   orderedSlugs: readonly string[];
@@ -161,8 +161,12 @@ export function ListVideoPlaybackProvider({
       if (desktopRequireHover) return debouncedHoverSlug ?? null;
       return debouncedHoverSlug ?? first;
     }
+    // grid-first: na mobile zawsze gra pierwsza widoczna karta (Reels-style 2x2),
+    // pozostałe są deterministycznie podglądem - nie szukamy „najlepiej widocznej",
+    // bo wszystkie 4 są w viewport jednocześnie.
+    if (mobileMode === "grid-first") return first;
     return mobilePick ?? first;
-  }, [enabled, ready, desktopRequireHover, debouncedHoverSlug, isDesktop, mobilePick, orderedSlugs]);
+  }, [enabled, ready, desktopRequireHover, debouncedHoverSlug, isDesktop, mobileMode, mobilePick, orderedSlugs]);
 
   const value = useMemo(
     (): ListVideoPlaybackContextValue => ({

@@ -16,65 +16,62 @@ const ctaArrow = (
 
 export function OpeningReels({ offers }: { offers: Offer[] }) {
   return (
+    // Hero zaprojektowane tak, by na pierwszym ekranie (zarówno desktop, jak i mobile)
+    // user widział jednocześnie nagłówek, sekcję „Aktualne oferty" oraz cały blok kafli
+    // z podpisami — bez konieczności scrollowania. Dlatego nagłówek i odstępy są
+    // świadomie skompaktowane (mniejszy clamp na mobile, krótsze paddingi vertical).
     <section className="relative min-h-[100svh] flex flex-col bg-ink-950 text-ink-100 overflow-hidden">
       <div className="absolute inset-0 grad-radial-brand opacity-70 pointer-events-none" />
       <div className="absolute inset-0 grain grain-on-dark pointer-events-none opacity-45" />
 
       <div className="shrink-0 h-[72px]" aria-hidden />
 
-      <div className="container-xl relative shrink-0 pt-6 pb-6 md:pt-10 md:pb-8 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 lg:gap-12">
-        <div className="max-w-3xl">
-          <p className="eyebrow eyebrow-on-dark flex items-center gap-3 mb-6">
-            <span className="inline-block w-8 h-px bg-accent-400" />
+      <div className="container-xl relative shrink-0 pt-1.5 pb-1.5 md:pt-3 md:pb-2 flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-6 lg:gap-10">
+        <div className="min-w-0 md:flex md:items-baseline md:gap-5 lg:gap-7">
+          <p className="eyebrow eyebrow-on-dark hidden md:inline-flex items-center gap-3 shrink-0">
+            <span className="inline-block w-6 lg:w-8 h-px bg-accent-400" />
             Fibra Nieruchomości
           </p>
-          <h1 className="font-display text-white leading-[0.98] tracking-tight max-w-[18ch] text-[clamp(2.4rem,6.5vw,4.5rem)]">
-            Znajdź swoje miejsce.
-            <br />
-            Zobacz je, zanim tam wejdziesz.
+          {/* Desktop: jednolinijkowy nagłówek + krótki dopisek po myślniku.
+              Dzięki temu hero schodzi z ~3-4 linijek do 1, co radykalnie
+              podnosi kafle z filmami w pierwszym ekranie. */}
+          <h1 className="font-display text-white leading-[1.05] tracking-tight text-[clamp(1.2rem,4.4vw,1.7rem)] md:text-[clamp(1.35rem,2.4vw,1.85rem)] lg:text-[clamp(1.5rem,2vw,2rem)]">
+            <span className="md:hidden">
+              Znajdź swoje miejsce.{" "}
+              <em className="italic text-accent-400">Zobacz na wideo.</em>
+            </span>
+            <span className="hidden md:inline whitespace-nowrap">
+              Znajdź swoje miejsce.{" "}
+              <em className="italic text-accent-400">Zobacz je na wideo.</em>
+            </span>
           </h1>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 lg:justify-end lg:pb-1">
+        <div className="hidden md:flex flex-wrap items-center gap-2 md:justify-end shrink-0">
           <Link
             href="/oferty?view=video"
-            className="inline-flex items-center gap-2 rounded-full bg-white text-ink-950 px-6 py-3 text-[13px] font-medium hover:bg-accent-400 hover:text-ink-950 transition-colors duration-300 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.45)]"
+            className="inline-flex items-center gap-2 rounded-full bg-white text-ink-950 px-4 py-2 text-[12px] font-medium hover:bg-accent-400 hover:text-ink-950 transition-colors duration-300 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.45)]"
           >
             Przeglądaj oferty
             {ctaArrow}
           </Link>
-          <Link
-            href="/o-fibrze"
-            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 backdrop-blur-md px-6 py-3 text-[13px] font-medium text-white/90 hover:bg-white/10 hover:border-white/35 transition-all duration-300"
-          >
-            Poznaj Fibrę
-            {ctaArrow}
-          </Link>
         </div>
       </div>
 
-      <div className="container-xl relative shrink-0 pb-4 md:pb-6">
-        <div className="hairline-dark-t pt-6 md:pt-8">
-          <h2 className="font-display text-white fluid-h2 max-w-[20ch] leading-[1.02]">
-            Aktualne <em className="italic text-accent-400">oferty</em>
-          </h2>
-          <p className="mt-4 text-[15px] md:text-[16px] text-white/55 max-w-[52ch] leading-[1.55]">
-            Przeglądaj nasze oferty w formie krótkich filmów.
-          </p>
-        </div>
-      </div>
-
-      <div className="container-xl relative flex-1 min-h-0 flex flex-col justify-center py-4 md:py-8">
+      <div className="container-xl relative flex-1 min-h-0 flex flex-col justify-start md:justify-center py-1.5 md:py-6">
         <OpeningReelsGrid offers={offers} />
       </div>
 
-      <div className="container-xl relative shrink-0 pb-10 md:pb-14">
-        <div className="hairline-dark-t pt-10 md:pt-14 flex flex-col items-center">
+      {/* CTA pod kaflami — kompaktowy „pasek" zamiast osobnej dużej sekcji,
+          dzięki temu zarówno mobile, jak i desktop trzymają całość w pierwszym
+          ekranie. Na mobile pojedynczy przycisk pełnoszerokościowy. */}
+      <div className="container-xl relative shrink-0 pb-4 md:pb-10">
+        <div className="hairline-dark-t pt-3 md:pt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 sm:gap-3">
           <Link
             href="/oferty?view=video"
-            className="inline-flex items-center gap-2.5 rounded-full bg-white text-ink-950 pl-7 pr-6 py-3.5 text-[13px] font-medium hover:bg-accent-400 hover:text-ink-950 transition-colors duration-300 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.45)]"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-white text-ink-950 px-5 py-2.5 md:px-6 md:py-3 text-[12.5px] md:text-[13px] font-medium hover:bg-accent-400 hover:text-ink-950 transition-colors duration-300 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.45)]"
           >
-            Przeglądaj oferty
+            Przeglądaj wszystkie oferty
             {ctaArrow}
           </Link>
         </div>

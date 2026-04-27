@@ -398,6 +398,10 @@ export function FiltersBar({
         <div className="hidden lg:block">
           <div className="container-xl py-3.5 flex items-start justify-between gap-3">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-2 min-w-0">
+              <SearchInputCollapsible
+                value={filters.query}
+                onChange={(q) => apply({ query: q })}
+              />
               {categoryPopover}
               {listingPopover}
               {pricePopover}
@@ -408,12 +412,6 @@ export function FiltersBar({
             </div>
             <div className="flex items-center gap-2 justify-end">
               {sortPopover("end")}
-              <ViewToggle
-                view={filters.view}
-                onChange={(v) => apply({ view: v })}
-                totalGallery={totalMatches}
-                totalVideo={totalVideoMatches}
-              />
             </div>
           </div>
         </div>
@@ -426,12 +424,27 @@ export function FiltersBar({
                 kolejne opcje). */}
         <div className="lg:hidden">
           <div className="container-xl pt-3 pb-3 space-y-2.5">
-            <ViewToggleWide
-              view={filters.view}
-              onChange={(v) => apply({ view: v })}
-              totalGallery={totalMatches}
-              totalVideo={totalVideoMatches}
+            <SearchInput
+              value={filters.query}
+              onChange={(q) => apply({ query: q })}
+              variant="wide"
             />
+            <div className="flex items-center gap-2">
+              <span
+                className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-400 select-none"
+                aria-hidden
+              >
+                Widok
+              </span>
+              <div className="flex-1 min-w-0">
+                <ViewToggleWide
+                  view={filters.view}
+                  onChange={(v) => apply({ view: v })}
+                  totalGallery={totalMatches}
+                  totalVideo={totalVideoMatches}
+                />
+              </div>
+            </div>
             <div className="relative">
               <div className="flex gap-2 overflow-x-auto pb-1 pr-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0">
                 {sortPopover("start")}
@@ -508,6 +521,178 @@ export function FiltersBar({
   );
 }
 
+/**
+ * Lupka + input wyszukiwarki tekstowej. Lokalny state, push do globalnych
+ * filtrów dopiero po debounce — żeby URL/router nie aktualizował się przy
+ * każdej literze (płynne UX, pojedynczy re-render listy ofert).
+ */
+function SearchInput({
+  value,
+  onChange,
+  variant = "wide",
+}: {
+  value: string;
+  onChange: (q: string) => void;
+  /** "wide" - pełna szerokość (mobile), "compact" - desktop pasek narzędzi. */
+  variant?: "wide" | "compact";
+}) {
+  // Twardo normalizujemy do string żeby `<input value>` był zawsze controlled
+  // i nie generował hydration mismatchu (ani komunikatu "changing controlled
+  // input"), nawet jeśli ktoś w przyszłości wysłałby `query: undefined`.
+  const safeValue = typeof value === "string" ? value : "";
+  const [localValue, setLocalValue] = useState(safeValue);
+
+  // Sync z zewnętrznym stanem, gdy filtry resetuje ktoś inny (np. „Wyczyść").
+  useEffect(() => {
+    setLocalValue(safeValue);
+  }, [safeValue]);
+
+  // Debounce push do globalnego stanu (router + applyFilters).
+  useEffect(() => {
+    if (localValue === safeValue) return;
+    const handle = window.setTimeout(() => onChange(localValue), 220);
+    return () => window.clearTimeout(handle);
+  }, [localValue, onChange, safeValue]);
+
+  const widthClass = variant === "compact" ? "w-[220px] xl:w-[280px]" : "w-full";
+
+  return (
+    <div className={`relative ${widthClass}`}>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-500"
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+          <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </span>
+      <input
+        type="search"
+        inputMode="search"
+        value={localValue}
+        onChange={(e) => setLocalValue(e.target.value)}
+        placeholder="Szukaj w ofertach..."
+        aria-label="Szukaj słów kluczowych w ofertach"
+        className={[
+          "w-full rounded-full border border-ink-200 bg-paper text-ink-900 placeholder:text-ink-400",
+          "pl-9 pr-9 py-2 text-[12.5px] font-medium",
+          "transition-[border-color,box-shadow] duration-150",
+          "focus:outline-none focus:border-ink-400 focus:ring-2 focus:ring-brand-200",
+        ].join(" ")}
+      />
+      {localValue && (
+        <button
+          type="button"
+          aria-label="Wyczyść wyszukiwarkę"
+          onClick={() => {
+            setLocalValue("");
+            onChange("");
+          }}
+          className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-6 w-6 items-center justify-center rounded-full text-ink-500 hover:text-ink-900 hover:bg-ink-100 transition-colors cursor-pointer"
+        >
+          <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden>
+            <path
+              d="M2 2l6 6M8 2l-6 6"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}
+
+function SearchInputCollapsible({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (q: string) => void;
+}) {
+  const safeValue = typeof value === "string" ? value : "";
+  const [localValue, setLocalValue] = useState(safeValue);
+  const [open, setOpen] = useState(Boolean(safeValue));
+
+  useEffect(() => {
+    setLocalValue(safeValue);
+    if (safeValue) setOpen(true);
+  }, [safeValue]);
+
+  useEffect(() => {
+    if (localValue === safeValue) return;
+    const handle = window.setTimeout(() => onChange(localValue), 220);
+    return () => window.clearTimeout(handle);
+  }, [localValue, onChange, safeValue]);
+
+  return (
+    <div className="relative flex items-center">
+      <button
+        type="button"
+        aria-label={open ? "Zwiń wyszukiwarkę" : "Rozwiń wyszukiwarkę"}
+        onClick={() => setOpen((v) => !v)}
+        className={[
+          "inline-flex h-10 w-10 items-center justify-center rounded-full border",
+          "cursor-pointer select-none transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.97]",
+          safeValue ? "border-ink-950 bg-ink-950 text-white" : "border-ink-200 bg-paper text-ink-700 hover:border-ink-400 hover:text-ink-950",
+        ].join(" ")}
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+          <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </button>
+
+      <div
+        className={[
+          "ml-2 overflow-hidden transition-[width,opacity] duration-200 ease-out",
+          open ? "opacity-100 w-[220px] xl:w-[280px]" : "opacity-0 w-0",
+        ].join(" ")}
+        aria-hidden={!open}
+      >
+        <div className="relative">
+          <input
+            type="search"
+            inputMode="search"
+            value={localValue}
+            onChange={(e) => setLocalValue(e.target.value)}
+            placeholder="Szukaj w ofertach..."
+            aria-label="Szukaj słów kluczowych w ofertach"
+            className={[
+              "w-full rounded-full border border-ink-200 bg-paper text-ink-900 placeholder:text-ink-400",
+              "pl-4 pr-9 py-2 text-[12.5px] font-medium",
+              "transition-[border-color,box-shadow] duration-150",
+              "focus:outline-none focus:border-ink-400 focus:ring-2 focus:ring-brand-200",
+            ].join(" ")}
+          />
+          {localValue && (
+            <button
+              type="button"
+              aria-label="Wyczyść wyszukiwarkę"
+              onClick={() => {
+                setLocalValue("");
+                onChange("");
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-6 w-6 items-center justify-center rounded-full text-ink-500 hover:text-ink-900 hover:bg-ink-100 transition-colors cursor-pointer"
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden>
+                <path
+                  d="M2 2l6 6M8 2l-6 6"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ViewToggle({
   view,
   onChange,
@@ -563,7 +748,7 @@ function ViewToggle({
           <rect x="1.5" y="6" width="3.5" height="3.5" />
           <rect x="6" y="6" width="3.5" height="3.5" />
         </svg>
-        Zdjęcia
+        Klasyczny
         <span className="opacity-60 tabular-nums">({totalGallery})</span>
       </button>
     </div>
@@ -572,7 +757,7 @@ function ViewToggle({
 
 /**
  * Kompaktowa wersja dla mini-toolbara na mobile: same ikonki + liczniki,
- * bez etykiet tekstowych ("Wideo"/"Zdjęcia"). Mniejszy footprint,
+ * bez etykiet tekstowych ("Wideo"/"Klasyczny"). Mniejszy footprint,
  * lepszy UI gdy user skrolluje.
  */
 function ViewToggleIcons({
@@ -612,7 +797,7 @@ function ViewToggleIcons({
         type="button"
         onClick={() => onChange("gallery")}
         aria-pressed={view === "gallery"}
-        aria-label={`Widok zdjęć (${totalGallery})`}
+        aria-label={`Widok klasyczny (${totalGallery})`}
         className={[
           "inline-flex items-center gap-1 rounded-full px-2.5 py-1.5",
           "cursor-pointer select-none transition-[background-color,color,transform] duration-200 active:scale-[0.96]",
@@ -689,7 +874,7 @@ function ViewToggleWide({
           <rect x="1.5" y="6" width="3.5" height="3.5" />
           <rect x="6" y="6" width="3.5" height="3.5" />
         </svg>
-        <span className="truncate">Zdjęcia</span>
+        <span className="truncate">Klasyczny</span>
         <span className="opacity-60 tabular-nums">({totalGallery})</span>
       </button>
     </div>

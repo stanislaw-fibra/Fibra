@@ -5,6 +5,12 @@ import { useState } from "react";
 type Props = {
   url: string;
   title?: string;
+  /** W modalu — od razu pokazuj iframe (bez drugiego kliknięcia „Uruchom spacer”). */
+  embedImmediately?: boolean;
+  /**
+   * `modal` — wysoka ramka (~pełny ekran w modalu), zamiast sztywnego aspect-ratio z karty oferty.
+   */
+  layoutVariant?: "card" | "modal";
 };
 
 /**
@@ -15,12 +21,22 @@ type Props = {
  * pod ramką — natywny przycisk Matterporta bywa za mały do trafienia palcem,
  * a iOS Safari dodatkowo nie pozwala na iframe fullscreen API.
  */
-export function OfferMatterport({ url, title = "Wirtualny spacer 3D" }: Props) {
-  const [loaded, setLoaded] = useState(false);
+export function OfferMatterport({
+  url,
+  title = "Wirtualny spacer 3D",
+  embedImmediately = false,
+  layoutVariant = "card",
+}: Props) {
+  const [loaded, setLoaded] = useState(embedImmediately);
+
+  const frameClass =
+    layoutVariant === "modal"
+      ? "relative h-[min(78dvh,860px)] min-h-[280px] w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-950 ring-1 ring-ink-200/60 shadow-[var(--shadow-cinematic)] sm:h-[min(80dvh,880px)]"
+      : "relative aspect-[4/5] sm:aspect-[16/10] md:aspect-[16/9] w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-950 ring-1 ring-ink-200/60 shadow-[var(--shadow-cinematic)]";
 
   return (
     <div className="space-y-3">
-      <div className="relative aspect-[4/5] sm:aspect-[16/10] md:aspect-[16/9] w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-950 ring-1 ring-ink-200/60 shadow-[var(--shadow-cinematic)]">
+      <div className={frameClass}>
         {loaded ? (
           <iframe
             src={url}
