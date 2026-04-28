@@ -44,7 +44,7 @@ const FOUNDER = {
   name: "Bartosz Nosiadek",
   role: "Założyciel, Prezes Zarządu",
   bio:
-    "Wierzę, że w nieruchomościach – bardziej niż w jakiejkolwiek innej branży – liczy się człowiek i przejrzyste zasady. Tworząc Fibrę przyjąłem prostą dewizę: interesy robi się z ludźmi, a nie na ludziach.\n\nDziś, po 20 latach na rynku, z dumą patrzę na osiedla, które wybudowaliśmy i setki rodzin, którym pomogliśmy znaleźć ich miejsce na ziemi. Jako praktyk i autor książki „Zarabianie uczciwych pieniędzy”, dbam o to, by każdy etap naszej współpracy – od budowy, przez finansowanie, aż po zarządzanie najmem – opierał się na fundamencie zaufania.",
+    "Wierzę, że w nieruchomościach – bardziej niż w jakiejkolwiek innej branży – liczy się człowiek i przejrzyste zasady. Tworząc Fibrę przyjąłem prostą dewizę: interesy robi się z ludźmi, a nie na ludziach.\n\nDziś, po 20 latach na rynku, z dumą patrzę na osiedla, które wybudowaliśmy i setki rodzin, którym pomogliśmy znaleźć ich miejsce na ziemi. Jako praktyk i autor książki „Zarabianie uczciwych pieniędzy”, dbam o to, by każdy etap naszej współpracy – od budowy, przez finansowanie, aż po zarządzanie najmem – opierał się na fundamencie zaufania.\n\nFibra to nie tylko deweloper czy biuro nieruchomości. To zespół specjalistów, którzy biorą pełną odpowiedzialność za Twój komfort i bezpieczeństwo finansowe. Zapraszam Cię do poznania nas bliżej — chociażby przez pryzmat naszych wideo-prezentacji.",
   photoUrl: `${AGENTS_BUCKET}/Bartosz%20Nosiadek.jpg`,
 } as const;
 
@@ -192,9 +192,7 @@ export default function OFibrzePage() {
               </Reveal>
               <Reveal delay={80}>
                 <p className="mt-5 md:mt-6 text-[16px] md:text-[18px] text-ink-600 leading-relaxed text-pretty">
-                  Fibra to nie tylko deweloper czy biuro nieruchomości. To zespół specjalistów, którzy biorą pełną
-                  odpowiedzialność za Twój komfort i bezpieczeństwo finansowe. Zapraszam Cię do poznania nas bliżej —
-                  chociażby przez pryzmat naszych wideo-prezentacji.
+                  Za każdą ofertą, transakcją i rozmową stoi konkretna osoba.
                 </p>
               </Reveal>
               <Reveal delay={160}>

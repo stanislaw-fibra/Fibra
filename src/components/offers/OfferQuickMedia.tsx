@@ -11,6 +11,23 @@ const ease = [0.22, 1, 0.36, 1] as const;
 
 type ModalKind = "tour" | "floor" | "floor-choice" | "youtube";
 
+function youtubeVideoId(raw: string): string | null {
+  try {
+    const u = new URL(raw);
+    let id: string | null = null;
+    if (u.hostname.includes("youtu.be")) {
+      id = u.pathname.replace(/^\//, "");
+    } else if (u.hostname.includes("youtube.com")) {
+      id = u.searchParams.get("v");
+      if (!id && u.pathname.startsWith("/embed/")) id = u.pathname.split("/")[2] || null;
+      if (!id && u.pathname.startsWith("/shorts/")) id = u.pathname.split("/")[2] || null;
+    }
+    return id?.trim() ? id.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
 type Props = {
   offerTitle: string;
   virtualTourUrl?: string;
@@ -68,6 +85,14 @@ export function OfferQuickMedia({
     const raw = youtubeUrlProp?.trim();
     if (!raw) return null;
     return youtubeEmbedUrl(raw);
+  }, [youtubeUrlProp]);
+
+  const youtubeThumb = useMemo(() => {
+    const raw = youtubeUrlProp?.trim();
+    if (!raw) return null;
+    const id = youtubeVideoId(raw);
+    if (!id) return null;
+    return `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
   }, [youtubeUrlProp]);
 
   const hasTour = Boolean(virtualTourUrl?.trim());
@@ -436,8 +461,37 @@ export function OfferQuickMedia({
               <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-500">Film</span>
               <span className="truncate text-[15px] font-medium text-ink-900">Zobacz film z nieruchomości</span>
             </span>
-            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink-950 text-white transition-colors group-hover:bg-[#FF0033]">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden className="translate-x-[0.5px]">
+            <span
+              className={[
+                // Mobile: okrągła „ikonka” (jak teraz). Desktop: prostokątna miniatura, żeby faktycznie było widać kadr.
+                "relative inline-flex h-10 w-10 md:h-12 md:w-20 shrink-0 items-center justify-center overflow-hidden",
+                "rounded-full md:rounded-[var(--radius-sm)]",
+                youtubeThumb ? "ring-1 ring-ink-200 bg-ink-100" : "bg-ink-950 text-white",
+                "transition-colors group-hover:ring-brand-300 group-hover:bg-[#FF0033]",
+              ].join(" ")}
+              aria-hidden
+            >
+              {youtubeThumb ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={youtubeThumb}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="lazy"
+                  draggable={false}
+                />
+              ) : null}
+              <span className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className={[
+                  "relative z-[1] translate-x-[0.5px]",
+                  youtubeThumb ? "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]" : "text-white",
+                ].join(" ")}
+              >
                 <path d="M8 5v14l11-7z" />
               </svg>
             </span>
