@@ -177,6 +177,8 @@ export function VideoCard({
   }, [playback]);
 
   const isHero = surfaceTheme === "hero";
+  /** Mobile 2×2 na stronie głównej: tytuł jak w Shorts (na rolce), bez wiersza lokalizacji pod spodem. */
+  const heroMobileOverlay = isHero && !showCardFooter;
 
   const shellClass = isHero
     ? [
@@ -297,6 +299,20 @@ export function VideoCard({
               )}
             </div>
           </div>
+
+          {heroMobileOverlay ? (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] md:hidden">
+              <div
+                className="absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-t from-black/88 via-black/30 to-transparent"
+                aria-hidden
+              />
+              <div className="relative px-2 pb-2 pt-12">
+                <h3 className="font-display text-left text-[11.5px] leading-[1.2] text-white line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
+                  {offer.title}
+                </h3>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {canToggleSound && isListActive && (
@@ -313,8 +329,16 @@ export function VideoCard({
         )}
       </div>
 
+      {heroMobileOverlay ? (
+        <div className="md:hidden px-0.5 pt-1.5">
+          <p className="text-center text-[11px] text-white/90 tabular-nums leading-snug tracking-tight">
+            {offer.area} m²{offer.rooms ? ` · ${offer.rooms} pok.` : ""}
+          </p>
+        </div>
+      ) : null}
+
       {!visualOnly && (
-        <div className={textWrapClass}>
+        <div className={[textWrapClass, heroMobileOverlay ? "max-md:hidden" : ""].filter(Boolean).join(" ")}>
           <p className={eyebrowClass}>
             {offer.city}
             {offer.district ? ` · ${offer.district}` : ""} · {offer.kindLabel}

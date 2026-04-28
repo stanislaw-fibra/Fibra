@@ -23,7 +23,10 @@ export function OfferStickyCta({
   const firstNameGen = firstNameGenitive(agentName);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-ink-200/90 bg-[var(--color-paper)]/92 backdrop-blur-xl shadow-[0_-8px_32px_-12px_rgba(11,15,20,0.12)]">
+    <div
+      data-offer-sticky=""
+      className="fixed bottom-0 left-0 right-0 z-40 border-t border-ink-200/90 bg-[var(--color-paper)]/92 backdrop-blur-xl pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-8px_32px_-12px_rgba(11,15,20,0.12)]"
+    >
       <div className="container-xl flex items-center justify-between gap-3 py-2.5 md:py-3">
         <p className="hidden md:block min-w-0 flex-1 text-[12.5px] text-ink-500 truncate">
           {title}

@@ -106,7 +106,7 @@ export function SprzedajZFibraStats() {
             <p className="mt-4 text-[15px] md:text-base text-ink-600 leading-snug max-w-[14ch]">
               nieruchomości
               <br />
-              z filmem i spacerem 3D
+              z filmami i spacerem 3D
             </p>
           </div>
           <div>

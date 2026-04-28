@@ -10,10 +10,11 @@ export function OfertyHeaderViewToggle() {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const view: ViewMode = useMemo(() => {
-    const v = searchParams.get("view");
-    return v === "gallery" ? "gallery" : "video";
-  }, [searchParams]);
+  /** Widok wyłącznie z URL — spójnie z `useFilters()` / `parseFiltersFromSearchParams`. */
+  const view: ViewMode = useMemo(
+    () => (searchParams.get("view") === "gallery" ? "gallery" : "video"),
+    [searchParams],
+  );
 
   const setView = (next: ViewMode) => {
     const out = new URLSearchParams(searchParams.toString());

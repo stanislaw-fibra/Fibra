@@ -7,12 +7,12 @@ import { Reveal } from "@/components/ui/Reveal";
 export const metadata = {
   title: "O Fibrze — Fibra Nieruchomości",
   description:
-    "Fibra to deweloper, biuro nieruchomości i doradca finansowy w jednym. Działamy na Śląsku od 2011 roku — konkretnie, po ludzku, z pełną odpowiedzialnością.",
+    "Fibra to deweloper, biuro nieruchomości i doradca finansowy w jednym. Działamy na Śląsku od 2006 roku — konkretnie, po ludzku, z pełną odpowiedzialnością.",
   alternates: { canonical: "/o-fibrze" },
   openGraph: {
     title: "O Fibrze — Fibra Nieruchomości",
     description:
-      "Doświadczenie, któremu możesz zaufać. Deweloperka, pośrednictwo, finansowanie — od 2011 roku na Śląsku.",
+      "Doświadczenie, któremu możesz zaufać. Działalność deweloperska, pośrednictwo w sprzedaży nieruchomości, finansowanie — od 2006 roku na Śląsku.",
     url: "/o-fibrze",
     type: "website",
     locale: "pl_PL",
@@ -21,7 +21,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "O Fibrze — Fibra Nieruchomości",
     description:
-      "Doświadczenie, któremu możesz zaufać. Deweloperka, pośrednictwo, finansowanie — od 2011 roku na Śląsku.",
+      "Doświadczenie, któremu możesz zaufać. Działalność deweloperska, pośrednictwo w sprzedaży nieruchomości, finansowanie — od 2006 roku na Śląsku.",
   },
 };
 
@@ -44,46 +44,46 @@ const FOUNDER = {
   name: "Bartosz Nosiadek",
   role: "Założyciel, Prezes Zarządu",
   bio:
-    "Założył Fibrę w 2011 roku z prostą zasadą — interesy robi się z ludźmi, a nie na ludziach. Od ponad dekady buduje osiedla mieszkaniowe i prowadzi jedno z największych biur nieruchomości na Śląsku. Ponad 170 wybudowanych apartamentów, ponad 100 transakcji rocznie. Autor książek „Zarabianie Prawdziwych Pieniędzy” i „Zarabianie Uczciwych Pieniędzy”.",
+    "Wierzę, że w nieruchomościach – bardziej niż w jakiejkolwiek innej branży – liczy się człowiek i przejrzyste zasady. Tworząc Fibrę przyjąłem prostą dewizę: interesy robi się z ludźmi, a nie na ludziach.\n\nDziś, po 20 latach na rynku, z dumą patrzę na osiedla, które wybudowaliśmy i setki rodzin, którym pomogliśmy znaleźć ich miejsce na ziemi. Jako praktyk i autor książki „Zarabianie uczciwych pieniędzy”, dbam o to, by każdy etap naszej współpracy – od budowy, przez finansowanie, aż po zarządzanie najmem – opierał się na fundamencie zaufania.",
   photoUrl: `${AGENTS_BUCKET}/Bartosz%20Nosiadek.jpg`,
 } as const;
 
 /** Zespół - karty równych rozmiarów, każda z telefonem CTA. */
 const TEAM: TeamMember[] = [
   {
-    name: "Arkadiusz Jezusek",
-    role: "Agent ds. sprzedaży",
-    bio:
-      "Specjalista ds. sprzedaży nieruchomości deweloperskich. Przeprowadzi Cię przez cały proces — od pierwszego oglądania po podpisanie aktu notarialnego.",
-    phone: "881 431 800",
-    photoUrl: `${AGENTS_BUCKET}/Arkadiusz%20Jezusek.png`,
-  },
-  {
     name: "Justyna Polok",
-    role: "Agent ds. wynajmu",
+    role: "Licencjonowany Pośrednik i Ekspert Kredytowy",
     bio:
-      "Zajmuje się wynajmem długoterminowym. Pomoże znaleźć najemcę i przeprowadzi wszystkie formalności.",
+      "Z branżą nieruchomości i finansów jestem związana od 15 lat. Jako licencjonowany pośrednik i ekspert od kredytów hipotecznych, przeprowadzam moich klientów przez cały proces zakupu i finansowania – bez stresu i „drobnego druczku”. Na Osiedlu Zamysłów dbam o bezpieczeństwo wynajmu i spokój właścicieli, zarządzając mieszkaniami od strony formalnej i technicznej. Stawiam na konkret, uczciwość i relacje, bo wierzę, że profesjonalna współpraca nie musi być wyłącznie formalna.\n\nZapraszam do kontaktu.",
     phone: "795 133 380",
     photoUrl: `${AGENTS_BUCKET}/Justyna%20Polok.png`,
+  },
+  {
+    name: "Arkadiusz Jezusek",
+    role: "Agent Nieruchomości | Specjalista ds. Inwestycji",
+    bio:
+      "Od 9 lat skutecznie łączę świat sprzedaży, najmu i inwestycji. Jako agent 360° nie tylko znajduję nieruchomości, ale pomagam zamieniać metry kwadratowe w realny, stabilny dochód dla moich klientów.\n\nNa Osiedlu Zamysłów odpowiadam za cały cykl życia nieruchomości: od doradztwa przy zakupie mieszkania, po jego późniejszy wynajem i pełną obsługę najemców. Wspieram inwestorów w budowaniu zyskownych portfeli, stawiając na relacje i umiejętność słuchania potrzeb. Moim celem jest Twój zysk i bezpieczeństwo – od kawalerek po hale i magazyny.\n\nZapraszam do współpracy.",
+    phone: "881 431 800",
+    photoUrl: `${AGENTS_BUCKET}/Arkadiusz%20Jezusek.png`,
   },
 ];
 
 const PILLARS: { n: string; title: string; body: string }[] = [
   {
     n: "01",
-    title: "Deweloperka",
+    title: "Działalność\ndeweloperska",
     body:
       "Realizujemy własne inwestycje mieszkaniowe w regionie rybnickim. Prowadzimy je od etapu projektu, przez budowę, aż po sprzedaż gotowych lokali.",
   },
   {
     n: "02",
-    title: "Pośrednictwo",
+    title: "Pośrednictwo w sprzedaży\nnieruchomości",
     body:
       "Pomagamy w sprzedaży, zakupie i wynajmie nieruchomości. Wspieramy klientów na każdym etapie i dbamy o to, żeby cały proces był dobrze zorganizowany.",
   },
   {
     n: "03",
-    title: "Finansowanie",
+    title: "Pomoc w\nfinansowaniu",
     body:
       "Pomagamy w uzyskaniu kredytu hipotecznego dopasowanego do konkretnej sytuacji. Klient nie ponosi kosztu naszej obsługi, ponieważ wynagrodzenie doradcy pokrywa bank.",
   },
@@ -120,7 +120,7 @@ export default function OFibrzePage() {
               <Reveal delay={180}>
                 <p className="mt-5 md:mt-8 text-[16px] md:text-[19px] leading-[1.55] text-ink-600 text-pretty">
                   Fibra to zespół, który łączy doświadczenie w budowie mieszkań, obrocie nieruchomościami i
-                  finansowaniu zakupu. Działamy na Śląsku od 2011 roku, koncentrując się przede wszystkim na rynku
+                  finansowaniu zakupu. Działamy na Śląsku od 2006 roku, koncentrując się przede wszystkim na rynku
                   lokalnym i na tym, żeby dobrze przeprowadzić klienta przez cały proces.
                 </p>
               </Reveal>
@@ -166,7 +166,7 @@ export default function OFibrzePage() {
                   <span className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/15 bg-white/[0.04] text-[11px] font-semibold tracking-wide text-accent-400">
                     {p.n}
                   </span>
-                  <h3 className="font-display text-white text-[1.55rem] md:text-[1.85rem] leading-tight tracking-tight mt-5 md:mt-6 mb-4 md:mb-5">
+                  <h3 className="font-display text-white text-[1.55rem] md:text-[1.85rem] leading-tight tracking-tight mt-5 md:mt-6 mb-4 md:mb-5 whitespace-pre-line min-h-[2.5em]">
                     {p.title}
                   </h3>
                   <p className="text-ink-400 text-[15.5px] md:text-[17px] leading-[1.65] max-w-md">
@@ -192,7 +192,9 @@ export default function OFibrzePage() {
               </Reveal>
               <Reveal delay={80}>
                 <p className="mt-5 md:mt-6 text-[16px] md:text-[18px] text-ink-600 leading-relaxed text-pretty">
-                  Za każdą ofertą, transakcją i rozmową stoi konkretna osoba.
+                  Fibra to nie tylko deweloper czy biuro nieruchomości. To zespół specjalistów, którzy biorą pełną
+                  odpowiedzialność za Twój komfort i bezpieczeństwo finansowe. Zapraszam Cię do poznania nas bliżej —
+                  chociażby przez pryzmat naszych wideo-prezentacji.
                 </p>
               </Reveal>
               <Reveal delay={160}>
@@ -237,7 +239,7 @@ export default function OFibrzePage() {
                 <p className="mt-3 text-[11px] md:text-[12px] uppercase tracking-[0.18em] text-brand-500 font-medium text-center lg:text-left">
                   {FOUNDER.role}
                 </p>
-                <p className="mt-6 md:mt-8 mx-auto lg:mx-0 max-w-2xl text-[16px] md:text-[17.5px] text-ink-700 leading-[1.7] text-pretty">
+                <p className="mt-6 md:mt-8 mx-auto lg:mx-0 max-w-2xl text-[16px] md:text-[17.5px] text-ink-700 leading-[1.7] text-pretty whitespace-pre-line">
                   {FOUNDER.bio}
                 </p>
               </Reveal>
@@ -292,7 +294,7 @@ export default function OFibrzePage() {
                       <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-brand-500">
                         {member.role}
                       </p>
-                      <p className="mt-4 sm:mt-5 text-[15px] md:text-[15.5px] text-ink-600 leading-[1.6] flex-1">
+                      <p className="mt-4 sm:mt-5 text-[15px] md:text-[15.5px] text-ink-600 leading-[1.6] flex-1 whitespace-pre-line">
                         {member.bio}
                       </p>
                       {/* TODO: video autoprezentacja agenta */}

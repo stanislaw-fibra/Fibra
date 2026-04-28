@@ -16,7 +16,6 @@ export const metadata = {
 
 export default async function OfertyPage() {
   const offers = await getAllActiveOffers();
-  const videoCount = offers.filter((o) => o.hasShortVideo).length;
 
   const offersWord =
     offers.length === 1 ? "oferta" : offers.length < 5 ? "oferty" : "ofert";
@@ -43,7 +42,7 @@ export default async function OfertyPage() {
               />
               <div className="hidden sm:flex items-center gap-3 min-w-0">
                 <p className="text-[11.5px] md:text-[12px] uppercase tracking-[0.14em] text-ink-500 truncate">
-                  {offers.length} {offersWord} · {videoCount} z filmem
+                  {offers.length} {offersWord}
                 </p>
                 <span
                   className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-400 select-none"

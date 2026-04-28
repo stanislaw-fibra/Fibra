@@ -6,7 +6,6 @@ import { getAllOffers, getOfferBySlug } from "@/lib/offers-query";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { Reveal } from "@/components/ui/Reveal";
-import { OfferVideo } from "@/components/media/OfferVideo";
 import { OfferGallery } from "@/components/offers/OfferGallery";
 import { OfferStickyCta } from "@/components/offers/OfferStickyCta";
 import { OfferAgentMini } from "@/components/offers/OfferAgentMini";
@@ -22,6 +21,7 @@ import { OfferListingHighlight } from "@/components/offers/OfferListingHighlight
 import { OfferQuickMedia } from "@/components/offers/OfferQuickMedia";
 import { GalleryLightboxProvider } from "@/components/offers/GalleryLightbox";
 import { OfferMiniGallery } from "@/components/offers/OfferMiniGallery";
+import { OfferStreamHeroShell } from "@/components/offers/OfferStreamHeroShell";
 import { firstNameInstrumental } from "@/lib/polish-names";
 
 export const revalidate = 60;
@@ -101,20 +101,20 @@ export default async function OfferPage({
             </nav>
 
             <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
-              <div className={`${heroStreamId ? "lg:col-span-5" : "lg:col-span-6"} order-1 lg:sticky lg:top-[88px]`}>
+              <div
+                className={`${heroStreamId ? "lg:col-span-5" : "lg:col-span-6"} order-1 min-w-0 lg:sticky lg:top-[88px]`}
+              >
                 <div className="md:hidden max-w-[520px] mx-auto lg:mx-0">
                   <OfferListingHighlight listingType={offer.listingType} />
                 </div>
                 {heroStreamId ? (
                   <div className="max-w-[520px] mx-auto lg:mx-0">
-                    <div className="relative aspect-[9/15] w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-900 shadow-[var(--shadow-cinematic)] ring-1 ring-ink-200/60">
-                      <OfferVideo
-                        title={offer.title}
-                        poster={offer.poster}
-                        streamId={heroStreamId}
-                        videoSrc={offer.videoSrc}
-                        priority
-                      />
+                    <OfferStreamHeroShell
+                      title={offer.title}
+                      poster={offer.poster}
+                      streamId={heroStreamId}
+                      videoSrc={offer.videoSrc}
+                    >
                       <div className="pointer-events-none absolute top-4 left-4 right-4 flex gap-2 flex-wrap z-[3]">
                         {offer.isNew && (
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md text-white px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em]">
@@ -127,7 +127,7 @@ export default async function OfferPage({
                           </span>
                         )}
                       </div>
-                    </div>
+                    </OfferStreamHeroShell>
                     {gallery.length > 0 && (
                       <OfferMiniGallery images={gallery} className="mt-5" />
                     )}

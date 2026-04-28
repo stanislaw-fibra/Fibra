@@ -516,7 +516,7 @@ export function FiltersBar({
           <div className="flex items-center gap-2 min-w-0">
             {sortPopover("start")}
             <span className="hidden sm:inline text-[10.5px] uppercase tracking-[0.14em] text-ink-500 whitespace-nowrap">
-              {totalMatches} ofert · {totalVideoMatches} z filmem
+              {totalMatches} ofert
             </span>
             <button
               type="button"

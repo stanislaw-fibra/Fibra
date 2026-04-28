@@ -22,6 +22,8 @@ type Props = {
   onMutedChange?: (muted: boolean) => void;
   /** Ukrywa ikonę w komponencie - rodzic pokazuje własną kontrolkę zsynchronizowaną przez `muted` / `onMutedChange` */
   hideSoundButton?: boolean;
+  /** Na stronie oferty: pełna klatka pionowa bez przycinania (letterbox po bokach przy potrzebie). */
+  objectFit?: "cover" | "contain";
 };
 
 export function OfferVideo({
@@ -35,6 +37,7 @@ export function OfferVideo({
   defaultMuted = true,
   onMutedChange,
   hideSoundButton = false,
+  objectFit = "cover",
 }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -144,13 +147,15 @@ export function OfferVideo({
     void v.play().catch(() => void 0);
   };
 
+  const fitClass = objectFit === "contain" ? "object-contain" : "object-cover";
+
   return (
     <div className="absolute inset-0 bg-ink-950">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={posterLayerUrl}
         alt=""
-        className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover"
+        className={`pointer-events-none absolute inset-0 z-0 h-full w-full ${fitClass}`}
         loading={priority ? "eager" : "lazy"}
         draggable={false}
         aria-hidden
@@ -167,7 +172,7 @@ export function OfferVideo({
             ale user może przejąć kontrolę w każdej chwili. */}
         <video
           ref={videoRef}
-          className="absolute inset-0 h-full w-full object-cover"
+          className={`absolute inset-0 h-full w-full ${fitClass}`}
           muted={muted}
           loop
           playsInline

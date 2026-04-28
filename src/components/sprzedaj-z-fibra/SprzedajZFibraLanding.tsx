@@ -16,23 +16,23 @@ const STEPS: { n: string; title: string; body: string }[] = [
   },
   {
     n: "02",
-    title: "Film i spacer 3D",
-    body: "Przygotowujemy film oraz wirtualny spacer 3D Matterport, dzięki którym kupujący mogą lepiej poznać nieruchomość jeszcze przed wizytą. To ułatwia podjęcie decyzji o kontakcie i pozwala lepiej zaprezentować układ oraz charakter wnętrza.",
+    title: "Filmy i spacer 3D",
+    body: "Przygotowujemy filmy oraz wirtualny spacer 3D Matterport, dzięki którym kupujący mogą lepiej poznać nieruchomość jeszcze przed wizytą. To ułatwia podjęcie decyzji o kontakcie i pozwala lepiej zaprezentować układ oraz charakter wnętrza.",
   },
   {
     n: "03",
     title: "Oferta, która jest dopracowana",
-    body: "Tworzymy profesjonalne materiały sprzedażowe: zdjęcia, opis, rzuty 2D i kartę oferty PDF. Dbamy o to, żeby całość była spójna, estetyczna i czytelna dla osoby, która realnie rozważa zakup.",
+    body: "Tworzymy profesjonalne materiały sprzedażowe: zdjęcia, opis, rzuty 2D i 3D oraz kartę oferty PDF. Dbamy o to, żeby całość była spójna, estetyczna i czytelna dla osoby, która realnie rozważa zakup.",
   },
   {
     n: "04",
     title: "Promocja oferty",
-    body: "Publikujemy ofertę w odpowiednich miejscach i dbamy o jej dobrą ekspozycję. W zależności od nieruchomości korzystamy z portali, własnych kanałów oraz sieci kontaktów, żeby dotrzeć do potencjalnych kupujących.",
+    body: "Oprócz tradycyjnych miejsc publikacji (portale ogłoszeniowe) oferta jest eksponowana na innowacyjnej wideostronie www oraz odpłatnie — z naszych środków — reklamowana w mediach społecznościowych.",
   },
   {
     n: "05",
     title: "Finalizacja transakcji",
-    body: "Pomagamy przejść przez formalną stronę sprzedaży. Jeśli jest taka potrzeba, wspieramy również w kwestiach związanych z dokumentami, kredytem czy organizacją spotkania u notariusza.",
+    body: "Organizujemy komplet dokumentów z urzędów, sprawdzamy Księgi Wieczyste i pomagamy w uzyskaniu najlepszego kredytu, prowadząc klienta aż po spotkanie u notariusza i zamknięcie transakcji.",
   },
 ];
 
@@ -52,11 +52,11 @@ const CLIENT_QUOTES: { quote: string; name: string; context: string }[] = [
 ];
 
 const COMPARE: { left: string; right: string }[] = [
-  { left: "Standardowa galeria zdjęć", right: "Profesjonalne zdjęcia, film i spacer 3D" },
+  { left: "Standardowa galeria zdjęć", right: "Profesjonalne zdjęcia, filmy i spacer 3D" },
   { left: "Krótki, schematyczny opis", right: "Dopracowana prezentacja oferty" },
   { left: "Samo ogłoszenie na portalu", right: "Szersze przygotowanie i promocja oferty" },
   { left: "Kontakt dopiero po publikacji", right: "Proces zaplanowany od początku" },
-  { left: "Podstawowe informacje", right: "Zdjęcia, rzuty, karta PDF i prezentacja 3D" },
+  { left: "Podstawowe informacje", right: "Zdjęcia, rzuty 2D i 3D, karta PDF i prezentacja 3D" },
   { left: "Orientacyjna wycena", right: "Cena oparta na analizie rynku" },
 ];
 

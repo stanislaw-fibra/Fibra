@@ -1,29 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import type { Offer } from "@/lib/offers";
-
-const VIEW_STORAGE_KEY = "fibra:offers:view";
-
-function readStoredView(): ViewMode | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const v = window.localStorage.getItem(VIEW_STORAGE_KEY);
-    return v === "video" || v === "gallery" ? v : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeStoredView(v: ViewMode): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(VIEW_STORAGE_KEY, v);
-  } catch {
-    /* noop */
-  }
-}
 
 export type ViewMode = "video" | "gallery";
 export type SortMode = "newest" | "price-asc" | "price-desc" | "area-asc" | "area-desc";
@@ -199,36 +178,14 @@ export function useFilters() {
   const sp = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const filtersFromUrl = useMemo(
+  const filters = useMemo(
     () => parseFiltersFromSearchParams(new URLSearchParams(sp.toString())),
     [sp],
   );
 
-  /**
-   * Preferencja widoku z localStorage jest używana TYLKO jako nakładka w stanie
-   * komponentu — nie robimy `router.replace()` po mountcie (to powodowało
-   * widoczny „podwójny render" / flash na /oferty). URL pozostaje
-   * autorytatywny gdy zawiera `?view=...`; w przeciwnym razie bierzemy wartość
-   * zapamiętaną lokalnie.
-   */
-  const [storedView, setStoredView] = useState<ViewMode | null>(null);
-  useEffect(() => {
-    setStoredView(readStoredView());
-  }, []);
-
-  const filters = useMemo<Filters>(() => {
-    const urlHasView = sp.get("view") != null;
-    if (urlHasView || !storedView) return filtersFromUrl;
-    return { ...filtersFromUrl, view: storedView };
-  }, [filtersFromUrl, sp, storedView]);
-
   const apply = useCallback(
     (patch: Partial<Filters>) => {
       const next = { ...filters, ...patch };
-      if (patch.view) {
-        writeStoredView(patch.view);
-        setStoredView(patch.view);
-      }
       const qs = filtersToSearchParams(next).toString();
       startTransition(() => {
         router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });

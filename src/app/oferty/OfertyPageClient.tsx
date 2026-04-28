@@ -214,7 +214,8 @@ function EmptyState({
         </button>
       </div>
       <p className="mt-4 text-[11px] uppercase tracking-[0.14em] text-ink-500">
-        {videoCount} z filmem · {galleryCount} łącznie
+        {galleryCount}{" "}
+        {galleryCount === 1 ? "oferta" : galleryCount < 5 ? "oferty" : "ofert"} w widoku klasycznym
       </p>
     </div>
   );
