@@ -41,8 +41,8 @@ export function OpeningReelsGrid({ offers }: { offers: Offer[] }) {
         </ListVideoPlaybackProvider>
       </div>
 
-      {/* MOBILE — siatka 2x2 (Reels-style). 9:16 ≈ klasyczny pion z kamery / Shorts;
-          metraż pod kaflem w VideoCard. */}
+      {/* MOBILE — siatka 2x2 (Reels-style). 9:15 odrobinę niżej niż 9:16, żeby na
+          niższych telefonach nic nie ucinało; metraż pod kaflem w VideoCard. */}
       <div className="md:hidden w-full">
         <ListVideoPlaybackProvider orderedSlugs={mobileSlugs} mobileMode="grid-first">
           <div className="grid grid-cols-2 gap-2.5 w-full">
@@ -55,7 +55,7 @@ export function OpeningReelsGrid({ offers }: { offers: Offer[] }) {
                 showCardFooter={false}
                 showPrice={false}
                 surfaceTheme="hero"
-                aspectClass="aspect-[9/16]"
+                aspectClass="aspect-[9/15]"
               />
             ))}
           </div>
