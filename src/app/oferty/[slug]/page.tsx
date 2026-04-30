@@ -116,11 +116,6 @@ export default async function OfferPage({
                       videoSrc={offer.videoSrc}
                     >
                       <div className="pointer-events-none absolute top-4 left-4 right-4 flex gap-2 flex-wrap z-[3]">
-                        {offer.isNew && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md text-white px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em]">
-                            Nowość
-                          </span>
-                        )}
                         {offer.statusOferty && (
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-950/55 backdrop-blur-md text-white px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em]">
                             {statusLabel(offer.statusOferty)}
@@ -128,9 +123,15 @@ export default async function OfferPage({
                         )}
                       </div>
                     </OfferStreamHeroShell>
+                    {/* Mobile / tablet (<lg): galeria pod filmem — zaraz po nim, nim user dotrze
+                        do parametrów. Na desktop galeria pojawia się w prawej kolumnie. */}
                     {gallery.length > 0 && (
-                      <OfferMiniGallery images={gallery} className="mt-5" />
+                      <div className="lg:hidden mt-5">
+                        <OfferMiniGallery images={gallery} label="Zdjęcia oferty" />
+                      </div>
                     )}
+                    {/* Pod galerią (lub od razu pod filmem na desktopie) — zwarte „klocki" z głównymi parametrami. */}
+                    <SpecStrip offer={offer} className="mt-5" />
                   </div>
                 ) : (
                   <OfferHeroMedia
@@ -153,10 +154,21 @@ export default async function OfferPage({
                       {offer.district ? ` · ${offer.district}` : ""} · {offer.kindLabel}
                     </span>
                   </div>
-                  <h1 className="font-display text-[clamp(2.2rem,4.8vw,3.75rem)] leading-[1.02] text-ink-950">
+                  {/* Tytuł skompresowany na ofertach z pionowym filmem — zostaje wtedy
+                      więcej miejsca na galerię w pierwszym viewportcie. Dla ofert bez filmu
+                      tytuł zostaje pełnowymiarowy (większa hero-typografia). */}
+                  <h1
+                    className={
+                      heroStreamId
+                        ? "font-display text-[clamp(1.6rem,3.4vw,2.5rem)] leading-[1.08] text-ink-950"
+                        : "font-display text-[clamp(2.2rem,4.8vw,3.75rem)] leading-[1.02] text-ink-950"
+                    }
+                  >
                     {offer.title}
                   </h1>
-                  {offer.subtitle && (
+                  {/* Subtitle (np. „Centrum") chowamy gdy lokalizacja + kategoria są już w eyebrow nad tytułem
+                      (oferty z pionowym filmem). Bez filmu — zostaje pełny opis pod tytułem. */}
+                  {offer.subtitle && !heroStreamId && (
                     <p className="mt-5 text-[17px] md:text-[18px] text-ink-600 max-w-2xl leading-relaxed">
                       {offer.subtitle}
                     </p>
@@ -166,6 +178,7 @@ export default async function OfferPage({
                 <Reveal delay={80} className="mt-8">
                   <OfferQuickMedia
                     offerTitle={offer.title}
+                    offerKind={offer.kind}
                     virtualTourUrl={offer.virtualTourUrl}
                     floorPlanImageUrl={offer.floorPlanImageUrl}
                     floorPlanPdfUrl={offer.floorPlanPdfUrl}
@@ -176,23 +189,31 @@ export default async function OfferPage({
                   />
                 </Reveal>
 
-                <Reveal delay={100} className="mt-10 grid sm:grid-cols-2 gap-4">
-                  <SpecCard
-                    label={offer.kind === "grunt" ? "Powierzchnia działki" : "Powierzchnia użytkowa"}
-                    value={`${offer.area} m²`}
-                  />
-                  {offer.rooms != null && <SpecCard label="Liczba pokoi" value={String(offer.rooms)} />}
-                  <SpecCard label={offer.priceLabel ?? "Cena"} value={priceFormat(offer.priceFrom)} />
-                  {offer.pietro && <SpecCard label="Piętro / budynek" value={offer.pietro} />}
-                  {offer.rokBudowy != null && <SpecCard label="Rok budowy" value={String(offer.rokBudowy)} />}
-                  {offer.miejscParkingowych != null && (
-                    <SpecCard label="Miejsca parkingowe" value={String(offer.miejscParkingowych)} />
-                  )}
-                  {offer.powDzialkiM2 != null && offer.kind !== "grunt" && (
-                    <SpecCard label="Działka" value={`${offer.powDzialkiM2.toLocaleString("pl-PL")} m²`} />
-                  )}
-                  {offer.energetyka && <SpecCard label="Energetyka" value={offer.energetyka} />}
-                </Reveal>
+                {/* Galeria w prawej kolumnie — tylko desktop (lg+). Na mobile/tablet
+                    galeria jest już renderowana zaraz pod filmem (lewa „kolumna"). */}
+                {heroStreamId && gallery.length > 0 ? (
+                  <Reveal delay={100} className="mt-10 hidden lg:block">
+                    <OfferMiniGallery images={gallery} label="Zdjęcia oferty" />
+                  </Reveal>
+                ) : (
+                  <Reveal delay={100} className="mt-10 grid grid-cols-2 sm:grid-cols-3 gap-2.5 md:gap-3">
+                    <SpecCard
+                      label={offer.kind === "grunt" ? "Powierzchnia działki" : "Powierzchnia użytkowa"}
+                      value={`${offer.area} m²`}
+                    />
+                    {offer.rooms != null && <SpecCard label="Liczba pokoi" value={String(offer.rooms)} />}
+                    <SpecCard label={offer.priceLabel ?? "Cena"} value={priceFormat(offer.priceFrom)} />
+                    {offer.pietro && <SpecCard label="Piętro / budynek" value={offer.pietro} />}
+                    {offer.rokBudowy != null && <SpecCard label="Rok budowy" value={String(offer.rokBudowy)} />}
+                    {offer.miejscParkingowych != null && (
+                      <SpecCard label="Miejsca parkingowe" value={String(offer.miejscParkingowych)} />
+                    )}
+                    {offer.powDzialkiM2 != null && offer.kind !== "grunt" && (
+                      <SpecCard label="Działka" value={`${offer.powDzialkiM2.toLocaleString("pl-PL")} m²`} />
+                    )}
+                    {offer.energetyka && <SpecCard label="Energetyka" value={offer.energetyka} />}
+                  </Reveal>
+                )}
 
                 {fullDesc ? (
                   <Reveal delay={180} className="mt-10 max-w-3xl">
@@ -444,9 +465,52 @@ export default async function OfferPage({
 
 function SpecCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[var(--radius-md)] border border-ink-200/80 bg-paper px-5 py-4">
-      <p className="text-[10px] uppercase tracking-[0.18em] text-ink-500">{label}</p>
-      <p className="mt-2 font-display text-[20px] md:text-[22px] text-ink-950 leading-tight">{value}</p>
+    <div className="rounded-[var(--radius-sm)] border border-ink-200/70 bg-paper px-3.5 py-3 md:px-4 md:py-3.5">
+      <p className="text-[9.5px] uppercase tracking-[0.16em] text-ink-500">{label}</p>
+      <p className="mt-1 font-display text-[16px] md:text-[17.5px] text-ink-950 leading-tight">{value}</p>
+    </div>
+  );
+}
+
+/**
+ * Zwarty „strip" z głównymi parametrami pod hero filmem.
+ * Pokazuje 4–6 najważniejszych pozycji w jednej, niedużej karcie z linią siatki — żeby parametry
+ * nie konkurowały wizualnie z galerią w prawej kolumnie, a zarazem były widoczne razem z filmem.
+ */
+function SpecStrip({ offer, className = "" }: { offer: Offer; className?: string }) {
+  const items: { label: string; value: string }[] = [];
+  items.push({
+    label: offer.kind === "grunt" ? "Pow. działki" : "Pow. użytkowa",
+    value: `${offer.area} m²`,
+  });
+  if (offer.rooms != null) items.push({ label: "Pokoje", value: String(offer.rooms) });
+  items.push({ label: offer.priceLabel ?? "Cena", value: priceFormat(offer.priceFrom) });
+  if (offer.pietro) items.push({ label: "Piętro", value: offer.pietro });
+  if (offer.rokBudowy != null) items.push({ label: "Rok budowy", value: String(offer.rokBudowy) });
+  if (offer.miejscParkingowych != null)
+    items.push({ label: "Parking", value: String(offer.miejscParkingowych) });
+  if (offer.powDzialkiM2 != null && offer.kind !== "grunt")
+    items.push({ label: "Działka", value: `${offer.powDzialkiM2.toLocaleString("pl-PL")} m²` });
+  if (offer.energetyka) items.push({ label: "Energetyka", value: offer.energetyka });
+
+  if (items.length === 0) return null;
+
+  return (
+    <div
+      className={[
+        "rounded-[var(--radius-md)] border border-ink-200/70 bg-paper",
+        "grid grid-cols-2 sm:grid-cols-3 divide-x divide-y divide-ink-200/60 overflow-hidden",
+        className,
+      ].join(" ")}
+    >
+      {items.slice(0, 6).map((it) => (
+        <div key={`${it.label}-${it.value}`} className="px-3 py-2.5 sm:py-3 -ml-px -mt-px">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-ink-500">{it.label}</p>
+          <p className="mt-0.5 font-display text-[14px] sm:text-[15px] md:text-[16px] text-ink-950 leading-tight">
+            {it.value}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }

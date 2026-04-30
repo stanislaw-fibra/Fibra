@@ -9,6 +9,7 @@ import { GridClipSurface } from "@/components/media/GridClipSurface";
 import { useOptionalListVideoPlayback } from "@/components/media/ListVideoPlayback";
 import { cloudflareStreamThumbnailUrl } from "@/lib/cloudflare-stream";
 import { OfferListingTypeTag } from "@/components/offers/OfferListingTypeTag";
+import { OfferKindTag } from "@/components/offers/OfferKindTag";
 
 interface VideoCardProps {
   offer: Offer;
@@ -177,8 +178,9 @@ export function VideoCard({
   }, [playback]);
 
   const isHero = surfaceTheme === "hero";
-  /** Mobile 2×2 na stronie głównej: tytuł jak w Shorts (na rolce), bez wiersza lokalizacji pod spodem. */
-  const heroMobileOverlay = isHero && !showCardFooter;
+  /** Hero strony głównej: tytuł sklejony z kadrem filmu (overlay z gradientem na dole),
+   *  zarówno na mobile, jak i desktop — większy kontrast i mniej „zlewających się" linijek pod kaflem. */
+  const heroOverlayTitle = isHero && !showCardFooter;
 
   const shellClass = isHero
     ? [
@@ -287,27 +289,20 @@ export function VideoCard({
           <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-ink-950/55 via-ink-950/15 to-transparent z-[1] pointer-events-none" />
 
           <div className={topRowClass}>
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
               <span className={idxClass}>{String(index + 1).padStart(2, "0")}</span>
               <OfferListingTypeTag listingType={offer.listingType} variant="media-dark" />
             </div>
-            <div className="flex flex-col items-end gap-1.5 shrink-0">
-              {offer.isNew && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-400 text-ink-950 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] shadow-[0_2px_10px_-2px_rgba(0,0,0,0.4)]">
-                  Nowość
-                </span>
-              )}
-            </div>
           </div>
 
-          {heroMobileOverlay ? (
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] md:hidden">
+          {heroOverlayTitle ? (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4]">
               <div
-                className="absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-t from-black/88 via-black/30 to-transparent"
+                className="absolute inset-x-0 bottom-0 h-[62%] sm:h-[58%] md:h-[55%] bg-gradient-to-t from-black via-black/55 to-transparent"
                 aria-hidden
               />
-              <div className="relative px-2 pb-2 pt-12">
-                <h3 className="font-display text-left text-[11.5px] leading-[1.2] text-white line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
+              <div className="relative px-2.5 pb-2.5 pt-14 sm:px-3 sm:pb-3 sm:pt-16 md:px-4 md:pb-4 md:pt-20">
+                <h3 className="font-display text-left text-[13.5px] sm:text-[16px] md:text-[18px] lg:text-[19px] xl:text-[20px] leading-[1.18] font-semibold tracking-tight text-white line-clamp-2 drop-shadow-[0_1px_6px_rgba(0,0,0,0.95)]">
                   {offer.title}
                 </h3>
               </div>
@@ -329,16 +324,40 @@ export function VideoCard({
         )}
       </div>
 
-      {heroMobileOverlay ? (
-        <div className="md:hidden px-0.5 pt-1.5">
-          <p className="text-center text-[11px] text-white/90 tabular-nums leading-snug tracking-tight">
-            {offer.area} m²{offer.rooms ? ` · ${offer.rooms} pok.` : ""}
-          </p>
+      {heroOverlayTitle ? (
+        // Pod kaflem hero — sama metryka (mała ikona kategorii + lokalizacja · m² · cena).
+        // Tytuł wisi już w overlayu na filmie, więc tutaj zostaje tylko jeden, czysty wiersz danych.
+        // Na mobile (2x2 grid) kafel ma ~170px — pokazujemy tylko miasto + m², żeby tekst nie ucinał się
+        // na ekranach 360-375px. Od sm w górę dochodzą dzielnica i liczba pokoi.
+        <div className="px-1 pt-2 sm:pt-2.5 md:pt-3">
+          <div className="flex items-center justify-between gap-2 text-[11px] sm:text-[11.5px] md:text-[12px] text-white/85 tabular-nums">
+            <span className="flex items-center gap-1.5 min-w-0">
+              <OfferKindTag
+                kind={offer.kind}
+                kindLabel={offer.kindLabel}
+                variant="icon-only"
+                className="text-white/55"
+              />
+              <span className="truncate">
+                <span className="text-white/65">{offer.city}</span>
+                {offer.district ? (
+                  <span className="hidden sm:inline text-white/55">{` · ${offer.district}`}</span>
+                ) : null}
+                <span className="ml-1.5 text-white">
+                  {offer.area} m²
+                  {offer.rooms ? <span className="hidden sm:inline">{` · ${offer.rooms} pok.`}</span> : null}
+                </span>
+              </span>
+            </span>
+            {showPrice && offer.priceFrom ? (
+              <span className="font-medium text-white shrink-0">{priceShort(offer.priceFrom)}</span>
+            ) : null}
+          </div>
         </div>
       ) : null}
 
-      {!visualOnly && (
-        <div className={[textWrapClass, heroMobileOverlay ? "max-md:hidden" : ""].filter(Boolean).join(" ")}>
+      {!visualOnly && !heroOverlayTitle && (
+        <div className={textWrapClass}>
           <p className={eyebrowClass}>
             {offer.city}
             {offer.district ? ` · ${offer.district}` : ""} · {offer.kindLabel}

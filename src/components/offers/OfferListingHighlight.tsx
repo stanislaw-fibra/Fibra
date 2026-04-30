@@ -5,7 +5,8 @@ type Props = {
   listingType?: Offer["listingType"];
 };
 
-/** Tag transakcji nad treścią oferty — ten sam język wizualny co w katalogu. */
+/** Tag transakcji nad treścią oferty. Typ nieruchomości (mieszkanie/dom/działka)
+ *  pojawia się już w wierszu lokalizacji, więc tutaj zostawiamy tylko Zakup / Wynajem. */
 export function OfferListingHighlight({ listingType }: Props) {
   return (
     <div className="mb-6">

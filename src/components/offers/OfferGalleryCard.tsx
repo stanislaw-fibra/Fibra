@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Offer } from "@/lib/offers";
 import { priceShort } from "@/lib/offers";
 import { OfferListingTypeTag } from "@/components/offers/OfferListingTypeTag";
+import { OfferKindTag } from "@/components/offers/OfferKindTag";
 
 type Props = {
   offer: Offer;
@@ -68,6 +69,7 @@ export function OfferGalleryCard({ offer, priority = false }: Props) {
 
         <div className="pointer-events-none absolute top-3 left-3 right-3 flex flex-wrap items-start justify-between gap-1.5 gap-y-1.5">
           <div className="flex flex-wrap gap-1.5">
+            <OfferKindTag kind={offer.kind} kindLabel={offer.kindLabel} variant="media-light" />
             <OfferListingTypeTag listingType={offer.listingType} variant="media-light" />
           </div>
           <div className="flex flex-wrap justify-end gap-1.5">

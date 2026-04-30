@@ -51,6 +51,10 @@ export function GalleryLightboxProvider({
 }) {
   const [open, setOpen] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
+  // Bump na zmianę orientacji urządzenia — wymusza przeliczenie wymiarów obrazu
+  // (next/image trzyma proporcje + max-h, ale po obrocie telefonu chcemy mieć
+  // pewność, że layout się zaktualizuje natychmiast, a nie czeka na resize).
+  const [orientationKey, setOrientationKey] = useState(0);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const lastTriggerRef = useRef<HTMLElement | null>(null);
   const touchStartX = useRef<number | null>(null);
@@ -119,6 +123,21 @@ export function GalleryLightboxProvider({
   useEffect(() => {
     if (open === null) return;
     closeBtnRef.current?.focus({ preventScroll: true });
+  }, [open]);
+
+  // Mobile: po obrocie telefonu zdjęcie powinno natychmiast wypełnić nowy
+  // viewport (poziomo / pionowo). `orientationchange` strzela na iOS / Androidzie,
+  // a `screen.orientation` daje też zmianę przy obracaniu w tabletach.
+  useEffect(() => {
+    if (open === null) return;
+    const bump = () => setOrientationKey((k) => k + 1);
+    window.addEventListener("orientationchange", bump);
+    const so = (typeof screen !== "undefined" && screen.orientation) || null;
+    so?.addEventListener?.("change", bump);
+    return () => {
+      window.removeEventListener("orientationchange", bump);
+      so?.removeEventListener?.("change", bump);
+    };
   }, [open]);
 
   // Przewiń aktywną miniaturkę do widoku w pasku (żeby user widział kontekst).
@@ -192,7 +211,7 @@ export function GalleryLightboxProvider({
               role="dialog"
               aria-modal="true"
               aria-label={`Powiększona galeria: ${title}`}
-              className="pointer-events-none relative z-10 flex max-h-[min(92vh,920px)] w-full max-w-[min(1240px,calc(100vw-2rem))] flex-col items-center"
+              className="pointer-events-none relative z-10 flex max-h-[min(92dvh,920px)] w-full max-w-[min(1240px,calc(100vw-2rem))] flex-col items-center"
               initial={{ opacity: 0, scale: 0.98, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.99, y: 4 }}
@@ -245,7 +264,8 @@ export function GalleryLightboxProvider({
                 )}
 
                 <div
-                  className="mt-12 relative w-full min-h-[min(78vh,760px)] flex items-center justify-center select-none"
+                  key={`slides-${orientationKey}`}
+                  className="mt-12 relative w-full min-h-[min(78dvh,760px)] flex items-center justify-center select-none"
                   onTouchStart={onTouchStart}
                   onTouchEnd={onTouchEnd}
                 >
@@ -288,7 +308,7 @@ export function GalleryLightboxProvider({
                           onError={() => markLoaded(i)}
                           unoptimized={false}
                           className={[
-                            "max-h-[min(78vh,760px)] w-auto max-w-full object-contain rounded-[var(--radius-md)]",
+                            "max-h-[min(78dvh,760px)] w-auto max-w-full object-contain rounded-[var(--radius-md)]",
                             "shadow-[0_24px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
                             isLoaded ? "opacity-100" : "opacity-0",
                             "transition-opacity duration-200 ease-out",

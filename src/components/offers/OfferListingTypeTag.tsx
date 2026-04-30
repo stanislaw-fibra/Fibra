@@ -23,20 +23,29 @@ export function OfferListingTypeTag({ listingType, variant = "page", className =
     "inline-flex shrink-0 items-center justify-center rounded-full font-medium uppercase tabular-nums";
 
   if (variant === "page") {
-    // Strona oferty — wyraźne kolory marki: zakup = niebieski, wynajem = pomarańczowy
+    // Strona oferty — etykieta (label), nie przycisk: subtelne tło, kolorowa kropka
+    // i delikatny outline w kolorze marki, aby pozostała czytelna i elegancka.
     return (
       <span
         role="status"
         aria-label={rent ? "Oferta wynajmu" : "Oferta zakupu"}
         className={[
-          base,
-          "border px-4 py-1.5 text-[10.5px] font-semibold tracking-[0.18em] shadow-sm",
+          "inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1 font-medium uppercase tabular-nums",
+          "text-[10.5px] tracking-[0.2em]",
+          "border bg-paper",
           rent
-            ? "border-accent-500/40 bg-accent-400 text-ink-950"
-            : "border-brand-400/45 bg-brand-500 text-white",
+            ? "border-accent-400/50 text-accent-600"
+            : "border-brand-400/50 text-brand-700",
           className,
         ].join(" ")}
       >
+        <span
+          aria-hidden
+          className={[
+            "inline-block h-1.5 w-1.5 rounded-full",
+            rent ? "bg-accent-500" : "bg-brand-500",
+          ].join(" ")}
+        />
         {text}
       </span>
     );
