@@ -343,7 +343,9 @@ export function mapOfferRow(row: OfferRow): Offer {
   const areaPlot = num(row.area_plot);
   const area = kind === "grunt" ? (areaPlot || areaTotal || areaUsable) : areaUsable || areaTotal;
 
-  const displayTitle = (row.advertisement_text?.trim() || row.title?.trim() || "Oferta").slice(0, 120);
+  // Publiczny tytuł oferty ma brać się z `title` (to jest pole edytowane w panelu).
+  // `advertisement_text` traktujemy jako krótszy „tagline” / tekst marketingowy.
+  const displayTitle = (row.title?.trim() || row.advertisement_text?.trim() || "Oferta").slice(0, 120);
   const desc = row.description?.trim() || "";
   const excerpt = desc.length > 220 ? `${desc.slice(0, 217)}…` : desc || displayTitle;
   const poster =
@@ -653,12 +655,13 @@ export async function getAllActiveOffers(): Promise<Offer[]> {
  * porównaj zwrócone `offer.slug` z `slug` z URL-a.
  */
 export async function getOfferBySlug(slug: string): Promise<Offer | undefined> {
+  // Mocki są tylko fallbackiem (dev/awaria). Jeśli oferta istnieje w DB,
+  // to panelowe zmiany (np. literówki) muszą być widoczne natychmiast.
   const local = getStaticOffer(slug);
-  if (local) return local;
 
   try {
     const supabase = getSupabaseAnon();
-    if (!supabase) return undefined;
+    if (!supabase) return local;
 
     let row: OfferRow | null = null;
     // 1) po kolumnie slug
@@ -675,5 +678,5 @@ export async function getOfferBySlug(slug: string): Promise<Offer | undefined> {
   } catch (e) {
     console.warn("[offers-query] getOfferBySlug:", e);
   }
-  return undefined;
+  return local;
 }
