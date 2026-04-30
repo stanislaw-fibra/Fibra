@@ -1,7 +1,6 @@
 import "server-only";
 
 import type { Offer, OfferKind } from "@/lib/offers";
-import { OFFERS, getOffer as getStaticOffer } from "@/lib/offers";
 import { getSupabaseAnon } from "@/lib/supabase/server-anon";
 
 const UUID_RE =
@@ -333,6 +332,24 @@ function dedupeOffersByRef(offers: Offer[]): Offer[] {
   });
 }
 
+/**
+ * Akceptujemy ofertę tylko, jeśli ma realny materiał wizualny:
+ *  - poster z bazy LUB
+ *  - co najmniej jedno zdjęcie w galerii LUB
+ *  - krótki film Cloudflare (z którego można wyciągnąć kadr).
+ *
+ * Eliminuje to oferty z pustą galerią albo z fallbackowym placeholderem
+ * (np. obrazek z Unsplash dorzucany w mapowaniu, gdy w bazie nic nie ma).
+ */
+function hasUsableMedia(row: OfferRow): boolean {
+  const media = firstRel(row.offer_media);
+  const hasPoster = Boolean(media?.poster_image_url?.trim());
+  const hasStream = Boolean(media?.cloudflare_video_short_id?.trim());
+  const hasImages = Array.isArray(row.offer_images)
+    && row.offer_images.some((i) => typeof i?.image_url === "string" && i.image_url.trim().length > 0);
+  return hasPoster || hasStream || hasImages;
+}
+
 export function mapOfferRow(row: OfferRow): Offer {
   const media = firstRel(row.offer_media);
   const shortId = media?.cloudflare_video_short_id?.trim() || undefined;
@@ -346,9 +363,12 @@ export function mapOfferRow(row: OfferRow): Offer {
   const displayTitle = (row.advertisement_text?.trim() || row.title?.trim() || "Oferta").slice(0, 120);
   const desc = row.description?.trim() || "";
   const excerpt = desc.length > 220 ? `${desc.slice(0, 217)}…` : desc || displayTitle;
+  // hasUsableMedia gwarantuje, że co najmniej jedno z trzech źródeł jest realne;
+  // przy ekstremalnym braku poster_image_url + brak streamId staje się pierwsze zdjęcie z galerii.
+  const firstGalleryImage = row.offer_images?.find((i) => typeof i?.image_url === "string" && i.image_url.trim().length > 0)?.image_url?.trim();
   const poster =
     media?.poster_image_url?.trim() ||
-    (shortId ? streamThumb(shortId) : "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&h=1500&q=82");
+    (shortId ? streamThumb(shortId) : firstGalleryImage || "");
 
   const images = [...(row.offer_images || [])].sort(
     (a, b) => (a.order_index ?? 0) - (b.order_index ?? 0),
@@ -617,34 +637,41 @@ async function fetchOfferRow(
   return attachFloorplansIfPossible(((data as OfferRow) ?? null));
 }
 
-/** Lista publiczna z krótkim filmem (homepage, tryb Video w /oferty). */
+/** Lista publiczna z krótkim filmem (homepage, tryb Video w /oferty).
+ *  Zwracamy WYŁĄCZNIE oferty z Cloudflare streamId i realnymi mediami. Brak fallbacku na mocki —
+ *  pusta lista jest poprawna i klient renderuje stan „brak ofert". */
 export async function getAllOffers(): Promise<Offer[]> {
   try {
     const rows = await fetchPublicListingOfferRows();
     if (rows && rows.length > 0) {
-      return dedupeOffersByRef(rows.map(mapOfferRow));
+      const filtered = rows.filter((row) => {
+        const m = firstRel(row.offer_media);
+        return Boolean(m?.cloudflare_video_short_id?.trim()) && hasUsableMedia(row);
+      });
+      return dedupeOffersByRef(filtered.map(mapOfferRow));
     }
   } catch (e) {
     console.warn("[offers-query] getAllOffers:", e);
   }
-  return OFFERS;
+  return [];
 }
 
-/** Wszystkie aktywne oferty (bez wymogu krótkiego filmu) — katalog /oferty. */
+/** Wszystkie aktywne oferty (bez wymogu krótkiego filmu) — katalog /oferty.
+ *  Również tylko z Supabase, bez fallbacków na mocki; oferty bez realnych mediów odpadają. */
 export async function getAllActiveOffers(): Promise<Offer[]> {
   try {
     const rows = await fetchAllActiveOfferRows();
     if (rows && rows.length > 0) {
-      return dedupeOffersByRef(rows.map(mapOfferRow));
+      return dedupeOffersByRef(rows.filter(hasUsableMedia).map(mapOfferRow));
     }
   } catch (e) {
     console.warn("[offers-query] getAllActiveOffers:", e);
   }
-  return OFFERS;
+  return [];
 }
 
 /**
- * Jedna oferta: najpierw mock po `slug`, potem Supabase:
+ * Jedna oferta — wyłącznie z Supabase:
  *  1) po kolumnie `slug` (kanoniczne URL-e typu `tytul-FIB-DS-4127`)
  *  2) po `id` (UUID) — stare linki
  *  3) po `galactica_offer_id` (np. `FIB-DS-4127` samotnie) — kompatybilność wstecz
@@ -653,9 +680,6 @@ export async function getAllActiveOffers(): Promise<Offer[]> {
  * porównaj zwrócone `offer.slug` z `slug` z URL-a.
  */
 export async function getOfferBySlug(slug: string): Promise<Offer | undefined> {
-  const local = getStaticOffer(slug);
-  if (local) return local;
-
   try {
     const supabase = getSupabaseAnon();
     if (!supabase) return undefined;

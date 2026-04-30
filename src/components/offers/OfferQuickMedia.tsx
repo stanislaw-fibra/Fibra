@@ -6,6 +6,7 @@ import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { OfferMatterport } from "@/components/offers/OfferMatterport";
 import { youtubeEmbedUrl } from "@/components/offers/OfferHeroMedia";
 import { pickFloorPlanImageFromGallery } from "@/lib/offers";
+import type { OfferKind } from "@/lib/offers";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -30,6 +31,8 @@ function youtubeVideoId(raw: string): string | null {
 
 type Props = {
   offerTitle: string;
+  /** Typ oferty — decyduje o etykiecie filmu („z nieruchomości" vs po prostu „Zobacz film"). */
+  offerKind?: OfferKind;
   virtualTourUrl?: string;
   /** Z parametru Galactica / raw_params (priorytet nad heurystyką z galerii). */
   floorPlanImageUrl?: string;
@@ -43,6 +46,7 @@ type Props = {
 
 export function OfferQuickMedia({
   offerTitle,
+  offerKind,
   virtualTourUrl,
   floorPlanImageUrl: floorPlanFromParams,
   floorPlanPdfUrl,
@@ -100,6 +104,12 @@ export function OfferQuickMedia({
   const hasFloorPdf = floorPdfsResolved.length > 0;
   const hasFloor = hasFloorImage || hasFloorPdf;
   const hasYoutube = Boolean(youtubeEmbed);
+
+  // „Zobacz film z nieruchomości" działa dla domów i mieszkań. Dla gruntów
+  // (działek) i lokali to nadużycie — zostawiamy neutralne „Zobacz film".
+  const isResidence =
+    offerKind === "dom" || offerKind === "apartament" || offerKind === "penthouse";
+  const youtubeButtonLabel = isResidence ? "Zobacz film z nieruchomości" : "Zobacz film";
 
   const close = useCallback(() => setOpen(null), []);
 
@@ -455,17 +465,18 @@ export function OfferQuickMedia({
           <button
             type="button"
             onClick={() => setOpen("youtube")}
-            className="group flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-ink-200/90 bg-paper px-4 py-3.5 text-left shadow-[var(--shadow-soft)] transition-all hover:border-brand-400 hover:shadow-md active:scale-[0.99]"
+            className="group flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-ink-200/90 bg-paper px-3.5 py-3 sm:px-4 sm:py-3.5 text-left shadow-[var(--shadow-soft)] transition-all hover:border-brand-400 hover:shadow-md active:scale-[0.99]"
           >
             <span className="flex min-w-0 flex-col gap-0.5">
               <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-500">Film</span>
-              <span className="truncate text-[15px] font-medium text-ink-900">Zobacz film z nieruchomości</span>
+              <span className="truncate text-[15px] font-medium text-ink-900">{youtubeButtonLabel}</span>
             </span>
             <span
               className={[
-                // Mobile: okrągła „ikonka” (jak teraz). Desktop: prostokątna miniatura, żeby faktycznie było widać kadr.
-                "relative inline-flex h-10 w-10 md:h-12 md:w-20 shrink-0 items-center justify-center overflow-hidden",
-                "rounded-full md:rounded-[var(--radius-sm)]",
+                // Prostokątna miniatura na każdym viewporcie — żeby było faktycznie widać kadr filmu (zarówno
+                // na mobile jak i desktop). Powiększona względem poprzedniej wersji, ale wciąż czytelna obok tekstu.
+                "relative inline-flex h-12 w-[72px] sm:h-12 sm:w-24 md:h-14 md:w-28 shrink-0 items-center justify-center overflow-hidden",
+                "rounded-[var(--radius-sm)]",
                 youtubeThumb ? "ring-1 ring-ink-200 bg-ink-100" : "bg-ink-950 text-white",
                 "transition-colors group-hover:ring-brand-300 group-hover:bg-[#FF0033]",
               ].join(" ")}
@@ -481,19 +492,21 @@ export function OfferQuickMedia({
                   draggable={false}
                 />
               ) : null}
-              <span className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className={[
-                  "relative z-[1] translate-x-[0.5px]",
-                  youtubeThumb ? "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]" : "text-white",
-                ].join(" ")}
-              >
-                <path d="M8 5v14l11-7z" />
-              </svg>
+              <span className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
+              <span className="relative z-[1] inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/15 backdrop-blur-[2px] ring-1 ring-white/30">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className={[
+                    "translate-x-[0.5px]",
+                    youtubeThumb ? "text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]" : "text-white",
+                  ].join(" ")}
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </span>
             </span>
           </button>
         ) : null}
