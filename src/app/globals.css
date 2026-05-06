@@ -27,16 +27,20 @@
   --color-accent-500: #d9501a;
   --color-accent-600: #b43e12;
 
-  /* ---- Neutral (ink + paper) ---- */
+  /* ---- Neutral (ink + paper) ----
+     Skala podbita w stronę większego kontrastu na jasnym tle:
+     ink-500/600/700 są wyraźnie ciemniejsze, żeby drugorzędne napisy
+     (eyebrow, lokalizacja, opisy) były czytelne także dla osób ze słabszym wzrokiem.
+     ink-400 i jaśniejsze pozostawiamy do roli akcentów tła / borderów. */
   --color-ink-950: #07090c;
   --color-ink-900: #0b0f14;
   --color-ink-800: #141a22;
-  --color-ink-700: #232b35;
-  --color-ink-600: #3a4551;
-  --color-ink-500: #5b6773;
-  --color-ink-400: #8a949e;
-  --color-ink-300: #b4bcc4;
-  --color-ink-200: #d8dde2;
+  --color-ink-700: #1c2530;
+  --color-ink-600: #2a3340;
+  --color-ink-500: #424d5a;
+  --color-ink-400: #6e7884;
+  --color-ink-300: #98a1ab;
+  --color-ink-200: #c9cfd6;
   --color-ink-100: #eceff2;
   --color-ink-50:  #f5f6f8;
 
@@ -112,14 +116,14 @@ body {
 .eyebrow {
   font-family: var(--font-sans);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  color: var(--color-ink-500);
+  color: var(--color-ink-600);
 }
 
 .eyebrow-on-dark {
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .fluid-hero {
@@ -399,6 +403,18 @@ body {
 .legal-doc-inner a:hover {
   color: var(--color-brand-500);
   text-decoration-color: var(--color-brand-400);
+}
+
+/* Panel admin - toast slide-in */
+@keyframes panel-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Reduced motion */

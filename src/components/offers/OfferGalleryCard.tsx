@@ -4,8 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Offer } from "@/lib/offers";
 import { priceShort } from "@/lib/offers";
-import { OfferListingTypeTag } from "@/components/offers/OfferListingTypeTag";
-import { OfferKindTag } from "@/components/offers/OfferKindTag";
+import { OfferTypeListingChip } from "@/components/offers/OfferTypeListingChip";
 
 type Props = {
   offer: Offer;
@@ -67,30 +66,30 @@ export function OfferGalleryCard({ offer, priority = false }: Props) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-ink-950/55 via-ink-950/0 to-ink-950/5" />
 
-        <div className="pointer-events-none absolute top-3 left-3 right-3 flex flex-wrap items-start justify-between gap-1.5 gap-y-1.5">
-          <div className="flex flex-wrap gap-1.5">
-            <OfferKindTag kind={offer.kind} kindLabel={offer.kindLabel} variant="media-light" />
-            <OfferListingTypeTag listingType={offer.listingType} variant="media-light" />
-          </div>
-          <div className="flex flex-wrap justify-end gap-1.5">
-            {hasVideo && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-950/70 backdrop-blur-md text-white px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em]">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden>
-                  <path d="M3 2l5 3-5 3V2z" />
-                </svg>
-                Wideo
-              </span>
-            )}
-          </div>
+        <div className="pointer-events-none absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
+          <OfferTypeListingChip
+            kind={offer.kind}
+            kindLabel={offer.kindLabel}
+            listingType={offer.listingType}
+            variant="media-light"
+          />
+          {hasVideo && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-950/70 backdrop-blur-md text-white px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em]">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden>
+                <path d="M3 2l5 3-5 3V2z" />
+              </svg>
+              Wideo
+            </span>
+          )}
         </div>
 
         <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-3 text-white">
-          <span className="text-[10.5px] uppercase tracking-[0.18em] text-white/75 line-clamp-1">
+          <span className="text-[11.5px] font-semibold uppercase tracking-[0.16em] text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)] line-clamp-1">
             {metaLine(offer)}
           </span>
-          <span className="font-display text-[14.5px] md:text-[15.5px] leading-none text-white tabular-nums">
+          <span className="font-display text-[15px] md:text-[16px] leading-none text-white tabular-nums drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
             {price}
-            <span className="text-white/70 text-[11px] font-normal">{priceSuffix}</span>
+            <span className="text-white/85 text-[11.5px] font-normal">{priceSuffix}</span>
           </span>
         </div>
       </div>

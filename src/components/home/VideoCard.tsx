@@ -8,8 +8,7 @@ import { VideoSoundIconButton } from "@/components/media/VideoSoundIconButton";
 import { GridClipSurface } from "@/components/media/GridClipSurface";
 import { useOptionalListVideoPlayback } from "@/components/media/ListVideoPlayback";
 import { cloudflareStreamThumbnailUrl } from "@/lib/cloudflare-stream";
-import { OfferListingTypeTag } from "@/components/offers/OfferListingTypeTag";
-import { OfferKindTag } from "@/components/offers/OfferKindTag";
+import { OfferTypeListingChip } from "@/components/offers/OfferTypeListingChip";
 
 interface VideoCardProps {
   offer: Offer;
@@ -191,18 +190,19 @@ export function VideoCard({
     : `relative ${aspectClass} w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-800`;
 
   // Insety topRow są mniejsze na mobile (kafle 2x2 są wąskie - nie chcemy żeby
-  // numer/tag zjadały połowę szerokości kafla).
+  // chip zajmował dużą część kadru). Klient zwracał uwagę, że dwa osobne chipy
+  // (typ + transakcja) razem zasłaniały zbyt dużą powierzchnię filmu, więc
+  // używamy teraz pojedynczej, zwartej pigułki.
+  // pr-8 dodajemy tylko gdy mute button JEST FAKTYCZNIE widoczny (isListActive),
+  // a nie wszędzie gdzie mamy video — wcześniej to obcinało chip na nieaktywnych kartach.
+  const showMuteButton = canToggleSound && isListActive;
   const topRowClass = [
     isHero
-      ? "absolute top-2 left-2 right-2 sm:top-3 sm:left-3 sm:right-3 md:top-4 md:left-4 md:right-4"
-      : "absolute top-2 left-2 right-2 sm:top-4 sm:left-4 sm:right-4",
+      ? "absolute top-2 left-2 right-2 sm:top-3 sm:left-3 sm:right-3 md:top-3.5 md:left-3.5 md:right-3.5"
+      : "absolute top-2 left-2 right-2 sm:top-3 sm:left-3 sm:right-3",
     "flex items-start justify-between z-[3]",
-    canToggleSound ? "pr-9 sm:pr-11 md:pr-12" : "",
+    showMuteButton ? "pr-8 sm:pr-10 md:pr-11" : "",
   ].join(" ");
-
-  const idxClass = isHero
-    ? "font-display text-[10px] sm:text-[12px] md:text-[13px] text-white/60 leading-none tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
-    : "font-display text-[10px] sm:text-[12px] md:text-[13px] text-white/60 leading-none tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]";
 
   // Tekst pod filmem — responsywny: na mobile (np. 2x2 grid) tekst i odstępy są
   // mniejsze, by podpis nie wypychał kafla z viewportu i pozostał czytelny przy
@@ -289,10 +289,15 @@ export function VideoCard({
           <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-ink-950/55 via-ink-950/15 to-transparent z-[1] pointer-events-none" />
 
           <div className={topRowClass}>
-            <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
-              <span className={idxClass}>{String(index + 1).padStart(2, "0")}</span>
-              <OfferListingTypeTag listingType={offer.listingType} variant="media-dark" />
-            </div>
+            {/* Pojedynczy chip „[ikona] Mieszk. · Zakup" — gwarantowana jedna linijka,
+                ~50% mniejszy ślad nad kadrem niż dwa osobne chipy. Numer indeksu został
+                usunięty, bo był wizualnym szumem, a film ma być pierwszoplanowy. */}
+            <OfferTypeListingChip
+              kind={offer.kind}
+              kindLabel={offer.kindLabel}
+              listingType={offer.listingType}
+              variant="media-dark"
+            />
           </div>
 
           {heroOverlayTitle ? (
@@ -325,42 +330,42 @@ export function VideoCard({
       </div>
 
       {heroOverlayTitle ? (
-        // Pod kaflem hero — sama metryka (mała ikona kategorii + lokalizacja · m² · cena).
-        // Tytuł wisi już w overlayu na filmie, więc tutaj zostaje tylko jeden, czysty wiersz danych.
-        // Na mobile (2x2 grid) kafel ma ~170px — pokazujemy tylko miasto + m², żeby tekst nie ucinał się
-        // na ekranach 360-375px. Od sm w górę dochodzą dzielnica i liczba pokoi.
+        // Pod kaflem hero — wyraźny wiersz: typ + lokalizacja · metraż · cena.
+        // Kontrast podbity (white/95 zamiast 65) — klient zwracał uwagę, że szare napisy
+        // są nieczytelne, więc redukujemy szarość do minimum.
         <div className="px-1 pt-2 sm:pt-2.5 md:pt-3">
-          <div className="flex items-center justify-between gap-2 text-[11px] sm:text-[11.5px] md:text-[12px] text-white/85 tabular-nums">
+          <div className="flex items-center justify-between gap-2 text-[11.5px] sm:text-[12px] md:text-[12.5px] tabular-nums">
             <span className="flex items-center gap-1.5 min-w-0">
-              <OfferKindTag
-                kind={offer.kind}
-                kindLabel={offer.kindLabel}
-                variant="icon-only"
-                className="text-white/55"
-              />
-              <span className="truncate">
-                <span className="text-white/65">{offer.city}</span>
+              <span className="truncate text-white">
+                <span className="font-semibold">{offer.kindLabel}</span>
+                <span className="text-white/80">{` · ${offer.city}`}</span>
                 {offer.district ? (
-                  <span className="hidden sm:inline text-white/55">{` · ${offer.district}`}</span>
+                  <span className="hidden sm:inline text-white/75">{` · ${offer.district}`}</span>
                 ) : null}
-                <span className="ml-1.5 text-white">
-                  {offer.area} m²
-                  {offer.rooms ? <span className="hidden sm:inline">{` · ${offer.rooms} pok.`}</span> : null}
-                </span>
               </span>
             </span>
-            {showPrice && offer.priceFrom ? (
-              <span className="font-medium text-white shrink-0">{priceShort(offer.priceFrom)}</span>
-            ) : null}
+            <span className="font-semibold text-white shrink-0">
+              {offer.area} m²
+              {offer.rooms ? <span className="hidden sm:inline font-medium text-white/85">{` · ${offer.rooms} pok.`}</span> : null}
+            </span>
           </div>
+          {showPrice && offer.priceFrom ? (
+            <p className="mt-0.5 text-right text-[11.5px] sm:text-[12px] md:text-[12.5px] font-semibold text-accent-300 tabular-nums">
+              {priceShort(offer.priceFrom)}
+            </p>
+          ) : null}
         </div>
       ) : null}
 
       {!visualOnly && !heroOverlayTitle && (
         <div className={textWrapClass}>
           <p className={eyebrowClass}>
+            <span className={isHero ? "text-white" : "text-ink-900"}>
+              {offer.kindLabel}
+            </span>
+            {" · "}
             {offer.city}
-            {offer.district ? ` · ${offer.district}` : ""} · {offer.kindLabel}
+            {offer.district ? ` · ${offer.district}` : ""}
           </p>
           <h3 className={titleTextClass}>{offer.title}</h3>
 

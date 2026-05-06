@@ -105,7 +105,11 @@ export default async function OfferPage({
                 className={`${heroStreamId ? "lg:col-span-5" : "lg:col-span-6"} order-1 min-w-0 lg:sticky lg:top-[88px]`}
               >
                 <div className="md:hidden max-w-[520px] mx-auto lg:mx-0">
-                  <OfferListingHighlight listingType={offer.listingType} />
+                  <OfferListingHighlight
+                    listingType={offer.listingType}
+                    kind={offer.kind}
+                    kindLabel={offer.kindLabel}
+                  />
                 </div>
                 {heroStreamId ? (
                   <div className="max-w-[520px] mx-auto lg:mx-0">
@@ -146,12 +150,16 @@ export default async function OfferPage({
               <div className={`${heroStreamId ? "lg:col-span-7" : "lg:col-span-6"} order-2`}>
                 <Reveal>
                   <div className="hidden md:block">
-                    <OfferListingHighlight listingType={offer.listingType} />
+                    <OfferListingHighlight
+                      listingType={offer.listingType}
+                      kind={offer.kind}
+                      kindLabel={offer.kindLabel}
+                    />
                   </div>
                   <div className="flex flex-wrap items-center gap-3 mb-5">
-                    <span className="text-[11px] uppercase tracking-[0.16em] text-ink-500">
+                    <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-ink-700">
                       {offer.city}
-                      {offer.district ? ` · ${offer.district}` : ""} · {offer.kindLabel}
+                      {offer.district ? ` · ${offer.district}` : ""}
                     </span>
                   </div>
                   {/* Tytuł skompresowany na ofertach z pionowym filmem — zostaje wtedy
@@ -466,7 +474,7 @@ export default async function OfferPage({
 function SpecCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-[var(--radius-sm)] border border-ink-200/70 bg-paper px-3.5 py-3 md:px-4 md:py-3.5">
-      <p className="text-[9.5px] uppercase tracking-[0.16em] text-ink-500">{label}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-700">{label}</p>
       <p className="mt-1 font-display text-[16px] md:text-[17.5px] text-ink-950 leading-tight">{value}</p>
     </div>
   );
@@ -505,7 +513,7 @@ function SpecStrip({ offer, className = "" }: { offer: Offer; className?: string
     >
       {items.slice(0, 6).map((it) => (
         <div key={`${it.label}-${it.value}`} className="px-3 py-2.5 sm:py-3 -ml-px -mt-px">
-          <p className="text-[9px] uppercase tracking-[0.16em] text-ink-500">{it.label}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-700">{it.label}</p>
           <p className="mt-0.5 font-display text-[14px] sm:text-[15px] md:text-[16px] text-ink-950 leading-tight">
             {it.value}
           </p>
