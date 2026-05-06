@@ -18,6 +18,7 @@ const OFFER_SELECT = `
   raw_params,
   floor_plan_image_url,
   floor_plan_pdf_url,
+  youtube_url,
   updated_at,
   price,
   currency,
@@ -82,14 +83,17 @@ const OFFER_SELECT = `
 const OFFER_SELECT_PUBLIC_LIST = OFFER_SELECT.replace("offer_media (", "offer_media!inner (");
 
 // Backward compatibility: zanim migracja dojdzie na środowisko docelowe,
-// kolumny `floor_plan_*` mogą jeszcze nie istnieć. Wtedy Supabase zwróci błąd
-// przy select-cie. Robimy retry na legacy select bez tych kolumn, zamiast
-// zrywać render / spamować warnami.
+// kolumny `floor_plan_*` / `youtube_url` mogą jeszcze nie istnieć. Wtedy Supabase
+// zwróci błąd przy select-cie. Robimy retry na legacy select bez tych kolumn,
+// zamiast zrywać render / spamować warnami.
 const OFFER_SELECT_LEGACY = OFFER_SELECT.replace(
   "  floor_plan_image_url,\n  floor_plan_pdf_url,\n",
   "",
-);
+).replace("  youtube_url,\n", "");
 const OFFER_SELECT_PUBLIC_LIST_LEGACY = OFFER_SELECT_LEGACY.replace("offer_media (", "offer_media!inner (");
+
+const OFFER_SELECT_NO_YOUTUBE = OFFER_SELECT.replace("  youtube_url,\n", "");
+const OFFER_SELECT_PUBLIC_LIST_NO_YOUTUBE = OFFER_SELECT_NO_YOUTUBE.replace("offer_media (", "offer_media!inner (");
 
 // Legacy: `offer_floorplans` relacja może jeszcze nie istnieć (brak tabeli / brak FK cache).
 // Usuwamy cały fragment relacji, żeby select działał na starym schemacie.
@@ -102,6 +106,11 @@ const OFFER_SELECT_PUBLIC_LIST_NO_FLOORPLANS = OFFER_SELECT_NO_FLOORPLANS.replac
 function isMissingFloorPlanColumnsError(msg: string): boolean {
   const m = msg.toLowerCase();
   return m.includes("does not exist") && (m.includes("floor_plan_image_url") || m.includes("floor_plan_pdf_url"));
+}
+
+function isMissingYoutubeColumnError(msg: string): boolean {
+  const m = msg.toLowerCase();
+  return m.includes("does not exist") && m.includes("youtube_url");
 }
 
 function isMissingFloorPlansRelationError(msg: string): boolean {
@@ -138,6 +147,7 @@ type OfferRow = {
   raw_params: Record<string, unknown> | null;
   floor_plan_image_url: string | null;
   floor_plan_pdf_url: string | null;
+  youtube_url?: string | null;
   updated_at: string | null;
   price: string | number | null;
   currency: string | null;
@@ -246,6 +256,16 @@ function pickYoutubeUrl(raw: Record<string, unknown> | null | undefined): string
     if (typeof c === "string" && c.trim().includes("youtu")) return c.trim();
   }
   return undefined;
+}
+
+/** Preferujemy edytowalną kolumnę `youtube_url`. Fallback — link z importu Galactiki w `raw_params`. */
+function resolveYoutubeUrl(
+  explicit: string | null | undefined,
+  raw: Record<string, unknown> | null | undefined,
+): string | undefined {
+  const e = explicit?.trim();
+  if (e && e.length > 0) return e;
+  return pickYoutubeUrl(raw);
 }
 
 function normalizeRawUrl(value: unknown): string | undefined {
@@ -461,7 +481,7 @@ export function mapOfferRow(row: OfferRow): Offer {
     agentPhoneOffice: row.agent_phone_office?.trim() || undefined,
     agentEmail: row.agent_email?.trim() || undefined,
     agentPhotoUrl: normalizeAgentHeadshotUrl(firstRel(row.agents)?.photo_url?.trim()) || undefined,
-    youtubeUrl: pickYoutubeUrl(row.raw_params),
+    youtubeUrl: resolveYoutubeUrl(row.youtube_url ?? null, row.raw_params),
     hasShortVideo: Boolean(shortId),
     updatedAt: row.updated_at ?? undefined,
   };
@@ -484,6 +504,23 @@ async function fetchPublicListingOfferRows(): Promise<OfferRow[] | null> {
       const retry = await supabase
         .from("offers")
         .select(OFFER_SELECT_PUBLIC_LIST_NO_FLOORPLANS)
+        .eq("is_active", true)
+        .not("offer_media.cloudflare_video_short_id", "is", null)
+        .order("updated_at", { ascending: false });
+      if (retry.error) {
+        console.warn("[offers-query] Supabase public offers list:", retry.error.message);
+        return null;
+      }
+      const rows = ((retry.data ?? []) as unknown) as OfferRow[];
+      return rows.filter((row) => {
+        const m = firstRel(row.offer_media);
+        return Boolean(m?.cloudflare_video_short_id?.trim());
+      });
+    }
+    if (isMissingYoutubeColumnError(error.message)) {
+      const retry = await supabase
+        .from("offers")
+        .select(OFFER_SELECT_PUBLIC_LIST_NO_YOUTUBE)
         .eq("is_active", true)
         .not("offer_media.cloudflare_video_short_id", "is", null)
         .order("updated_at", { ascending: false });
@@ -550,6 +587,18 @@ async function fetchAllActiveOfferRows(): Promise<OfferRow[] | null> {
       }
       return ((retry.data ?? []) as unknown) as OfferRow[];
     }
+    if (isMissingYoutubeColumnError(error.message)) {
+      const retry = await supabase
+        .from("offers")
+        .select(OFFER_SELECT_NO_YOUTUBE)
+        .eq("is_active", true)
+        .order("updated_at", { ascending: false });
+      if (retry.error) {
+        console.warn("[offers-query] Supabase all active offers:", retry.error.message);
+        return null;
+      }
+      return ((retry.data ?? []) as unknown) as OfferRow[];
+    }
     if (isMissingFloorPlanColumnsError(error.message)) {
       const retry = await supabase
         .from("offers")
@@ -607,6 +656,18 @@ async function fetchOfferRow(
   if (error) {
     if (isMissingFloorPlansRelationError(error.message)) {
       let q2 = supabase.from("offers").select(OFFER_SELECT_NO_FLOORPLANS).eq("is_active", true);
+      if (filter.slug) q2 = q2.eq("slug", filter.slug);
+      else if (filter.id) q2 = q2.eq("id", filter.id);
+      else if (filter.galactica_offer_id) q2 = q2.eq("galactica_offer_id", filter.galactica_offer_id);
+      const retry = await q2.maybeSingle();
+      if (retry.error) {
+        console.warn("[offers-query] Supabase offer one:", retry.error.message);
+        return null;
+      }
+      return attachFloorplansIfPossible((((retry.data as unknown) as OfferRow) ?? null));
+    }
+    if (isMissingYoutubeColumnError(error.message)) {
+      let q2 = supabase.from("offers").select(OFFER_SELECT_NO_YOUTUBE).eq("is_active", true);
       if (filter.slug) q2 = q2.eq("slug", filter.slug);
       else if (filter.id) q2 = q2.eq("id", filter.id);
       else if (filter.galactica_offer_id) q2 = q2.eq("galactica_offer_id", filter.galactica_offer_id);

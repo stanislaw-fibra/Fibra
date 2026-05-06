@@ -1,8 +1,11 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { Reveal } from "@/components/ui/Reveal";
+import { TeamMemberMedia } from "@/components/team/TeamMemberMedia";
+import { getPublicTeamMembers, type TeamMember } from "@/lib/team-query";
+
+export const revalidate = 60;
 
 export const metadata = {
   title: "O Fibrze — Fibra Nieruchomości",
@@ -28,43 +31,49 @@ export const metadata = {
 const AGENTS_BUCKET =
   "https://yrkvochsziertbvzbnol.supabase.co/storage/v1/object/public/agent-photos";
 
-type TeamMember = {
-  name: string;
-  role: string;
-  bio: string;
-  phone: string;
-  photoUrl: string;
-};
-
 /**
- * Założyciel - osobna sekcja na górze strony zespołu (bez przycisku telefonicznego).
- * Docelowo dociągane z tabeli `agents` (np. po fladze `role = "Prezes Zarządu"`).
+ * Fallback hardcoded — używany dopóki migracja `agents` z polami
+ * `bio_long` / `team_role` / `team_order` / `is_team_visible` / `cloudflare_video_id`
+ * nie zostanie uruchomiona w środowisku produkcyjnym i zespół nie zostanie wpisany
+ * przez panel admina. Po wpięciu danych w bazie publiczna strona automatycznie
+ * przejdzie na DB-driven layout (z fallbackiem video → zdjęcie).
  */
-const FOUNDER = {
+const FALLBACK_FOUNDER: TeamMember = {
+  id: "fallback-bartosz",
   name: "Bartosz Nosiadek",
   role: "Założyciel, Prezes Zarządu",
   bio:
     "Wierzę, że w nieruchomościach – bardziej niż w jakiejkolwiek innej branży – liczy się człowiek i przejrzyste zasady. Tworząc Fibrę przyjąłem prostą dewizę: interesy robi się z ludźmi, a nie na ludziach.\n\nDziś, po 20 latach na rynku, z dumą patrzę na osiedla, które wybudowaliśmy i setki rodzin, którym pomogliśmy znaleźć ich miejsce na ziemi. Jako praktyk i autor książki „Zarabianie uczciwych pieniędzy”, dbam o to, by każdy etap naszej współpracy – od budowy, przez finansowanie, aż po zarządzanie najmem – opierał się na fundamencie zaufania.\n\nFibra to nie tylko deweloper czy biuro nieruchomości. To zespół specjalistów, którzy biorą pełną odpowiedzialność za Twój komfort i bezpieczeństwo finansowe. Zapraszam Cię do poznania nas bliżej — chociażby przez pryzmat naszych wideo-prezentacji.",
   photoUrl: `${AGENTS_BUCKET}/Bartosz%20Nosiadek.jpg`,
-} as const;
+  kind: "founder",
+  order: 0,
+  isVisible: true,
+};
 
-/** Zespół - karty równych rozmiarów, każda z telefonem CTA. */
-const TEAM: TeamMember[] = [
+const FALLBACK_TEAM: TeamMember[] = [
   {
+    id: "fallback-justyna",
     name: "Justyna Polok",
     role: "Licencjonowany Pośrednik i Ekspert Kredytowy",
     bio:
       "Z branżą nieruchomości i finansów jestem związana od 15 lat. Jako licencjonowany pośrednik i ekspert od kredytów hipotecznych, przeprowadzam moich klientów przez cały proces zakupu i finansowania – bez stresu i „drobnego druczku”. Na Osiedlu Zamysłów dbam o bezpieczeństwo wynajmu i spokój właścicieli, zarządzając mieszkaniami od strony formalnej i technicznej. Stawiam na konkret, uczciwość i relacje, bo wierzę, że profesjonalna współpraca nie musi być wyłącznie formalna.\n\nZapraszam do kontaktu.",
     phone: "795 133 380",
     photoUrl: `${AGENTS_BUCKET}/Justyna%20Polok.png`,
+    kind: "member",
+    order: 10,
+    isVisible: true,
   },
   {
+    id: "fallback-arek",
     name: "Arkadiusz Jezusek",
     role: "Agent Nieruchomości | Specjalista ds. Inwestycji",
     bio:
       "Od 9 lat skutecznie łączę świat sprzedaży, najmu i inwestycji. Jako agent 360° nie tylko znajduję nieruchomości, ale pomagam zamieniać metry kwadratowe w realny, stabilny dochód dla moich klientów.\n\nNa Osiedlu Zamysłów odpowiadam za cały cykl życia nieruchomości: od doradztwa przy zakupie mieszkania, po jego późniejszy wynajem i pełną obsługę najemców. Wspieram inwestorów w budowaniu zyskownych portfeli, stawiając na relacje i umiejętność słuchania potrzeb. Moim celem jest Twój zysk i bezpieczeństwo – od kawalerek po hale i magazyny.\n\nZapraszam do współpracy.",
     phone: "881 431 800",
     photoUrl: `${AGENTS_BUCKET}/Arkadiusz%20Jezusek.png`,
+    kind: "member",
+    order: 20,
+    isVisible: true,
   },
 ];
 
@@ -93,12 +102,19 @@ function formatPhoneHref(phone: string) {
   return `tel:+48${phone.replace(/\D/g, "")}`;
 }
 
-export default function OFibrzePage() {
+export default async function OFibrzePage() {
+  // Najpierw próbujemy z bazy. Jeżeli baza pusta (migracja nie pojechała / admin nic nie wpisał),
+  // pokazujemy hardcoded fallback z PIM-em — żeby strona nigdy nie była pusta.
+  const dbMembers = await getPublicTeamMembers();
+  const founder = dbMembers.find((m) => m.kind === "founder") ?? FALLBACK_FOUNDER;
+  const team = dbMembers.filter((m) => m.kind === "member");
+  const teamMembers = team.length > 0 ? team : FALLBACK_TEAM;
+
   return (
     <>
       <Nav />
       <main className="flex-1 pt-[72px]">
-        {/* 1 - Hero (kompaktowy, wycentrowany) */}
+        {/* 1 - Hero */}
         <section className="relative py-16 md:py-24 overflow-hidden">
           <div className="container-xl">
             <div className="mx-auto max-w-3xl text-center">
@@ -118,7 +134,7 @@ export default function OFibrzePage() {
                 </h1>
               </Reveal>
               <Reveal delay={180}>
-                <p className="mt-5 md:mt-8 text-[16px] md:text-[19px] leading-[1.55] text-ink-600 text-pretty">
+                <p className="mt-5 md:mt-8 text-[16px] md:text-[19px] leading-[1.55] text-ink-700 text-pretty">
                   Fibra to zespół, który łączy doświadczenie w budowie mieszkań, obrocie nieruchomościami i
                   finansowaniu zakupu. Działamy na Śląsku od 2006 roku, koncentrując się przede wszystkim na rynku
                   lokalnym i na tym, żeby dobrze przeprowadzić klienta przez cały proces.
@@ -128,14 +144,14 @@ export default function OFibrzePage() {
           </div>
         </section>
 
-        {/* 2 - Co robimy: trzy filary */}
+        {/* 2 - Co robimy */}
         <section className="relative py-20 md:py-32 bg-ink-950 text-ink-100 overflow-hidden">
           <div className="absolute inset-0 grad-radial-brand opacity-50" aria-hidden />
           <div className="absolute inset-0 grain grain-on-dark" aria-hidden />
           <div className="container-xl relative">
             <div className="mx-auto max-w-3xl text-center">
               <Reveal>
-                <p className="eyebrow inline-flex items-center gap-3 mb-6 text-ink-300">
+                <p className="eyebrow inline-flex items-center gap-3 mb-6 text-ink-200">
                   <span className="inline-block w-6 sm:w-8 h-px bg-accent-400" />
                   Co robimy
                   <span className="inline-block w-6 sm:w-8 h-px bg-accent-400" />
@@ -169,7 +185,7 @@ export default function OFibrzePage() {
                   <h3 className="font-display text-white text-[1.55rem] md:text-[1.85rem] leading-tight tracking-tight mt-5 md:mt-6 mb-4 md:mb-5 whitespace-pre-line min-h-[2.5em]">
                     {p.title}
                   </h3>
-                  <p className="text-ink-400 text-[15.5px] md:text-[17px] leading-[1.65] max-w-md">
+                  <p className="text-ink-200 text-[15.5px] md:text-[17px] leading-[1.65] max-w-md">
                     {p.body}
                   </p>
                 </Reveal>
@@ -178,7 +194,7 @@ export default function OFibrzePage() {
           </div>
         </section>
 
-        {/* 3 - Założyciel (pełna szerokość, 2 kolumny) */}
+        {/* 3 - Założyciel */}
         <section className="relative py-20 md:py-32 bg-paper-warm border-t border-ink-200/60">
           <div className="container-xl">
             <div className="mx-auto max-w-3xl text-center">
@@ -191,7 +207,7 @@ export default function OFibrzePage() {
                 </h2>
               </Reveal>
               <Reveal delay={80}>
-                <p className="mt-5 md:mt-6 text-[16px] md:text-[18px] text-ink-600 leading-relaxed text-pretty">
+                <p className="mt-5 md:mt-6 text-[16px] md:text-[18px] text-ink-700 leading-relaxed text-pretty">
                   Za każdą ofertą, transakcją i rozmową stoi konkretna osoba.
                 </p>
               </Reveal>
@@ -204,25 +220,18 @@ export default function OFibrzePage() {
               </Reveal>
             </div>
 
-            <div className="mt-10 md:mt-14 grid gap-10 md:gap-14 lg:gap-20 lg:grid-cols-12 lg:items-center">
+            {/* Wideo (lub portret) wycentrowane pionowo względem opisu — bez wyrównywania
+                do góry tekstu zostaje mniej pustej przestrzeni przy długich biogramach.
+                Max-width ograniczony, bo natywne 9:16 przy pełnej szerokości kolumny dawałoby
+                ~700-800 px wysokości — za dużo nawet dla bogatego biogramu założyciela. */}
+            <div className="mt-10 md:mt-14 grid gap-10 md:gap-14 lg:gap-16 lg:grid-cols-12 lg:items-center">
               <Reveal className="lg:col-span-5">
-                <div className="relative aspect-[3/4] w-full max-w-sm md:max-w-md lg:max-w-none mx-auto overflow-hidden rounded-[var(--radius-lg)] ring-1 ring-ink-200/70 shadow-[var(--shadow-cinematic)] bg-gradient-to-br from-brand-500/10 to-accent-400/10">
-                  <Image
-                    src={FOUNDER.photoUrl}
-                    alt={`${FOUNDER.name} — ${FOUNDER.role}`}
-                    fill
-                    sizes="(min-width: 1024px) 40vw, (min-width: 768px) 448px, 384px"
-                    className="object-cover"
-                    style={{
-                      objectPosition: "center 28%",
-                      transform: "scale(1.12)",
-                      transformOrigin: "center 40%",
-                    }}
-                    quality={82}
-                  />
-                  <div
-                    aria-hidden
-                    className="absolute inset-0 bg-gradient-to-t from-ink-950/25 via-transparent to-transparent"
+                <div className="mx-auto max-w-[280px] md:max-w-[320px] lg:max-w-[360px] lg:mx-0">
+                  <TeamMemberMedia
+                    videoId={founder.cloudflareVideoId}
+                    photoUrl={founder.photoUrl}
+                    name={founder.name}
+                    variant="founder"
                   />
                 </div>
               </Reveal>
@@ -232,20 +241,24 @@ export default function OFibrzePage() {
                   className="font-display text-ink-950 tracking-tight leading-[1.05] text-center lg:text-left"
                   style={{ fontSize: "clamp(1.75rem, 3.4vw, 2.75rem)" }}
                 >
-                  {FOUNDER.name}
+                  {founder.name}
                 </h3>
-                <p className="mt-3 text-[11px] md:text-[12px] uppercase tracking-[0.18em] text-brand-500 font-medium text-center lg:text-left">
-                  {FOUNDER.role}
+                <p className="mt-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-brand-700 text-center lg:text-left">
+                  {founder.role}
                 </p>
-                <p className="mt-6 md:mt-8 mx-auto lg:mx-0 max-w-2xl text-[16px] md:text-[17.5px] text-ink-700 leading-[1.7] text-pretty whitespace-pre-line">
-                  {FOUNDER.bio}
-                </p>
+                <div className="mt-6 md:mt-8 mx-auto lg:mx-0 max-w-2xl text-[16px] md:text-[17.5px] text-ink-800 leading-[1.7] text-pretty">
+                  {founder.bio.split(/\n{2,}/).map((para, i) => (
+                    <p key={i} className="mb-4 last:mb-0 whitespace-pre-line">
+                      {para}
+                    </p>
+                  ))}
+                </div>
               </Reveal>
             </div>
           </div>
         </section>
 
-        {/* 3b - Nasz zespół (dwie karty) */}
+        {/* 3b - Zespół */}
         <section className="relative py-20 md:py-32 bg-paper-warm border-b border-ink-200/60">
           <div className="container-xl">
             <div className="mx-auto max-w-3xl text-center">
@@ -266,52 +279,58 @@ export default function OFibrzePage() {
               </Reveal>
             </div>
 
-            {/* TODO: docelowo karty zespołu z tabeli agents */}
-            <div className="mt-12 md:mt-18 grid gap-6 sm:gap-8 md:gap-10 sm:grid-cols-2 mx-auto max-w-5xl">
-              {TEAM.map((member, i) => (
-                <Reveal key={member.name} delay={i * 90}>
-                  <article className="group flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] bg-paper ring-1 ring-ink-200/80 shadow-[var(--shadow-soft)] transition-shadow duration-300 hover:shadow-[var(--shadow-cinematic)]">
-                    <div className="relative aspect-[4/5] w-full overflow-hidden bg-gradient-to-br from-brand-500/10 to-accent-400/10">
-                      <Image
-                        src={member.photoUrl}
-                        alt={`${member.name} — ${member.role}`}
-                        fill
-                        sizes="(min-width: 1024px) 420px, (min-width: 640px) 50vw, 100vw"
-                        className="object-cover object-top transition-transform duration-700 group-hover:scale-[1.02]"
-                        quality={78}
-                      />
-                      <div
-                        aria-hidden
-                        className="absolute inset-0 bg-gradient-to-t from-ink-950/30 via-transparent to-transparent"
-                      />
+            {/* Layout: video pionowe po lewej (~ 5/12), tekst + telefon po prawej (~ 7/12). */}
+            <div className="mt-12 md:mt-18 mx-auto max-w-6xl space-y-14 md:space-y-20">
+              {teamMembers.map((member, i) => (
+                <Reveal key={member.id} delay={i * 100}>
+                  {/* Wideo w pełnym formacie pionowym (9:16) — żeby reels/shorts grał w naturalnym
+                      kadrze bez czarnych pasków po bokach. Wideo zajmuje wąską kolumnę (5/12),
+                      tekst po prawej (7/12) jest wyrównany do góry. Max-width na wideo ogranicza
+                      jego wysokość, dzięki czemu tekst po prawej nie wygląda na chudy nawet
+                      przy krótszych biogramach. */}
+                  <article className="grid gap-8 md:gap-10 lg:gap-14 lg:grid-cols-12 lg:items-start">
+                    <div className="lg:col-span-5">
+                      <div className="mx-auto max-w-[240px] md:max-w-[260px] lg:max-w-[280px] lg:mx-0">
+                        <TeamMemberMedia
+                          videoId={member.cloudflareVideoId}
+                          photoUrl={member.photoUrl}
+                          name={member.name}
+                          variant="member"
+                        />
+                      </div>
                     </div>
-                    <div className="flex flex-1 flex-col p-6 sm:p-7 md:p-8">
-                      <h3 className="font-display text-[1.4rem] sm:text-[1.5rem] md:text-[1.65rem] text-ink-950 leading-tight tracking-tight">
+                    <div className="lg:col-span-7">
+                      <h3 className="font-display text-[clamp(1.5rem,3vw,2.1rem)] text-ink-950 leading-tight tracking-tight">
                         {member.name}
                       </h3>
-                      <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-brand-500">
+                      <p className="mt-2 text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-700">
                         {member.role}
                       </p>
-                      <p className="mt-4 sm:mt-5 text-[15px] md:text-[15.5px] text-ink-600 leading-[1.6] flex-1 whitespace-pre-line">
-                        {member.bio}
-                      </p>
-                      {/* TODO: video autoprezentacja agenta */}
-                      <a
-                        href={formatPhoneHref(member.phone)}
-                        className="mt-6 sm:mt-7 inline-flex items-center gap-2 self-start rounded-full bg-ink-950 px-6 py-3 text-[13px] font-medium text-white transition-colors hover:bg-brand-500 active:scale-[0.98]"
-                        aria-label={`Zadzwoń do ${member.name}, ${member.phone}`}
-                      >
-                        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden>
-                          <path
-                            d="M11.5 9.8v1.4a1.2 1.2 0 0 1-1.3 1.2 11.8 11.8 0 0 1-5.1-1.8 11.6 11.6 0 0 1-3.6-3.6 11.8 11.8 0 0 1-1.8-5.2 1.2 1.2 0 0 1 1.2-1.3h1.4a1.2 1.2 0 0 1 1.2 1 7.8 7.8 0 0 0 .4 1.8 1.2 1.2 0 0 1-.3 1.2l-.6.6a9.6 9.6 0 0 0 3.6 3.6l.6-.6a1.2 1.2 0 0 1 1.2-.3 7.8 7.8 0 0 0 1.8.4 1.2 1.2 0 0 1 1 1.2Z"
-                            stroke="currentColor"
-                            strokeWidth="1.3"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        <span className="tabular-nums">{member.phone}</span>
-                      </a>
+                      <div className="mt-5 text-[15.5px] md:text-[16px] text-ink-800 leading-[1.7] text-pretty">
+                        {member.bio.split(/\n{2,}/).map((para, j) => (
+                          <p key={j} className="mb-3 last:mb-0 whitespace-pre-line">
+                            {para}
+                          </p>
+                        ))}
+                      </div>
+                      {member.phone ? (
+                        <a
+                          href={formatPhoneHref(member.phone)}
+                          className="mt-6 inline-flex items-center gap-2 self-start rounded-full bg-ink-950 px-6 py-3 text-[13px] font-semibold text-white transition-colors hover:bg-brand-500 active:scale-[0.98]"
+                          aria-label={`Zadzwoń do ${member.name}, ${member.phone}`}
+                        >
+                          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden>
+                            <path
+                              d="M11.5 9.8v1.4a1.2 1.2 0 0 1-1.3 1.2 11.8 11.8 0 0 1-5.1-1.8 11.6 11.6 0 0 1-3.6-3.6 11.8 11.8 0 0 1-1.8-5.2 1.2 1.2 0 0 1 1.2-1.3h1.4a1.2 1.2 0 0 1 1.2 1 7.8 7.8 0 0 0 .4 1.8 1.2 1.2 0 0 1-.3 1.2l-.6.6a9.6 9.6 0 0 0 3.6 3.6l.6-.6a1.2 1.2 0 0 1 1.2-.3 7.8 7.8 0 0 0 1.8.4 1.2 1.2 0 0 1 1 1.2Z"
+                              stroke="currentColor"
+                              strokeWidth="1.3"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          <span className="tabular-nums">{member.phone}</span>
+                        </a>
+                      ) : null}
                     </div>
                   </article>
                 </Reveal>
@@ -334,7 +353,7 @@ export default function OFibrzePage() {
               </p>
             </Reveal>
             <Reveal delay={120}>
-              <p className="mt-8 md:mt-12 mx-auto max-w-2xl text-[16px] md:text-[18px] text-ink-400 leading-[1.65] text-pretty">
+              <p className="mt-8 md:mt-12 mx-auto max-w-2xl text-[16px] md:text-[18px] text-ink-200 leading-[1.65] text-pretty">
                 To nie slogan. To zasada, według której prowadzimy każdą rozmowę, każdą transakcję
                 i każdą inwestycję od ponad dekady.
               </p>
@@ -354,10 +373,10 @@ export default function OFibrzePage() {
               </h2>
             </Reveal>
             <Reveal delay={100}>
-              <div className="mt-7 md:mt-8 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[16px] md:text-[18px] text-ink-700">
+              <div className="mt-7 md:mt-8 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[16px] md:text-[18px] text-ink-800">
                 <a
                   href="tel:+48510777200"
-                  className="font-display text-[22px] md:text-[24px] text-brand-600 hover:text-brand-500 tabular-nums transition-colors"
+                  className="font-display text-[22px] md:text-[24px] text-brand-700 hover:text-brand-500 tabular-nums transition-colors"
                 >
                   510 777 200
                 </a>
@@ -366,7 +385,7 @@ export default function OFibrzePage() {
                 </span>
                 <a
                   href="mailto:biuro@grupafibra.pl"
-                  className="hover:text-brand-600 transition-colors break-all sm:break-normal"
+                  className="hover:text-brand-700 transition-colors break-all sm:break-normal"
                 >
                   biuro@grupafibra.pl
                 </a>

@@ -62,6 +62,49 @@ function normalizeHttpUrlFromForm(v: FormDataEntryValue | null): string | null {
   return s;
 }
 
+/**
+ * Akceptuje pełne URL-e youtube.com / youtu.be (z opcjonalnym ?t=…) oraz samo ID typu `dQw4w9WgXcQ`.
+ * Zwraca w pełni kanoniczny URL `https://www.youtube.com/watch?v=ID` lub `null`, jeżeli nie da się
+ * rozpoznać. Dzięki temu klient może wkleić co ma pod ręką i system nie zaboli.
+ */
+function normalizeYoutubeUrlFromForm(v: FormDataEntryValue | null): string | null {
+  const raw = strOrNull(v);
+  if (!raw) return null;
+  const cleaned = raw.replace(/\s+/g, "");
+  // Same ID? (11 znaków alfanumerycznych z myślnikami / podkreśleniami)
+  if (/^[a-zA-Z0-9_-]{11}$/.test(cleaned)) {
+    return `https://www.youtube.com/watch?v=${cleaned}`;
+  }
+  if (!/^https?:\/\//i.test(cleaned)) return null;
+  try {
+    const u = new URL(cleaned);
+    const host = u.hostname.replace(/^www\./, "").toLowerCase();
+    if (host === "youtu.be") {
+      const id = u.pathname.split("/").filter(Boolean)[0];
+      if (id && /^[a-zA-Z0-9_-]{6,}$/.test(id)) {
+        return `https://www.youtube.com/watch?v=${id}`;
+      }
+    }
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      const id = u.searchParams.get("v");
+      if (id && /^[a-zA-Z0-9_-]{6,}$/.test(id)) {
+        return `https://www.youtube.com/watch?v=${id}`;
+      }
+      // Krótkie / shorts / embed
+      const parts = u.pathname.split("/").filter(Boolean);
+      if (parts[0] === "shorts" || parts[0] === "embed") {
+        const id2 = parts[1];
+        if (id2 && /^[a-zA-Z0-9_-]{6,}$/.test(id2)) {
+          return `https://www.youtube.com/watch?v=${id2}`;
+        }
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 export async function toggleOfferActiveAction(formData: FormData) {
   await requireSessionUser();
   const id = strOrNull(formData.get("id"));
@@ -143,6 +186,7 @@ export async function createOfferAction(formData: FormData) {
     virtual_tour_url: strOrNull(formData.get("virtual_tour_url")),
     floor_plan_image_url: normalizeHttpUrlFromForm(formData.get("floor_plan_image_url")),
     floor_plan_pdf_url: normalizeHttpUrlFromForm(formData.get("floor_plan_pdf_url")),
+    youtube_url: normalizeYoutubeUrlFromForm(formData.get("youtube_url")),
     is_active,
     is_exclusive: boolFromCheckbox(formData.get("is_exclusive")),
     is_price_negotiable: boolFromCheckbox(formData.get("is_price_negotiable")),
@@ -228,6 +272,7 @@ export async function updateOfferAction(formData: FormData) {
     virtual_tour_url: strOrNull(formData.get("virtual_tour_url")),
     floor_plan_image_url: normalizeHttpUrlFromForm(formData.get("floor_plan_image_url")),
     floor_plan_pdf_url: normalizeHttpUrlFromForm(formData.get("floor_plan_pdf_url")),
+    youtube_url: normalizeYoutubeUrlFromForm(formData.get("youtube_url")),
     is_active,
     is_exclusive: boolFromCheckbox(formData.get("is_exclusive")),
     is_price_negotiable: boolFromCheckbox(formData.get("is_price_negotiable")),

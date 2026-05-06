@@ -5,6 +5,7 @@ import { createSupabaseServer } from "@/lib/supabase/server";
 
 const NAV = [
   { href: "/panel/oferty", label: "Oferty" },
+  { href: "/panel/zespol", label: "Zespół (O Fibrze)" },
   { href: "/", label: "Strona główna Fibry" },
 ] as const;
 

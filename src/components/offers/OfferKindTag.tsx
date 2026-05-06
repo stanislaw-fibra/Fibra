@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import type { OfferKind } from "@/lib/offers";
 
-type Variant = "media-dark" | "media-light" | "page" | "icon-only";
+type Variant = "media-dark" | "media-light" | "page" | "page-hero" | "icon-only" | "chip-strong";
 
 type Props = {
   kind?: OfferKind;
@@ -86,38 +86,38 @@ const ShopIcon = () => (
 
 const KIND_TONES: Record<OfferKind, KindTone> = {
   dom: {
-    dot: "bg-emerald-400",
-    dark: "border-emerald-300/30 bg-emerald-400/12 text-emerald-100",
-    light: "border-emerald-500/35 bg-emerald-50 text-emerald-700",
-    page: "border-emerald-400/45 text-emerald-700",
+    dot: "bg-emerald-500",
+    dark: "border-emerald-300/40 bg-emerald-400/18 text-emerald-50",
+    light: "border-emerald-600/45 bg-emerald-50 text-emerald-800",
+    page: "border-emerald-500/60 text-emerald-800 bg-emerald-50/80",
     Icon: HouseIcon,
   },
   apartament: {
-    dot: "bg-sky-400",
-    dark: "border-sky-300/30 bg-sky-400/12 text-sky-100",
-    light: "border-sky-500/35 bg-sky-50 text-sky-700",
-    page: "border-sky-400/45 text-sky-700",
+    dot: "bg-sky-500",
+    dark: "border-sky-300/40 bg-sky-400/18 text-sky-50",
+    light: "border-sky-600/45 bg-sky-50 text-sky-800",
+    page: "border-sky-500/60 text-sky-800 bg-sky-50/80",
     Icon: ApartmentIcon,
   },
   penthouse: {
-    dot: "bg-violet-400",
-    dark: "border-violet-300/30 bg-violet-400/12 text-violet-100",
-    light: "border-violet-500/35 bg-violet-50 text-violet-700",
-    page: "border-violet-400/45 text-violet-700",
+    dot: "bg-violet-500",
+    dark: "border-violet-300/40 bg-violet-400/18 text-violet-50",
+    light: "border-violet-600/45 bg-violet-50 text-violet-800",
+    page: "border-violet-500/60 text-violet-800 bg-violet-50/80",
     Icon: PenthouseIcon,
   },
   grunt: {
-    dot: "bg-amber-400",
-    dark: "border-amber-300/30 bg-amber-400/12 text-amber-100",
-    light: "border-amber-500/35 bg-amber-50 text-amber-700",
-    page: "border-amber-500/45 text-amber-700",
+    dot: "bg-amber-500",
+    dark: "border-amber-300/40 bg-amber-400/18 text-amber-50",
+    light: "border-amber-600/45 bg-amber-50 text-amber-800",
+    page: "border-amber-600/55 text-amber-800 bg-amber-50/80",
     Icon: LotIcon,
   },
   lokal: {
-    dot: "bg-stone-400",
-    dark: "border-stone-300/30 bg-stone-400/12 text-stone-100",
-    light: "border-stone-500/35 bg-stone-50 text-stone-700",
-    page: "border-stone-500/45 text-stone-700",
+    dot: "bg-stone-500",
+    dark: "border-stone-300/40 bg-stone-400/18 text-stone-50",
+    light: "border-stone-600/45 bg-stone-50 text-stone-800",
+    page: "border-stone-600/55 text-stone-800 bg-stone-50/80",
     Icon: ShopIcon,
   },
 };
@@ -158,13 +158,48 @@ export function OfferKindTag({ kind, kindLabel, variant = "media-dark", classNam
     return (
       <span
         className={[
-          "inline-flex shrink-0 items-center gap-2 rounded-full border bg-paper px-3 py-1 text-[10.5px] font-medium uppercase tracking-[0.2em]",
+          "inline-flex shrink-0 items-center gap-2 rounded-full border bg-paper px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em]",
           tone.page,
           className,
         ].join(" ")}
         title={text}
       >
         <span aria-hidden className={["inline-block h-1.5 w-1.5 rounded-full", tone.dot].join(" ")} />
+        {text}
+      </span>
+    );
+  }
+
+  if (variant === "page-hero") {
+    // Mocno widoczny chip nad tytułem strony oferty — większy, semibold, z ikoną i kropką.
+    // Używany u góry artykułu, żeby od pierwszej sekundy było wiadomo: dom / mieszkanie / działka.
+    return (
+      <span
+        className={[
+          "inline-flex shrink-0 items-center gap-2 rounded-full border bg-paper px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.18em] shadow-[var(--shadow-soft)]",
+          tone.page,
+          className,
+        ].join(" ")}
+        title={text}
+      >
+        <Icon />
+        {text}
+      </span>
+    );
+  }
+
+  if (variant === "chip-strong") {
+    // Wyrazisty chip z ikoną nad ciemnym kadrem wideo — wysoki kontrast i czytelna typografia,
+    // żeby na karcie 2x2 mobile od razu było widać kategorię (mieszkanie / dom / działka).
+    return (
+      <span
+        className={[
+          "inline-flex shrink-0 items-center gap-1 rounded-full border border-white/55 bg-black/65 px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_2px_8px_rgba(0,0,0,0.35)] backdrop-blur-[8px] sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-[10.5px] sm:tracking-[0.16em]",
+          className,
+        ].join(" ")}
+        title={text}
+      >
+        <Icon />
         {text}
       </span>
     );
