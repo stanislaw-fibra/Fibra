@@ -759,7 +759,6 @@ function ViewToggle({
           <path d="M3.5 2.2L8.5 5.5 3.5 8.8V2.2z" />
         </svg>
         Wideo
-        <span className="opacity-60 tabular-nums">({totalVideo})</span>
       </button>
       <button
         type="button"
@@ -781,7 +780,6 @@ function ViewToggle({
           <rect x="6" y="6" width="3.5" height="3.5" />
         </svg>
         Klasyczny
-        <span className="opacity-60 tabular-nums">({totalGallery})</span>
       </button>
     </div>
   );
@@ -795,13 +793,13 @@ function ViewToggle({
 function ViewToggleIcons({
   view,
   onChange,
-  totalGallery,
-  totalVideo,
 }: {
   view: ViewMode;
   onChange: (v: ViewMode) => void;
-  totalGallery: number;
-  totalVideo: number;
+  /** Zostawione w sygnaturze dla zgodności z resztą sub-komponentów, choć
+   *  countery zostały usunięte z UI na życzenie klienta („bez liczby ofert"). */
+  totalGallery?: number;
+  totalVideo?: number;
 }) {
   return (
     <div
@@ -813,36 +811,34 @@ function ViewToggleIcons({
         type="button"
         onClick={() => onChange("video")}
         aria-pressed={view === "video"}
-        aria-label={`Widok wideo (${totalVideo})`}
+        aria-label="Widok wideo"
         className={[
-          "inline-flex items-center gap-1 rounded-full px-2.5 py-1.5",
+          "inline-flex items-center justify-center rounded-full h-8 w-8",
           "cursor-pointer select-none transition-[background-color,color,transform] duration-200 active:scale-[0.96]",
           view === "video" ? "bg-ink-950 text-white" : "text-ink-600 hover:text-ink-950 hover:bg-paper",
         ].join(" ")}
       >
-        <svg width="12" height="12" viewBox="0 0 11 11" fill="currentColor" aria-hidden>
+        <svg width="13" height="13" viewBox="0 0 11 11" fill="currentColor" aria-hidden>
           <path d="M3.5 2.2L8.5 5.5 3.5 8.8V2.2z" />
         </svg>
-        <span className="opacity-70 tabular-nums">{totalVideo}</span>
       </button>
       <button
         type="button"
         onClick={() => onChange("gallery")}
         aria-pressed={view === "gallery"}
-        aria-label={`Widok klasyczny (${totalGallery})`}
+        aria-label="Widok klasyczny"
         className={[
-          "inline-flex items-center gap-1 rounded-full px-2.5 py-1.5",
+          "inline-flex items-center justify-center rounded-full h-8 w-8",
           "cursor-pointer select-none transition-[background-color,color,transform] duration-200 active:scale-[0.96]",
           view === "gallery" ? "bg-ink-950 text-white" : "text-ink-600 hover:text-ink-950 hover:bg-paper",
         ].join(" ")}
       >
-        <svg width="12" height="12" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden>
+        <svg width="13" height="13" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden>
           <rect x="1.5" y="1.5" width="3.5" height="3.5" />
           <rect x="6" y="1.5" width="3.5" height="3.5" />
           <rect x="1.5" y="6" width="3.5" height="3.5" />
           <rect x="6" y="6" width="3.5" height="3.5" />
         </svg>
-        <span className="opacity-70 tabular-nums">{totalGallery}</span>
       </button>
     </div>
   );
@@ -856,13 +852,12 @@ function ViewToggleIcons({
 function ViewToggleWide({
   view,
   onChange,
-  totalGallery,
-  totalVideo,
 }: {
   view: ViewMode;
   onChange: (v: ViewMode) => void;
-  totalGallery: number;
-  totalVideo: number;
+  /** Zostawione w sygnaturze dla zgodności, choć countery są wyłączone z UI. */
+  totalGallery?: number;
+  totalVideo?: number;
 }) {
   return (
     <div
@@ -886,7 +881,6 @@ function ViewToggleWide({
           <path d="M3.5 2.2L8.5 5.5 3.5 8.8V2.2z" />
         </svg>
         <span className="truncate">Wideo</span>
-        <span className="opacity-60 tabular-nums">({totalVideo})</span>
       </button>
       <button
         type="button"
@@ -907,7 +901,6 @@ function ViewToggleWide({
           <rect x="6" y="6" width="3.5" height="3.5" />
         </svg>
         <span className="truncate">Klasyczny</span>
-        <span className="opacity-60 tabular-nums">({totalGallery})</span>
       </button>
     </div>
   );

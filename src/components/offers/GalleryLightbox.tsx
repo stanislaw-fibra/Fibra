@@ -373,7 +373,7 @@ export function GalleryLightboxProvider({
                           alt={isActive ? `${title} - zdjęcie ${i + 1} z ${images.length}` : ""}
                           width={1600}
                           height={1200}
-                          sizes="(min-width: 1280px) 1240px, 95vw"
+                          sizes={isMobileLandscape ? "100vw" : "(min-width: 1280px) 1240px, 95vw"}
                           quality={78}
                           priority={isActive}
                           fetchPriority={isActive ? "high" : "auto"}
@@ -381,10 +381,14 @@ export function GalleryLightboxProvider({
                           onError={() => markLoaded(i)}
                           unoptimized={false}
                           className={[
-                            "w-auto object-contain",
                             isMobileLandscape
-                              ? "max-h-[100dvh] max-w-[100vw] rounded-none"
-                              : "max-h-[min(78dvh,760px)] max-w-full rounded-[var(--radius-md)] shadow-[0_24px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
+                              // Landscape mobile: prawdziwy fullscreen — obraz wypełnia cały viewport
+                              // przez `object-cover`. Wcześniej `object-contain` zostawiał czarne paski
+                              // po bokach (zdjęcia portretowe w landscape viewporcie), klient zwracał
+                              // uwagę, że „dalej jest dość mały podgląd". Cover przycina bardziej, ale
+                              // wypełnia ekran — typowa galeria pełnoekranowa.
+                              ? "h-[100dvh] w-screen object-cover rounded-none"
+                              : "w-auto max-h-[min(78dvh,760px)] max-w-full object-contain rounded-[var(--radius-md)] shadow-[0_24px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
                             isLoaded ? "opacity-100" : "opacity-0",
                             "transition-opacity duration-200 ease-out",
                           ].join(" ")}
