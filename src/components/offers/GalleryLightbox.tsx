@@ -266,8 +266,11 @@ export function GalleryLightboxProvider({
               aria-label={`Powiększona galeria: ${title}`}
               className={[
                 "pointer-events-none relative z-10 flex flex-col items-center",
+                // Mobile landscape: używamy `100svh` (small viewport — gwarantowanie widoczny obszar
+                // bez Safari URL bara / Chrome bottom bara). Wcześniej `100dvh` powodował, że obraz
+                // sięgał POD wysuwany Safari UI — góra zdjęcia była przykryta zakładkami i niedostępna.
                 isMobileLandscape
-                  ? "h-[100dvh] w-screen max-w-none"
+                  ? "h-[100svh] w-screen max-w-none"
                   : "max-h-[min(92dvh,920px)] w-full max-w-[min(1240px,calc(100vw-2rem))]",
               ].join(" ")}
               initial={{ opacity: 0, scale: 0.98, y: 8 }}
@@ -279,17 +282,28 @@ export function GalleryLightboxProvider({
                 className="pointer-events-auto relative flex w-full max-w-full flex-col items-center"
                 onClick={(e) => e.stopPropagation()}
               >
+                {/* Górny pasek w landscape: cienka strefa „glassmorphism" z gradientem czerni,
+                    żeby X i licznik były zawsze dobrze widoczne nad zdjęciem (object-cover ucina
+                    fragment obrazu, więc kontrolki muszą mieć własny kontrast). Plus respektujemy
+                    safe-area żeby X nie zachodził za notch'a iPhone'a. */}
+                {isMobileLandscape ? (
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-gradient-to-b from-ink-950/65 via-ink-950/30 to-transparent"
+                  />
+                ) : null}
+
                 <div
                   className={[
                     "absolute z-20 flex items-center gap-2",
                     isMobileLandscape
-                      ? "top-3 right-3 pt-[env(safe-area-inset-top,0px)]"
+                      ? "top-3 right-3 pt-[env(safe-area-inset-top,0px)] pr-[env(safe-area-inset-right,0px)]"
                       : "-top-1 right-0",
                   ].join(" ")}
                 >
                   <p className={[
                     "text-[11px] uppercase tracking-[0.2em] tabular-nums pr-2",
-                    isMobileLandscape ? "text-white/85 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]" : "hidden sm:block text-white/50",
+                    isMobileLandscape ? "text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] font-semibold" : "hidden sm:block text-white/50",
                   ].join(" ")}>
                     {open + 1} / {images.length}
                   </p>
@@ -311,7 +325,12 @@ export function GalleryLightboxProvider({
                     <button
                       type="button"
                       onClick={() => go(-1)}
-                      className="absolute left-0 top-1/2 z-20 -translate-x-1 sm:-translate-x-2 md:-translate-x-3 -translate-y-1/2 inline-flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:border-white/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                      className={[
+                        "absolute top-1/2 z-20 -translate-y-1/2 inline-flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:border-white/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
+                        // Landscape: trochę dalej od krawędzi i z safe-area żeby uniknąć notch'a.
+                        isMobileLandscape ? "left-3" : "left-0 -translate-x-1 sm:-translate-x-2 md:-translate-x-3",
+                      ].join(" ")}
+                      style={isMobileLandscape ? { marginLeft: "env(safe-area-inset-left, 0px)" } : undefined}
                       aria-label="Poprzednie zdjęcie"
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -321,7 +340,11 @@ export function GalleryLightboxProvider({
                     <button
                       type="button"
                       onClick={() => go(1)}
-                      className="absolute right-0 top-1/2 z-20 translate-x-1 sm:translate-x-2 md:translate-x-3 -translate-y-1/2 inline-flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:border-white/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                      className={[
+                        "absolute top-1/2 z-20 -translate-y-1/2 inline-flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:border-white/30 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
+                        isMobileLandscape ? "right-3" : "right-0 translate-x-1 sm:translate-x-2 md:translate-x-3",
+                      ].join(" ")}
+                      style={isMobileLandscape ? { marginRight: "env(safe-area-inset-right, 0px)" } : undefined}
                       aria-label="Następne zdjęcie"
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -336,7 +359,7 @@ export function GalleryLightboxProvider({
                   className={[
                     "relative w-full flex items-center justify-center select-none",
                     isMobileLandscape
-                      ? "mt-0 h-[100dvh]"
+                      ? "mt-0 h-[100svh]"
                       : "mt-12 min-h-[min(78dvh,760px)]",
                   ].join(" ")}
                   onTouchStart={onTouchStart}
@@ -382,12 +405,12 @@ export function GalleryLightboxProvider({
                           unoptimized={false}
                           className={[
                             isMobileLandscape
-                              // Landscape mobile: prawdziwy fullscreen — obraz wypełnia cały viewport
-                              // przez `object-cover`. Wcześniej `object-contain` zostawiał czarne paski
-                              // po bokach (zdjęcia portretowe w landscape viewporcie), klient zwracał
-                              // uwagę, że „dalej jest dość mały podgląd". Cover przycina bardziej, ale
-                              // wypełnia ekran — typowa galeria pełnoekranowa.
-                              ? "h-[100dvh] w-screen object-cover rounded-none"
+                              // Landscape mobile: obraz wypełnia widoczny obszar przez `object-cover`.
+                              // `100svh` zamiast `100dvh` — Safari URL bar / Chrome bottom bar nie
+                              // przykrywają już górnej części zdjęcia (klient: „u góry pokazują się
+                              // zakładki Safari, częściowo ucięte zdjęcia"). Premium UX: obraz
+                              // dominuje ekran, ale zostaje w widocznej, dotykalnej strefie.
+                              ? "h-[100svh] w-screen object-cover rounded-none"
                               : "w-auto max-h-[min(78dvh,760px)] max-w-full object-contain rounded-[var(--radius-md)] shadow-[0_24px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
                             isLoaded ? "opacity-100" : "opacity-0",
                             "transition-opacity duration-200 ease-out",
