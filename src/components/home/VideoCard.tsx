@@ -204,28 +204,31 @@ export function VideoCard({
     showMuteButton ? "pr-8 sm:pr-10 md:pr-11" : "",
   ].join(" ");
 
-  // Tekst pod filmem — responsywny: na mobile (np. 2x2 grid) tekst i odstępy są
-  // mniejsze, by podpis nie wypychał kafla z viewportu i pozostał czytelny przy
-  // wąskich kolumnach. Od sm/md przechodzimy do pełnego, „premium" rozmiaru.
-  // Dla single-column mobile (np. /oferty) bazowe rozmiary są celowo na tyle
-  // duże, by tytuł i opis czytało się komfortowo bez zoomu.
+  // Tekst pod filmem — responsywny. Hero: zwięzły overlay-style. Non-hero (np. /oferty?view=video):
+  // pełna premium-hierarchia: bold tytuł (Inter), wyraźny eyebrow, oddzielony separator pod metą + ceną,
+  // pełny przycisk-pill jako CTA. Klient zwracał uwagę, że wcześniej tekst pod kartą się „zlewał".
   const textWrapClass = isHero
     ? "pt-2 sm:pt-3 md:pt-3.5"
-    : "pt-3 sm:pt-4 md:pt-5 px-0.5";
+    : "pt-4 sm:pt-5 md:pt-6 px-0.5";
   const eyebrowClass = isHero
     ? "text-[9px] sm:text-[10px] uppercase tracking-[0.16em] sm:tracking-[0.18em] text-white/55"
-    : "text-[10.5px] sm:text-[10.5px] uppercase tracking-[0.18em] text-ink-500";
+    : "text-[11px] sm:text-[11.5px] font-semibold uppercase tracking-[0.18em] text-brand-700";
+  // Tytuł non-hero: Inter Bold (Instrument Serif jest tylko w 400, więc bold-display nie zadziała).
+  // Większy rozmiar + tighter tracking = wyraźny zakotwicz wzroku.
   const titleTextClass = isHero
     ? "mt-1 font-display text-[12.5px] sm:text-[15px] md:text-[16.5px] leading-[1.18] sm:leading-[1.15] text-white line-clamp-2 text-balance"
-    : "mt-1.5 font-display text-[16.5px] sm:text-[18px] md:text-[20px] lg:text-[22px] leading-[1.2] sm:leading-[1.14] text-ink-950 line-clamp-2 text-balance group-hover:text-brand-600 transition-colors";
+    : "mt-2 font-sans text-[18px] sm:text-[20px] md:text-[22px] leading-[1.18] font-bold tracking-tight text-ink-950 line-clamp-2 text-balance group-hover:text-brand-600 transition-colors";
   const metaRowClass = isHero
     ? "mt-1.5 sm:mt-2 flex items-center justify-between text-[10px] sm:text-[11px] md:text-[11.5px] text-white/65 tabular-nums"
-    : "mt-2.5 sm:mt-3 flex items-center justify-between text-[12px] sm:text-[12.5px] text-ink-600 tabular-nums";
-  const priceClass = isHero ? "font-medium text-white" : "font-medium text-ink-900";
+    : "mt-4 pt-3 border-t border-ink-200/70 flex items-end justify-between gap-3";
+  const priceClass = isHero
+    ? "font-medium text-white"
+    : "font-bold text-[16px] md:text-[17px] text-ink-950 tabular-nums leading-none";
 
   const hoverArrowClass = isHero
     ? "mt-2 sm:mt-3 inline-flex items-center gap-1.5 text-[11.5px] sm:text-[12.5px] font-medium text-white/80 group-hover:text-accent-400 transition-colors"
-    : "mt-2 sm:mt-3 inline-flex items-center gap-1.5 text-[11.5px] sm:text-[12.5px] font-medium text-ink-900 group-hover:text-brand-500 transition-colors";
+    // Non-hero: pełny przycisk-pill, czarne tło, pomarańcz na hover. Klient ma jednoznaczny CTA.
+    : "mt-4 inline-flex items-center justify-center gap-1.5 rounded-full bg-ink-950 group-hover:bg-brand-500 text-white text-[12.5px] font-semibold px-4 py-2.5 transition-colors self-start";
 
   // Cała karta = jeden klikalny link do oferty (shell + tekst + szczegóły).
   // Dzięki temu klik w tytuł, cenę, miasto itp. też przenosi do oferty.
@@ -379,28 +382,56 @@ export function VideoCard({
       {!visualOnly && !heroOverlayTitle && (
         <div className={textWrapClass}>
           <p className={eyebrowClass}>
-            <span className={isHero ? "text-white" : "text-ink-900"}>
-              {offer.kindLabel}
-            </span>
-            {" · "}
-            {offer.city}
-            {offer.district ? ` · ${offer.district}` : ""}
+            {/* Non-hero: cały eyebrow ma tę samą wagę (nie wyróżniamy kategorii dodatkowo,
+                bo chip kategorii już jest na kafelku). Hero zostaje z białym kontrastem. */}
+            {isHero ? (
+              <>
+                <span className="text-white">{offer.kindLabel}</span>
+                {" · "}
+                {offer.city}
+                {offer.district ? ` · ${offer.district}` : ""}
+              </>
+            ) : (
+              <>
+                {offer.kindLabel}
+                {" · "}
+                {offer.city}
+                {offer.district ? ` · ${offer.district}` : ""}
+              </>
+            )}
           </p>
           <h3 className={titleTextClass}>{offer.title}</h3>
 
           {showFooter && !isHero && offer.excerpt && (
-            <p className="mt-2 text-[13.5px] sm:text-[14px] text-ink-600 leading-[1.5] line-clamp-2 sm:line-clamp-2 text-pretty">
+            // Excerpt: ciemniejszy ink-700 (lepszy kontrast), nieco większy lh, więcej mt
+            // dla wizualnego oddechu między tytułem a opisem.
+            <p className="mt-3 text-[14px] sm:text-[14.5px] text-ink-700 leading-[1.6] line-clamp-2 text-pretty">
               {offer.excerpt}
             </p>
           )}
 
           <div className={metaRowClass}>
-            <span>
-              {offer.area} m²{offer.rooms ? ` · ${offer.rooms} pok.` : ""}
-            </span>
-            {showPrice && offer.priceFrom ? (
-              <span className={priceClass}>{priceShort(offer.priceFrom)}</span>
-            ) : null}
+            {isHero ? (
+              <>
+                <span>
+                  {offer.area} m²{offer.rooms ? ` · ${offer.rooms} pok.` : ""}
+                </span>
+                {showPrice && offer.priceFrom ? (
+                  <span className={priceClass}>{priceShort(offer.priceFrom)}</span>
+                ) : null}
+              </>
+            ) : (
+              // Non-hero: meta i cena z większym kontrastem i wyraźniejszą hierarchią.
+              // Cena jest drugą informacją po tytule, której wzrok szuka — boldujemy ją mocno.
+              <>
+                <span className="text-[13px] sm:text-[13.5px] font-medium text-ink-700 tabular-nums">
+                  {offer.area} m²{offer.rooms ? ` · ${offer.rooms} pok.` : ""}
+                </span>
+                {showPrice && offer.priceFrom ? (
+                  <span className={priceClass}>{priceShort(offer.priceFrom)}</span>
+                ) : null}
+              </>
+            )}
           </div>
 
           {showFooter && !isHero && (
