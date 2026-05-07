@@ -7,6 +7,7 @@ import { OfferMatterport } from "@/components/offers/OfferMatterport";
 import { youtubeEmbedUrl } from "@/components/offers/OfferHeroMedia";
 import { pickFloorPlanImageFromGallery } from "@/lib/offers";
 import type { OfferKind } from "@/lib/offers";
+import { useModalHistoryClose } from "@/lib/use-modal-history-close";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -150,6 +151,11 @@ export function OfferQuickMedia({
       document.body.style.overflow = prev;
     };
   }, [open, close]);
+
+  // Integracja z historią przeglądarki — gest „back" / przycisk Wstecz na mobile
+  // zamyka modal (spacer 3D, rzut, YouTube), zamiast nawigować do poprzedniej strony.
+  // Klient zgłosił to wprost: po otwarciu spaceru i swipe-back tracił widok oferty.
+  useModalHistoryClose(Boolean(open), close);
 
   useEffect(() => {
     if (open !== "floor") return;

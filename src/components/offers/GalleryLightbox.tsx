@@ -13,6 +13,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { useModalHistoryClose } from "@/lib/use-modal-history-close";
 
 type LightboxApi = {
   images: string[];
@@ -55,6 +56,10 @@ export function GalleryLightboxProvider({
   // (next/image trzyma proporcje + max-h, ale po obrocie telefonu chcemy mieć
   // pewność, że layout się zaktualizuje natychmiast, a nie czeka na resize).
   const [orientationKey, setOrientationKey] = useState(0);
+  // Czy lightbox aktualnie jest w trybie „mobile landscape fullscreen" — to wpływa na
+  // padding, max-h obrazu oraz wielkość typografii. Klient prosił wielokrotnie, żeby po
+  // obróceniu telefonu w poziom zdjęcia rozpychały się na cały ekran.
+  const [isMobileLandscape, setIsMobileLandscape] = useState(false);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const lastTriggerRef = useRef<HTMLElement | null>(null);
   const touchStartX = useRef<number | null>(null);
@@ -125,6 +130,11 @@ export function GalleryLightboxProvider({
     closeBtnRef.current?.focus({ preventScroll: true });
   }, [open]);
 
+  // Integracja z historią przeglądarki: swipe-back / przycisk Wstecz na mobile zamyka
+  // lightbox zamiast nawigować do poprzedniej strony. Klient prosił to wprost — wcześniej
+  // user zawsze tracił kontekst oferty po geście „back".
+  useModalHistoryClose(open !== null, close);
+
   // Mobile: po obrocie telefonu zdjęcie powinno natychmiast wypełnić nowy
   // viewport (poziomo / pionowo). `orientationchange` strzela na iOS / Androidzie,
   // a `screen.orientation` daje też zmianę przy obracaniu w tabletach.
@@ -139,6 +149,44 @@ export function GalleryLightboxProvider({
       so?.removeEventListener?.("change", bump);
     };
   }, [open]);
+
+  // Auto-fullscreen przy obrocie telefonu w poziom — klient prosił wielokrotnie:
+  // „W wersji mobile zdjęcia w galerii oferty mogłyby mieć możliwość po przestawieniu
+  //  telefonu w poziom powiększenie na cały ekran".
+  //
+  // Effect 1: nasłuchuje orientation, ustawia tylko `isMobileLandscape` state.
+  // Effect 2: reaguje na przejście portrait→landscape — otwiera lightbox.
+  //
+  // Świadomie NIE zamykamy automatycznie przy powrocie do portretu: tracking „kto otworzył"
+  // przez ref ma race condition'y w Strict Mode + przy serii resize'ów w trakcie jednej
+  // rotacji. Pragmatyczna decyzja: w landscape lightbox staje się fullscreen (większy obraz),
+  // w portrait wraca do normalnego layoutu okna lightboxa. User klika X (lub tap w tło),
+  // żeby wyjść — zachowanie znane z każdej innej galerii.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(orientation: landscape) and (max-height: 600px)");
+    const update = () => setIsMobileLandscape(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    // Fallback dla środowisk, które nie firują media-query change consistently
+    // (Chrome DevTools emulation, wirtualne klawiatury). update jest idempotentne
+    // bo czyta mq.matches i React kolapsuje równoległe setState bez efektu.
+    window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+    return () => {
+      mq.removeEventListener("change", update);
+      window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (images.length === 0) return;
+    if (!isMobileLandscape) return;
+    // Otwieramy galerię tylko gdy jest zamknięta — nie ruszamy nic, jeśli user
+    // już patrzy na konkretne zdjęcie (np. otworzył przez klik w miniaturę).
+    setOpen((prev) => (prev === null ? 0 : prev));
+  }, [isMobileLandscape, images.length]);
 
   // Przewiń aktywną miniaturkę do widoku w pasku (żeby user widział kontekst).
   useEffect(() => {
@@ -190,7 +238,12 @@ export function GalleryLightboxProvider({
           <motion.div
             key="offer-lightbox"
             role="presentation"
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-8 md:p-12"
+            className={[
+              "fixed inset-0 z-[200] flex items-center justify-center",
+              // Mobile-landscape: zero padding, czyste fullscreen — klient prosił o pełnoekranowy
+              // tryb po obrocie telefonu w poziom. Reszta urządzeń: normalny padding.
+              isMobileLandscape ? "p-0" : "p-4 sm:p-8 md:p-12",
+            ].join(" ")}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -211,7 +264,12 @@ export function GalleryLightboxProvider({
               role="dialog"
               aria-modal="true"
               aria-label={`Powiększona galeria: ${title}`}
-              className="pointer-events-none relative z-10 flex max-h-[min(92dvh,920px)] w-full max-w-[min(1240px,calc(100vw-2rem))] flex-col items-center"
+              className={[
+                "pointer-events-none relative z-10 flex flex-col items-center",
+                isMobileLandscape
+                  ? "h-[100dvh] w-screen max-w-none"
+                  : "max-h-[min(92dvh,920px)] w-full max-w-[min(1240px,calc(100vw-2rem))]",
+              ].join(" ")}
               initial={{ opacity: 0, scale: 0.98, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.99, y: 4 }}
@@ -221,8 +279,18 @@ export function GalleryLightboxProvider({
                 className="pointer-events-auto relative flex w-full max-w-full flex-col items-center"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="absolute -top-1 right-0 z-20 flex items-center gap-2">
-                  <p className="hidden sm:block text-[11px] uppercase tracking-[0.2em] text-white/50 tabular-nums pr-2">
+                <div
+                  className={[
+                    "absolute z-20 flex items-center gap-2",
+                    isMobileLandscape
+                      ? "top-3 right-3 pt-[env(safe-area-inset-top,0px)]"
+                      : "-top-1 right-0",
+                  ].join(" ")}
+                >
+                  <p className={[
+                    "text-[11px] uppercase tracking-[0.2em] tabular-nums pr-2",
+                    isMobileLandscape ? "text-white/85 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]" : "hidden sm:block text-white/50",
+                  ].join(" ")}>
                     {open + 1} / {images.length}
                   </p>
                   <button
@@ -265,7 +333,12 @@ export function GalleryLightboxProvider({
 
                 <div
                   key={`slides-${orientationKey}`}
-                  className="mt-12 relative w-full min-h-[min(78dvh,760px)] flex items-center justify-center select-none"
+                  className={[
+                    "relative w-full flex items-center justify-center select-none",
+                    isMobileLandscape
+                      ? "mt-0 h-[100dvh]"
+                      : "mt-12 min-h-[min(78dvh,760px)]",
+                  ].join(" ")}
                   onTouchStart={onTouchStart}
                   onTouchEnd={onTouchEnd}
                 >
@@ -308,8 +381,10 @@ export function GalleryLightboxProvider({
                           onError={() => markLoaded(i)}
                           unoptimized={false}
                           className={[
-                            "max-h-[min(78dvh,760px)] w-auto max-w-full object-contain rounded-[var(--radius-md)]",
-                            "shadow-[0_24px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
+                            "w-auto object-contain",
+                            isMobileLandscape
+                              ? "max-h-[100dvh] max-w-[100vw] rounded-none"
+                              : "max-h-[min(78dvh,760px)] max-w-full rounded-[var(--radius-md)] shadow-[0_24px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
                             isLoaded ? "opacity-100" : "opacity-0",
                             "transition-opacity duration-200 ease-out",
                           ].join(" ")}
@@ -320,11 +395,13 @@ export function GalleryLightboxProvider({
                   })}
                 </div>
 
-                <p className="mt-4 text-center text-[11px] uppercase tracking-[0.22em] text-white/45 sm:hidden tabular-nums">
-                  {open + 1} / {images.length}
-                </p>
+                {!isMobileLandscape && (
+                  <p className="mt-4 text-center text-[11px] uppercase tracking-[0.22em] text-white/45 sm:hidden tabular-nums">
+                    {open + 1} / {images.length}
+                  </p>
+                )}
 
-                {images.length > 1 && (
+                {images.length > 1 && !isMobileLandscape && (
                   <div
                     ref={thumbsRef}
                     className="mt-5 flex max-w-full gap-2 overflow-x-auto pb-1 pt-1 [scrollbar-width:thin]"
