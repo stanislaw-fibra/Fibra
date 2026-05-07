@@ -302,14 +302,33 @@ export function VideoCard({
 
           {heroOverlayTitle ? (
             <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4]">
+              {/* Mocniejszy, dłuższy gradient — żeby tytuł był pewnie widoczny nawet na jasnych
+                  klatkach filmu. To jest „hook" zachęcający do kliknięcia (klient prosił
+                  wielokrotnie, żeby tytuły nie umykały). */}
               <div
-                className="absolute inset-x-0 bottom-0 h-[62%] sm:h-[58%] md:h-[55%] bg-gradient-to-t from-black via-black/55 to-transparent"
+                className="absolute inset-x-0 bottom-0 h-[72%] sm:h-[66%] md:h-[60%] bg-gradient-to-t from-black via-black/72 to-transparent"
                 aria-hidden
               />
-              <div className="relative px-2.5 pb-2.5 pt-14 sm:px-3 sm:pb-3 sm:pt-16 md:px-4 md:pb-4 md:pt-20">
-                <h3 className="font-display text-left text-[13.5px] sm:text-[16px] md:text-[18px] lg:text-[19px] xl:text-[20px] leading-[1.18] font-semibold tracking-tight text-white line-clamp-2 drop-shadow-[0_1px_6px_rgba(0,0,0,0.95)]">
+              <div className="relative px-3 pb-3 pt-16 sm:px-4 sm:pb-4 sm:pt-20 md:px-5 md:pb-5 md:pt-24">
+                {/* Tytuł: sans-serif (Inter) bold — Instrument Serif (font-display) jest dostępny
+                    tylko w weight 400, więc dla prawdziwego „hooka" przełączamy na Inter Bold.
+                    Mobile bumpnięty z 13.5 → 17 px (czytelne z dystansu trzymania telefonu),
+                    desktop z 18-20 → 22-26 px (rzuca się w oczy w siatce 4-up). Cienie złożone:
+                    drop-shadow daje kontur, text-shadow dodaje głębi nad zmiennym tłem filmu. */}
+                <h3
+                  className="font-sans text-left text-[17px] sm:text-[20px] md:text-[22px] lg:text-[24px] xl:text-[26px] leading-[1.12] font-bold tracking-tight text-white line-clamp-2 drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)]"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.7), 0 4px 14px rgba(0,0,0,0.55)" }}
+                >
                   {offer.title}
                 </h3>
+                {/* Mikro-CTA jako część hooka — białe, drobne, ale wyraźnie sugeruje akcję.
+                    Pojawia się tylko od sm w górę, żeby nie zaśmiecać kafla 2x2 na małym mobile. */}
+                <span className="mt-1.5 hidden sm:inline-flex items-center gap-1.5 text-[11.5px] md:text-[12.5px] font-semibold uppercase tracking-[0.16em] text-white/95 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+                  Zobacz ofertę
+                  <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden>
+                    <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
               </div>
             </div>
           ) : null}
