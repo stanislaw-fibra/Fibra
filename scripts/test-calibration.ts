@@ -29,25 +29,24 @@ type Expect = "u" | "b" | "i" | "bu" | "bi" | "biu" | "plain";
 type Check = { fragment: string; expect: Expect };
 
 const CHECKS: Check[] = [
-  // Tura 1: whole-line title z dodatkowym emphasis (2/3 spacji)
+  // Standalone non-:-ending, max(L,T)=3 → B+U (strong emphasis title)
   { fragment: "Kawalerka na wynajem w Centrum Rybnika!", expect: "bu" },
-  // Tura 2: heading followed by padded-empty line — tylko bold
-  { fragment: "Nieruchomość:", expect: "b" },
-  // Tura 3: headings followed by truly-empty line — bold + italic
+  // Standalone :-ending → B+I (section heading) — wszystkie 5 powinny być identyczne
+  { fragment: "Nieruchomość:", expect: "bi" },
   { fragment: "Do dyspozycji:", expect: "bi" },
   { fragment: "Lokalizacja:", expect: "bi" },
   { fragment: "Ile Cię to kosztuje:", expect: "bi" },
   { fragment: "Formalności:", expect: "bi" },
-  // Tura 2: mid-line numbers — tylko bold
+  // Mid-line numbers → B
   { fragment: "25 m²", expect: "b" },
-  // Tura 1: mid-line text — underline
+  // Mid-line text → U
   { fragment: "płyta indukcyjna 2-palnikowa", expect: "u" },
   { fragment: "piekarnik elektryczny zlewozmywak", expect: "u" },
   { fragment: "dwie garderoby", expect: "u" },
   { fragment: "prysznic, umywalka z szafką", expect: "u" },
-  // Tura 3: single-marker leading — bold only
+  // Single-marker leading → B
   { fragment: "ścisłe Centrum Rybnika", expect: "b" },
-  // Plain (poza markerami)
+  // Plain
   { fragment: "aneks kuchenny w zabudowie", expect: "plain" },
 ];
 
