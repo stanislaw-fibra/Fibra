@@ -1,29 +1,41 @@
 /**
  * Smoke test dla `detectGalacticaBolds` — weryfikuje calibration data od Bartosza.
  *
- * Oferta FIB-MW-4131 (kawalerka Centrum Rybnika). Po cleanerze opis MUSI mieć:
- *   - "Kawalerka na wynajem w Centrum Rybnika!"        → <b><u>
- *   - "płyta indukcyjna ... bojler,"                   → <u>
- *   - "dwie garderoby"                                 → <u>
- *   - "prysznic, umywalka ... bojler,"                 → <u>
- *   - "aneks kuchenny w zabudowie -"                   → plain (NIC)
+ * Oferta FIB-MW-4131. Po cleanerze opis MUSI mieć:
  *
- * Uruchom:
- *   npx tsx scripts/test-calibration.ts
+ *   Whole-line title (Tura 1 — bold + underline):
+ *     - "Kawalerka na wynajem w Centrum Rybnika!"  → <b><u>
+ *
+ *   Whole-line headings (Tura 2 — tylko bold; parser zrobi z tego h3):
+ *     - "Nieruchomość:", "Do dyspozycji:", "Lokalizacja:" → <b>
+ *
+ *   Mid-line numbers (Tura 2 — tylko bold):
+ *     - "25 m²", "3", "1250", "3500", "12" → <b>
+ *
+ *   Mid-line text phrases (Tura 1 — underline):
+ *     - "płyta indukcyjna...", "piekarnik...", "dwie garderoby", "prysznic..." → <u>
+ *
+ *   Plain (poza markerami):
+ *     - "aneks kuchenny w zabudowie" → bez tagów
+ *
+ * Uruchom: XML_PATH=oferty.xml npx tsx scripts/test-calibration.ts
  */
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { parseGalacticaXml } from "../src/lib/importer/xml-parser";
 import { mapOffer } from "../src/lib/importer/field-mapper";
 
-type Check = {
-  fragment: string;
-  expect: "u" | "bu" | "iu" | "biu" | "plain";
-};
+type Expect = "u" | "b" | "bu" | "plain";
+type Check = { fragment: string; expect: Expect };
 
 const CHECKS: Check[] = [
   { fragment: "Kawalerka na wynajem w Centrum Rybnika!", expect: "bu" },
+  { fragment: "Nieruchomość:", expect: "b" },
+  { fragment: "Do dyspozycji:", expect: "b" },
+  { fragment: "Lokalizacja:", expect: "b" },
+  { fragment: "25 m²", expect: "b" },
   { fragment: "płyta indukcyjna 2-palnikowa", expect: "u" },
+  { fragment: "piekarnik elektryczny zlewozmywak", expect: "u" },
   { fragment: "dwie garderoby", expect: "u" },
   { fragment: "prysznic, umywalka z szafką", expect: "u" },
   { fragment: "aneks kuchenny w zabudowie", expect: "plain" },
@@ -37,22 +49,20 @@ function contextOf(text: string, needle: string, span = 50): string {
   return text.slice(start, end);
 }
 
-function classify(text: string, needle: string): "u" | "bu" | "iu" | "biu" | "plain" | "missing" {
+function classify(text: string, needle: string): Expect | "missing" {
   const idx = text.indexOf(needle);
   if (idx < 0) return "missing";
-  // Find the start of the surrounding text (search backwards through tags / non-space)
-  // We look at the 80-char window before to identify enclosing tags.
   const before = text.slice(Math.max(0, idx - 100), idx);
-  // Last tag opening immediately before the text (allowing nested tags)
-  // Match a sequence of opening tags: e.g. "<b><u>" right before.
-  const openMatch = before.match(/(<[biu]>)+\s*$/);
+  const openMatch = before.match(/(<[bu]>)+\s*$/);
   if (!openMatch) return "plain";
   const tagsStr = openMatch[0].trim();
-  const tags = Array.from(tagsStr.matchAll(/<([biu])>/g)).map((m) => m[1]).sort().join("");
+  const tags = Array.from(tagsStr.matchAll(/<([bu])>/g))
+    .map((m) => m[1])
+    .sort()
+    .join("");
   if (tags === "u") return "u";
+  if (tags === "b") return "b";
   if (tags === "bu") return "bu";
-  if (tags === "iu") return "iu";
-  if (tags === "biu") return "biu";
   return "plain";
 }
 
@@ -70,7 +80,7 @@ async function main() {
   const mapped = mapOffer(raw);
   const desc = mapped.description ?? "";
 
-  console.log("=== FRAGMENT WOKÓŁ KALIBRACJI ===");
+  console.log("=== KONTEKST FRAGMENTÓW ===");
   for (const c of CHECKS) {
     console.log(`\n--- "${c.fragment}" (oczekiwane: ${c.expect}) ---`);
     console.log(contextOf(desc, c.fragment, 30));
@@ -84,7 +94,9 @@ async function main() {
     const ok = got === c.expect;
     if (ok) pass++;
     else fail++;
-    console.log(`${ok ? "✅" : "❌"} "${c.fragment.slice(0, 40)}" → expect=${c.expect}, got=${got}`);
+    console.log(
+      `${ok ? "✅" : "❌"} "${c.fragment.slice(0, 45).padEnd(45)}" expect=${c.expect.padEnd(5)} got=${got}`,
+    );
   }
   console.log(`\n${pass}/${CHECKS.length} pass, ${fail} fail`);
   if (fail > 0) process.exitCode = 2;
