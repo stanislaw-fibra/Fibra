@@ -4,6 +4,7 @@ import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { intFromHumanOrNull, parseHumanNumber } from "@/lib/parse-human-number";
+import { sanitizeRichHtml } from "@/lib/rich-description";
 import { makeOfferSlug } from "@/lib/slug";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServer } from "@/lib/supabase/server";
@@ -51,6 +52,18 @@ function strOrNull(v: FormDataEntryValue | null): string | null {
 
 function boolFromCheckbox(v: FormDataEntryValue | null): boolean {
   return v === "on" || v === "true" || v === "1";
+}
+
+/**
+ * Bezpieczne sanityzowanie opisu z formularza panelu admina. Bartosz prosił, żeby
+ * dało się dodawać boldy/kursywy/podkreślenia ręcznie — przepuszczamy whitelisted
+ * inline tagi, resztę agresywnie strip. To samo robi importer dla treści z Galactici.
+ */
+function sanitizedDescriptionFromForm(v: FormDataEntryValue | null): string | null {
+  const s = strOrNull(v);
+  if (!s) return null;
+  const cleaned = sanitizeRichHtml(s);
+  return cleaned.length > 0 ? cleaned : null;
 }
 
 function normalizeHttpUrlFromForm(v: FormDataEntryValue | null): string | null {
@@ -163,7 +176,7 @@ export async function createOfferAction(formData: FormData) {
     listing_type,
     title,
     advertisement_text,
-    description: strOrNull(formData.get("description")),
+    description: sanitizedDescriptionFromForm(formData.get("description")),
     price: parseHumanNumber(formData.get("price")),
     city: strOrNull(formData.get("city")),
     district: strOrNull(formData.get("district")),
@@ -249,7 +262,7 @@ export async function updateOfferAction(formData: FormData) {
     listing_type,
     title,
     advertisement_text: strOrNull(formData.get("advertisement_text")),
-    description: strOrNull(formData.get("description")),
+    description: sanitizedDescriptionFromForm(formData.get("description")),
     price: parseHumanNumber(formData.get("price")),
     city: strOrNull(formData.get("city")),
     district: strOrNull(formData.get("district")),

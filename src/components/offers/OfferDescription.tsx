@@ -21,15 +21,19 @@ const MAX_HEADING_LEN = 100;
 const MAX_STANDALONE_HEADING_LEN = 70;
 // Inline-bold pierwszego słowa kończącego się dwukropkiem (np. "Efekt: ...").
 const LEADING_LABEL_RE = /^([A-ZŚĆŻŹŁÓĘĄŃ][A-Za-zŚĆŻŹŁÓĘĄŃśćżźłóęąń]+):\s+(.+)$/;
+const INLINE_TAGS_STRIP_RE = /<\/?(?:b|strong|i|em|u)>/gi;
+
+/** Strip inline-tags żeby detekcja końca linii (`:`, `,`) działała na boldowanych nagłówkach. */
+function stripInlineTagsForDetect(s: string): string {
+  return s.replace(INLINE_TAGS_STRIP_RE, "").trim();
+}
 
 function looksLikeStandaloneHeading(line: string): boolean {
-  if (line.length > MAX_STANDALONE_HEADING_LEN) return false;
-  // nie kończy się znakami zdaniowymi (dopuszczamy `?`, `!`)
-  if (/[.,;:]$/.test(line)) return false;
-  // musi zaczynać się od wielkiej litery (tytuł)
-  if (!/^[A-ZŚĆŻŹŁÓĘĄŃ"„]/.test(line)) return false;
-  // wymaga co najmniej jednego słownego znaku
-  if (!/\w/.test(line)) return false;
+  const t = stripInlineTagsForDetect(line);
+  if (t.length > MAX_STANDALONE_HEADING_LEN) return false;
+  if (/[.,;:]$/.test(t)) return false;
+  if (!/^[A-ZŚĆŻŹŁÓĘĄŃ"„]/.test(t)) return false;
+  if (!/\w/.test(t)) return false;
   return true;
 }
 
@@ -47,12 +51,31 @@ function parseDescription(raw: string): Block[] {
 
   const blocks: Block[] = [];
 
+  // Pomocnicze: testowanie nagłówka po stripie inline-tagów.
+  const isHeadingColonLine = (line: string): boolean => {
+    const t = stripInlineTagsForDetect(line);
+    return HEADING_COLON_RE.test(t) && t.length <= MAX_HEADING_LEN;
+  };
+  // Treść nagłówka — usuwamy tylko końcowy dwukropek, ale ZACHOWUJEMY inline tagi
+  // (`<b>`, `<u>`, `<i>`), żeby h3 mógł je wyrenderować przez `hasInlineHtml` w renderze.
+  const cleanHeadingText = (line: string): string => {
+    // Usuń `:` na końcu (po stripowaniu tagów dla pewności że to jest dwukropek na końcu).
+    // Przykład: "<u>Tytuł:</u>" → "<u>Tytuł</u>" (zachowujemy underline, usuwamy `:`).
+    let t = line.trim();
+    // Strip dwukropka który może być po lub przed zamykającym tagiem.
+    // 1) tagi na zewnątrz: "<u>Tytuł:</u>" → "<u>Tytuł</u>"
+    t = t.replace(/:\s*(<\/(?:b|strong|i|em|u)>)\s*$/i, "$1");
+    // 2) tagi na środku, dwukropek na końcu: "Tytuł:" → "Tytuł"
+    t = t.replace(/:\s*$/, "");
+    return t.trim();
+  };
+
   for (const lines of rawBlocks) {
     if (lines.length === 1) {
       const line = lines[0];
 
-      const numbered = NUMBERED_HEADING_RE.exec(line);
-      if (numbered && line.length <= MAX_HEADING_LEN) {
+      const numbered = NUMBERED_HEADING_RE.exec(stripInlineTagsForDetect(line));
+      if (numbered && stripInlineTagsForDetect(line).length <= MAX_HEADING_LEN) {
         blocks.push({
           type: "heading",
           text: numbered[2].trim(),
@@ -61,12 +84,13 @@ function parseDescription(raw: string): Block[] {
         continue;
       }
 
-      if (HEADING_COLON_RE.test(line) && line.length <= MAX_HEADING_LEN) {
-        blocks.push({ type: "heading", text: line.replace(HEADING_COLON_RE, "").trim() });
+      if (isHeadingColonLine(line)) {
+        blocks.push({ type: "heading", text: cleanHeadingText(line) });
         continue;
       }
 
       if (looksLikeStandaloneHeading(line)) {
+        // Zachowujemy oryginalną linię z inline tagami — renderer wyemituje rich HTML.
         blocks.push({ type: "heading", text: line });
         continue;
       }
@@ -91,14 +115,15 @@ function parseDescription(raw: string): Block[] {
     const restBullets = rest.map((l) => BULLET_RE.exec(l));
     const restIsList = rest.length > 0 && restBullets.every(Boolean);
 
-    // Pierwsza linia wygląda na nagłówek?
-    const firstEndsWithColon = HEADING_COLON_RE.test(first) && first.length <= MAX_HEADING_LEN;
+    const firstEndsWithColon = isHeadingColonLine(first);
     const firstIsStandaloneHeading = looksLikeStandaloneHeading(first);
 
     if ((firstEndsWithColon || firstIsStandaloneHeading) && restIsList) {
       blocks.push({
         type: "heading",
-        text: firstEndsWithColon ? first.replace(HEADING_COLON_RE, "").trim() : first,
+        // Dla heading-with-colon: usuń dwukropek, zachowaj tagi.
+        // Dla standalone heading: zachowaj cały oryginał (z tagami).
+        text: firstEndsWithColon ? cleanHeadingText(first) : first,
       });
       blocks.push({
         type: "list",
@@ -108,7 +133,7 @@ function parseDescription(raw: string): Block[] {
     }
 
     if (firstEndsWithColon) {
-      blocks.push({ type: "heading", text: first.replace(HEADING_COLON_RE, "").trim() });
+      blocks.push({ type: "heading", text: cleanHeadingText(first) });
       blocks.push({ type: "paragraph", lines: rest });
       continue;
     }
@@ -119,7 +144,51 @@ function parseDescription(raw: string): Block[] {
   return blocks;
 }
 
+/** Detekcja inline-tagów (bez flagi /g, żeby `.test()` był stateless). */
+const HAS_INLINE_TAG_RE = /<\s*\/?\s*(b|strong|i|em|u)\b[^>]*>/i;
+
+function hasInlineHtml(line: string): boolean {
+  return HAS_INLINE_TAG_RE.test(line);
+}
+
+/**
+ * Sanityzuje i normalizuje inline-HTML w jednym wierszu opisu (b, strong, i, em, u).
+ * Wszystko inne — atrybuty, tagi blokowe, spurious markup — zostaje usunięte. Bezpieczne
+ * do bezpośredniego wsadzenia w `dangerouslySetInnerHTML`. Defense-in-depth: na poziomie
+ * importu mamy już sanityzację, ale renderujemy też tu — żeby ręczne edycje w panelu
+ * nie wprowadziły dziury bezpieczeństwa.
+ */
+function sanitizeInlineHtml(line: string): string {
+  let out = line;
+  // Strip dangerous containers (na wszelki wypadek).
+  out = out.replace(
+    /<\s*(script|style|iframe|object|embed|noscript|svg|math|template)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi,
+    "",
+  );
+  out = out.replace(/<\s*\/?\s*(script|style|iframe|object|embed|noscript|svg|math|template)[^>]*>/gi, "");
+  // Tagi inline → bez atrybutów. Wszystkie inne (np. <a>, <span>, <div>) → strip, treść zostaje.
+  out = out.replace(/<\s*(\/?)\s*([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>/g, (_, slash: string, tagRaw: string) => {
+    const tag = tagRaw.toLowerCase();
+    if (!/^(b|strong|i|em|u)$/.test(tag)) return "";
+    return slash === "/" ? `</${tag}>` : `<${tag}>`;
+  });
+  return out;
+}
+
 function renderLine(line: string, key: number, isFirst: boolean) {
+  // Jeśli linia ma już rich-formatting z Galactiki (np. `<b>oferta</b> zaprasza`),
+  // renderujemy ją przez sanityzowany dangerouslySetInnerHTML. Klient prosił, żeby boldy
+  // i kursywy z Galactici były szanowane 1:1 — to jest dokładnie tu.
+  if (hasInlineHtml(line)) {
+    return (
+      <span
+        key={key}
+        // sanitizeInlineHtml whitelistuje tylko b/strong/i/em/u i strip atrybutów
+        dangerouslySetInnerHTML={{ __html: sanitizeInlineHtml(line) }}
+      />
+    );
+  }
+
   // Inline-bold "Etykieta:" tylko na pierwszej linii akapitu (typowo "Efekt:").
   if (isFirst) {
     const m = LEADING_LABEL_RE.exec(line);
@@ -155,7 +224,11 @@ export function OfferDescription({ text }: { text: string }) {
                   {b.number}
                 </span>
               )}
-              <span>{b.text}</span>
+              {hasInlineHtml(b.text) ? (
+                <span dangerouslySetInnerHTML={{ __html: sanitizeInlineHtml(b.text) }} />
+              ) : (
+                <span>{b.text}</span>
+              )}
             </h3>
           );
         }
@@ -168,7 +241,11 @@ export function OfferDescription({ text }: { text: string }) {
                     aria-hidden
                     className="absolute left-0 top-[0.7em] w-1.5 h-1.5 rounded-full bg-brand-500/70"
                   />
-                  {item}
+                  {hasInlineHtml(item) ? (
+                    <span dangerouslySetInnerHTML={{ __html: sanitizeInlineHtml(item) }} />
+                  ) : (
+                    item
+                  )}
                 </li>
               ))}
             </ul>
