@@ -59,13 +59,13 @@ function parseDescription(raw: string): Block[] {
   // Treść nagłówka — usuwamy tylko końcowy dwukropek, ale ZACHOWUJEMY inline tagi
   // (`<b>`, `<u>`, `<i>`), żeby h3 mógł je wyrenderować przez `hasInlineHtml` w renderze.
   const cleanHeadingText = (line: string): string => {
-    // Usuń `:` na końcu (po stripowaniu tagów dla pewności że to jest dwukropek na końcu).
-    // Przykład: "<u>Tytuł:</u>" → "<u>Tytuł</u>" (zachowujemy underline, usuwamy `:`).
+    // Usuń `:` na końcu, ale ZACHOWAJ inline tagi (`<b>`, `<u>`, `<i>`).
+    // Obsługuje też zagnieżdżone tagi: `<b><i>Tytuł:</i></b>` → `<b><i>Tytuł</i></b>`.
     let t = line.trim();
-    // Strip dwukropka który może być po lub przed zamykającym tagiem.
-    // 1) tagi na zewnątrz: "<u>Tytuł:</u>" → "<u>Tytuł</u>"
-    t = t.replace(/:\s*(<\/(?:b|strong|i|em|u)>)\s*$/i, "$1");
-    // 2) tagi na środku, dwukropek na końcu: "Tytuł:" → "Tytuł"
+    // 1) `:` przed jednym lub więcej zamykających tagów na końcu (handle nesting):
+    //    `<b><i>Tytuł:</i></b>` → `<b><i>Tytuł</i></b>`
+    t = t.replace(/:\s*((?:<\/(?:b|strong|i|em|u)>\s*)+)$/i, "$1");
+    // 2) `:` na samym końcu (bez tagów wokół): `Tytuł:` → `Tytuł`
     t = t.replace(/:\s*$/, "");
     return t.trim();
   };
