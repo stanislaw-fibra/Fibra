@@ -386,7 +386,11 @@ export function mapOfferRow(row: OfferRow): Offer {
   // między akapitami, przez co cały tekst lądował w jednym `<p>` (bez nagłówków, bez list).
   // Re-import jest niepotrzebny — naprawiamy przy odczycie tym samym helperem co importer.
   const desc = injectBlockBreaks(row.description?.trim() || "");
-  const excerpt = desc.length > 220 ? `${desc.slice(0, 217)}…` : desc || displayTitle;
+  // Excerpt = plain text (tags inline jak <b>/<u>/<i> stripowane), bo to krótki preview
+  // pod kafelkami — formatowanie pojawia się dopiero w pełnym opisie oferty.
+  // Strip: usuń tagi open/close, zwij kolejne whitespace, weź pierwsze 217 znaków.
+  const plainDesc = desc.replace(/<\/?(?:b|strong|i|em|u)>/gi, "").replace(/\s+/g, " ").trim();
+  const excerpt = plainDesc.length > 220 ? `${plainDesc.slice(0, 217)}…` : plainDesc || displayTitle;
   // hasUsableMedia gwarantuje, że co najmniej jedno z trzech źródeł jest realne;
   // przy ekstremalnym braku poster_image_url + brak streamId staje się pierwsze zdjęcie z galerii.
   const firstGalleryImage = row.offer_images?.find((i) => typeof i?.image_url === "string" && i.image_url.trim().length > 0)?.image_url?.trim();
