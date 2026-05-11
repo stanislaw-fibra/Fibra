@@ -124,29 +124,41 @@ function fixCommonTypos(text: string): string {
 }
 
 /**
- * Detekcja boldów/podkreśleń w stylu Galactici.
+ * Detekcja bold/underline/italic w stylu Galactici.
  *
- * Galactica koduje formatowanie agenta przez WIELOKROTNE SPACJE wokół frazy.
- * Encoding jest fundamentalnie ambiguous (te same liczby spacji mogą oznaczać
- * <b> lub <u>), więc używamy DETERMINISTYCZNYCH reguł opartych na kontekście:
+ * Galactica koduje formatowanie agenta przez WIELOKROTNE SPACJE wokół frazy
+ * i przez STRUKTURĘ otaczających linii (czy następna linia jest truly-empty
+ * czy padded-empty). Spacje są inherently ambiguous, więc używamy kontekstu:
  *
- * 1) Standalone-line (cała linia opakowana markerami z obu stron, jedna fraza):
- *      - "  Nieruchomość:  " (2/2) → <b>            (nagłówek, parser zrobi z tego h3)
- *      - "  Kawalerka...!   " (2/3+) → <b><u>      (dodatkowy emphasis)
+ * 1) Standalone-line (cała linia opakowana 2 markerami):
+ *      baseline: <b>
+ *      + <u> jeśli max(L,T) ≥ 3        (np. "Kawalerka...!" 2/3)
+ *      + <i> jeśli NASTĘPNA LINIA jest TRULY-EMPTY (""), nie padded (" ")
+ *                                       (np. "Do dyspozycji:", "Lokalizacja:")
  *
- * 2) Mid-line marker (fraza wewnątrz linii):
- *      - Zaczyna się od cyfry (np. "25 m 2", "3", "1250") → <b>  (bold liczby)
- *      - W przeciwnym razie (frazy tekstowe) → <u>             (underline)
+ * 2) Single-marker line (tylko leading 2sp, bez closing) → <b>
+ *                                       (np. "  ścisłe Centrum Rybnika ,")
  *
- * Kalibracja empiryczna na FIB-MW-4131 (z dwóch tur feedbacku od Bartosza).
+ * 3) Mid-line marker (fraza między dwoma markerami w linii):
+ *      - zaczyna się od cyfry → <b>     (np. "25 m 2", "3", "1250")
+ *      - inaczej → <u>                  (np. "dwie garderoby")
  *
- * Krytyczne: ten krok MUSI być przed `normalizeWhitespace` — ta zwija multiple
- * spacje do pojedynczej i niszczy markery.
+ * Empiryczna kalibracja na FIB-MW-4131 (3 tury feedbacku od Bartosza).
+ *
+ * Krytyczne: ten krok MUSI być przed `normalizeWhitespace` — ta zwija multi-spacje
+ * I zwija blank-line distinctions (truly-empty vs padded-empty).
  */
 function detectGalacticaBolds(text: string): string {
-  // NBSP → spacja, zeby pattern matchowal niezaleznie od zrodla.
   const s = text.replace(/\u00a0/g, " ");
-  return s.split("\n").map((line) => formatLine(line)).join("\n");
+  const lines = s.split("\n");
+  const out: string[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const next = i + 1 < lines.length ? lines[i + 1] : null;
+    // "truly empty" = pusty string bez żadnego padding-spacji
+    const nextIsTrulyEmpty = next === "";
+    out.push(formatLine(lines[i], nextIsTrulyEmpty));
+  }
+  return out.join("\n");
 }
 
 type Marker = { start: number; end: number; size: number };
@@ -176,7 +188,7 @@ function wrap(tag: string, text: string): string {
   return `<${tag}>${text}</${tag}>`;
 }
 
-function formatLine(line: string): string {
+function formatLine(line: string, nextIsTrulyEmpty: boolean): string {
   if (!line.trim()) return line;
 
   const markers = findMarkers(line);
@@ -185,35 +197,37 @@ function formatLine(line: string): string {
   const startsWithMarker = markers[0].start === 0;
   const endsWithMarker = markers[markers.length - 1].end === line.length;
 
-  // Standalone-line wrap: cała linia to jedna fraza opakowana markerami.
+  // Standalone wrap: cała linia to jedna fraza między dwoma edge-markerami.
   if (startsWithMarker && endsWithMarker && markers.length === 2) {
     const text = line.slice(markers[0].end, markers[1].start).trim();
     if (text) {
       const maxSpaces = Math.max(markers[0].size, markers[1].size);
-      // 3+ spacji po którejkolwiek stronie -> dodatkowo underline (Kawalerka-style).
-      // 2/2 -> samo bold (Nieruchomość:-style; parser zrobi z tego h3).
-      if (maxSpaces >= 3) return wrap("b", wrap("u", text));
-      return wrap("b", text);
+      const addU = maxSpaces >= 3;       // dodatkowy emphasis (Kawalerka 2/3)
+      const addI = nextIsTrulyEmpty;     // followed by truly-empty line (Do dyspozycji:)
+      let wrapped = text;
+      if (addI) wrapped = wrap("i", wrapped);
+      if (addU) wrapped = wrap("u", wrapped);
+      return wrap("b", wrapped);
     }
   }
 
-  // Pojedynczy marker (np. "  ścisłe Centrum Rybnika ,"): wrap frazy "po stronie" markera.
+  // Pojedynczy marker (np. "  ścisłe Centrum Rybnika ,") — bold emphasis,
+  // tylko jedna strona linii ma marker.
   if (markers.length === 1) {
     const m = markers[0];
     if (m.start === 0 && m.end < line.length) {
       const phrase = line.slice(m.end).trim();
-      if (phrase) return wrap(tagForMidlinePhrase(phrase), phrase);
+      if (phrase) return wrap("b", phrase);
     }
     if (m.end === line.length && m.start > 0) {
       const phrase = line.slice(0, m.start).trim();
-      if (phrase) return wrap(tagForMidlinePhrase(phrase), phrase);
+      if (phrase) return wrap("b", phrase);
     }
     return line;
   }
 
   // Mid-line: marked region = od pierwszego do ostatniego markera.
   // Wewnętrzne markery dzielą region na osobne frazy.
-  // Tekst przed pierwszym i po ostatnim markerze jest plain.
   let out = "";
 
   if (markers[0].start > 0) {

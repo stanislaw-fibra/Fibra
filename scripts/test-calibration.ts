@@ -25,19 +25,29 @@ import path from "node:path";
 import { parseGalacticaXml } from "../src/lib/importer/xml-parser";
 import { mapOffer } from "../src/lib/importer/field-mapper";
 
-type Expect = "u" | "b" | "bu" | "plain";
+type Expect = "u" | "b" | "i" | "bu" | "bi" | "biu" | "plain";
 type Check = { fragment: string; expect: Expect };
 
 const CHECKS: Check[] = [
+  // Tura 1: whole-line title z dodatkowym emphasis (2/3 spacji)
   { fragment: "Kawalerka na wynajem w Centrum Rybnika!", expect: "bu" },
+  // Tura 2: heading followed by padded-empty line — tylko bold
   { fragment: "Nieruchomość:", expect: "b" },
-  { fragment: "Do dyspozycji:", expect: "b" },
-  { fragment: "Lokalizacja:", expect: "b" },
+  // Tura 3: headings followed by truly-empty line — bold + italic
+  { fragment: "Do dyspozycji:", expect: "bi" },
+  { fragment: "Lokalizacja:", expect: "bi" },
+  { fragment: "Ile Cię to kosztuje:", expect: "bi" },
+  { fragment: "Formalności:", expect: "bi" },
+  // Tura 2: mid-line numbers — tylko bold
   { fragment: "25 m²", expect: "b" },
+  // Tura 1: mid-line text — underline
   { fragment: "płyta indukcyjna 2-palnikowa", expect: "u" },
   { fragment: "piekarnik elektryczny zlewozmywak", expect: "u" },
   { fragment: "dwie garderoby", expect: "u" },
   { fragment: "prysznic, umywalka z szafką", expect: "u" },
+  // Tura 3: single-marker leading — bold only
+  { fragment: "ścisłe Centrum Rybnika", expect: "b" },
+  // Plain (poza markerami)
   { fragment: "aneks kuchenny w zabudowie", expect: "plain" },
 ];
 
@@ -53,16 +63,16 @@ function classify(text: string, needle: string): Expect | "missing" {
   const idx = text.indexOf(needle);
   if (idx < 0) return "missing";
   const before = text.slice(Math.max(0, idx - 100), idx);
-  const openMatch = before.match(/(<[bu]>)+\s*$/);
+  const openMatch = before.match(/(<[biu]>)+\s*$/);
   if (!openMatch) return "plain";
   const tagsStr = openMatch[0].trim();
-  const tags = Array.from(tagsStr.matchAll(/<([bu])>/g))
+  const tags = Array.from(tagsStr.matchAll(/<([biu])>/g))
     .map((m) => m[1])
     .sort()
     .join("");
-  if (tags === "u") return "u";
-  if (tags === "b") return "b";
-  if (tags === "bu") return "bu";
+  if (tags === "b" || tags === "i" || tags === "u") return tags as Expect;
+  if (tags === "bi" || tags === "bu") return tags as Expect;
+  if (tags === "biu") return "biu";
   return "plain";
 }
 
