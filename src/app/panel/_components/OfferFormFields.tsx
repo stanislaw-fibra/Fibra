@@ -1,3 +1,5 @@
+import { RichTextarea } from "@/app/panel/_components/RichTextarea";
+
 type Agent = { id: string; name: string };
 
 type Defaults = Partial<{
@@ -200,7 +202,34 @@ export function OfferFormFields({ action, agents, defaults, submitLabel, formId,
 
       {inp("title", "Tytuł *", { defaultValue: d.title, required: true })}
       {inp("advertisement_text", "Tekst reklamowy (krótki)", { defaultValue: d.advertisement_text })}
-      {inp("description", "Opis", { defaultValue: d.description, rows: 8 })}
+
+      <div>
+        <RichTextarea
+          name="description"
+          label="Opis"
+          rows={12}
+          defaultValue={d.description ?? ""}
+          placeholder="Opis nieruchomości. Zaznacz tekst i kliknij B / I / U, żeby pogrubić, pochylić lub podkreślić."
+          hint={
+            <span>
+              Skróty: <kbd className="rounded border border-ink-300 bg-paper px-1.5 py-0.5 font-mono text-[11px]">⌘/Ctrl + B</kbd>{" "}
+              <kbd className="rounded border border-ink-300 bg-paper px-1.5 py-0.5 font-mono text-[11px]">+ I</kbd>{" "}
+              <kbd className="rounded border border-ink-300 bg-paper px-1.5 py-0.5 font-mono text-[11px]">+ U</kbd>.{" "}
+              Akapity oddziel pustą linią. Krótka linia z dwukropkiem („Lokalizacja:") staje się nagłówkiem sekcji.
+            </span>
+          }
+        />
+
+        {/* Banner ostrzegawczy: edycja w panelu jest tymczasowa — Galactica wygrywa przy synchronizacji. */}
+        <div className="mt-3 rounded-[var(--radius-sm)] border border-amber-300/70 bg-amber-50 px-4 py-3 text-[13px] text-amber-900 leading-relaxed">
+          <p className="font-semibold">Ważne — Galactica nadrzędna nad zmianami w panelu</p>
+          <p className="mt-1">
+            Edytuj opis tutaj jeśli chcesz coś szybko poprawić (np. literówkę). Pamiętaj jednak,
+            że <strong>przy następnej synchronizacji z Galactiki ten opis zostanie nadpisany</strong> —
+            jeśli zmiana ma być trwała, zrób ją po stronie Galactici.
+          </p>
+        </div>
+      </div>
 
       <div className="grid sm:grid-cols-2 gap-5">
         {inp("price", "Cena (PLN)", { humanDecimal: true, defaultValue: d.price })}

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { injectBlockBreaks } from "@/lib/description-blocks";
 import type { Offer, OfferKind } from "@/lib/offers";
 import { getSupabaseAnon } from "@/lib/supabase/server-anon";
 
@@ -381,7 +382,10 @@ export function mapOfferRow(row: OfferRow): Offer {
   const area = kind === "grunt" ? (areaPlot || areaTotal || areaUsable) : areaUsable || areaTotal;
 
   const displayTitle = (row.advertisement_text?.trim() || row.title?.trim() || "Oferta").slice(0, 120);
-  const desc = row.description?.trim() || "";
+  // Wstaw breaks blokowe „w locie" — istniejące opisy w bazie były zapisywane bez `\n\n`
+  // między akapitami, przez co cały tekst lądował w jednym `<p>` (bez nagłówków, bez list).
+  // Re-import jest niepotrzebny — naprawiamy przy odczycie tym samym helperem co importer.
+  const desc = injectBlockBreaks(row.description?.trim() || "");
   const excerpt = desc.length > 220 ? `${desc.slice(0, 217)}…` : desc || displayTitle;
   // hasUsableMedia gwarantuje, że co najmniej jedno z trzech źródeł jest realne;
   // przy ekstremalnym braku poster_image_url + brak streamId staje się pierwsze zdjęcie z galerii.

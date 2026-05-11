@@ -32,7 +32,7 @@ dotenv.config({ path: ".env.local" });
 
 async function main() {
   const { runImport } = await import("../src/lib/importer/run-import");
-  const xmlPath = path.resolve(process.cwd(), "oferty.xml");
+  const xmlPath = path.resolve(process.cwd(), process.env.XML_PATH ?? "oferty.xml");
   const skipImages = process.env.IMPORT_SKIP_IMAGES === "1";
 
   console.log(`> Import lokalny z ${xmlPath} (skipImages=${skipImages})`);
