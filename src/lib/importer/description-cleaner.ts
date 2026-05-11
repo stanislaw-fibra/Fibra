@@ -124,42 +124,34 @@ function fixCommonTypos(text: string): string {
 }
 
 /**
- * Detekcja pogrubionych fraz w stylu Galactici — tekst otoczony PODWÓJNYMI spacjami.
+ * Detekcja boldów/podkreśleń w stylu Galactici.
  *
- * Galactica eksportuje rich-text agenta jako plain text, a pogrubienie sygnalizuje
- * podwójnymi spacjami wokół frazy. Sprawdzone empirycznie na 70 ofertach z FTP:
- * 100% opisów ma ten wzorzec, średnio ~37 fraz na opis. To NIE jest heurystyka
- * — to formalny mechanizm Galactici, który Otodom i Oferty.net interpretują od lat.
+ * Galactica koduje formatowanie agenta przez WIELOKROTNE SPACJE wokół frazy.
+ * Encoding jest fundamentalnie ambiguous (te same liczby spacji mogą oznaczać
+ * <b> lub <u>), więc używamy DETERMINISTYCZNYCH reguł opartych na kontekście:
  *
- * Krytyczne: ten krok MUSI być przed `normalizeWhitespace` — ta zwija multiple spacje
- * do pojedynczej i niszczy markery.
+ * 1) Standalone-line (cała linia opakowana markerami z obu stron, jedna fraza):
+ *      - "  Nieruchomość:  " (2/2) → <b>            (nagłówek, parser zrobi z tego h3)
+ *      - "  Kawalerka...!   " (2/3+) → <b><u>      (dodatkowy emphasis)
+ *
+ * 2) Mid-line marker (fraza wewnątrz linii):
+ *      - Zaczyna się od cyfry (np. "25 m 2", "3", "1250") → <b>  (bold liczby)
+ *      - W przeciwnym razie (frazy tekstowe) → <u>             (underline)
+ *
+ * Kalibracja empiryczna na FIB-MW-4131 (z dwóch tur feedbacku od Bartosza).
+ *
+ * Krytyczne: ten krok MUSI być przed `normalizeWhitespace` — ta zwija multiple
+ * spacje do pojedynczej i niszczy markery.
  */
 function detectGalacticaBolds(text: string): string {
-  // NBSP -> spacja, zeby pattern matchowal niezaleznie od zrodla.
-  let s = text.replace(/\u00a0/g, " ");
-
-  // Galactica eksportuje formatowanie agenta jako WIELOKROTNE SPACJE wokol frazy.
-  // Empiryczna kalibracja z konkretnymi przykladami od Bartosza (kawalerka FIB-MW-4131):
-  //   - "Kawalerka..." leading=2, trailing=3 = bold+underline
-  //   - "dwie garderoby" leading=2, trailing=2 = underline
-  //   - "aneks kuchenny w zabudowie -" leading=1, trailing=2 = plain (NIC)
-  //
-  // Reguly:
-  //   - Format JEST aplikowany TYLKO gdy oba boki maja >=2 spacje (jeden bok=1 -> plain)
-  //   - <u> jesli min(leading, trailing) >= 2
-  //   - <b> dodatkowo jesli max(leading, trailing) >= 3
-  //   - <i> dodatkowo jesli max(leading, trailing) >= 4
-  //
-  // Linia po linii, zeby markery nie przekraczaly newlines.
-
+  // NBSP → spacja, zeby pattern matchowal niezaleznie od zrodla.
+  const s = text.replace(/\u00a0/g, " ");
   return s.split("\n").map((line) => formatLine(line)).join("\n");
 }
 
-function formatLine(line: string): string {
-  if (!line.trim()) return line;
+type Marker = { start: number; end: number; size: number };
 
-  // Znajdz wszystkie markery (sekwencje 2+ spacji) w linii.
-  type Marker = { start: number; end: number; size: number };
+function findMarkers(line: string): Marker[] {
   const markers: Marker[] = [];
   let i = 0;
   while (i < line.length) {
@@ -172,64 +164,79 @@ function formatLine(line: string): string {
       i++;
     }
   }
+  return markers;
+}
+
+/** Tag dla mid-line frazy. Liczby -> <b>, tekst -> <u>. */
+function tagForMidlinePhrase(phrase: string): "b" | "u" {
+  return /^\s*\d/.test(phrase) ? "b" : "u";
+}
+
+function wrap(tag: string, text: string): string {
+  return `<${tag}>${text}</${tag}>`;
+}
+
+function formatLine(line: string): string {
+  if (!line.trim()) return line;
+
+  const markers = findMarkers(line);
   if (markers.length === 0) return line;
 
-  // Edge markers przy start/end linii — leading i trailing indentation.
-  // Sprawdz czy linia ZACZYNA SIE od >=2 spacji (leading edge marker)
-  const startsWithMarker = markers.length > 0 && markers[0].start === 0;
-  const endsWithMarker = markers.length > 0 && markers[markers.length - 1].end === line.length;
+  const startsWithMarker = markers[0].start === 0;
+  const endsWithMarker = markers[markers.length - 1].end === line.length;
 
-  // Segmenty miedzy markerami.
-  type Segment = { text: string; leadingSize: number; trailingSize: number };
-  const segments: Segment[] = [];
-
-  let cursor = startsWithMarker ? markers[0].end : 0;
-  let leadingIdx = startsWithMarker ? 0 : -1;
-
-  // Iteruj po markerach po pierwszym (jesli pierwszy byl leading edge)
-  const innerMarkers = startsWithMarker ? markers.slice(1) : markers;
-  const tailMarkers = endsWithMarker ? innerMarkers.slice(0, -1) : innerMarkers;
-
-  for (const marker of tailMarkers) {
-    const text = line.slice(cursor, marker.start).trim();
-    const leadingSize = leadingIdx >= 0 ? markers[leadingIdx].size : 0;
-    const trailingSize = marker.size;
-    segments.push({ text, leadingSize, trailingSize });
-    cursor = marker.end;
-    leadingIdx = markers.indexOf(marker);
-  }
-  // Ostatni segment (po ostatnim inner markerze, do konca lub do trailing edge)
-  const lastEnd = endsWithMarker ? markers[markers.length - 1].start : line.length;
-  if (cursor < lastEnd) {
-    const text = line.slice(cursor, lastEnd).trim();
-    const leadingSize = leadingIdx >= 0 ? markers[leadingIdx].size : 0;
-    const trailingSize = endsWithMarker ? markers[markers.length - 1].size : 0;
-    segments.push({ text, leadingSize, trailingSize });
-  }
-
-  // Buduj output: kazdy segment z odpowiednim formatowaniem.
-  const parts: string[] = [];
-  for (const seg of segments) {
-    if (!seg.text) continue;
-    const min = Math.min(seg.leadingSize, seg.trailingSize);
-    const max = Math.max(seg.leadingSize, seg.trailingSize);
-    const tags: string[] = [];
-    // Format applied tylko gdy oba boki maja >=2 spacje (min >= 2)
-    if (min >= 2) {
-      tags.push("u");
-      if (max >= 3) tags.push("b");
-      if (max >= 4) tags.push("i");
+  // Standalone-line wrap: cała linia to jedna fraza opakowana markerami.
+  if (startsWithMarker && endsWithMarker && markers.length === 2) {
+    const text = line.slice(markers[0].end, markers[1].start).trim();
+    if (text) {
+      const maxSpaces = Math.max(markers[0].size, markers[1].size);
+      // 3+ spacji po którejkolwiek stronie -> dodatkowo underline (Kawalerka-style).
+      // 2/2 -> samo bold (Nieruchomość:-style; parser zrobi z tego h3).
+      if (maxSpaces >= 3) return wrap("b", wrap("u", text));
+      return wrap("b", text);
     }
-    let wrapped = seg.text;
-    // Outer to "i" (jesli jest), potem "b", potem "u" - kolejnosc nie matter dla wyswietlania
-    for (let k = tags.length - 1; k >= 0; k--) {
-      const t = tags[k];
-      wrapped = "<" + t + ">" + wrapped + "</" + t + ">";
-    }
-    parts.push(wrapped);
   }
 
-  return parts.join(" ");
+  // Pojedynczy marker (np. "  ścisłe Centrum Rybnika ,"): wrap frazy "po stronie" markera.
+  if (markers.length === 1) {
+    const m = markers[0];
+    if (m.start === 0 && m.end < line.length) {
+      const phrase = line.slice(m.end).trim();
+      if (phrase) return wrap(tagForMidlinePhrase(phrase), phrase);
+    }
+    if (m.end === line.length && m.start > 0) {
+      const phrase = line.slice(0, m.start).trim();
+      if (phrase) return wrap(tagForMidlinePhrase(phrase), phrase);
+    }
+    return line;
+  }
+
+  // Mid-line: marked region = od pierwszego do ostatniego markera.
+  // Wewnętrzne markery dzielą region na osobne frazy.
+  // Tekst przed pierwszym i po ostatnim markerze jest plain.
+  let out = "";
+
+  if (markers[0].start > 0) {
+    out += line.slice(0, markers[0].start);
+  }
+
+  let emittedPhrase = false;
+  for (let k = 0; k + 1 < markers.length; k++) {
+    const phrase = line.slice(markers[k].end, markers[k + 1].start).trim();
+    if (!phrase) continue;
+    if (out.length > 0 && !out.endsWith(" ")) out += " ";
+    out += wrap(tagForMidlinePhrase(phrase), phrase);
+    emittedPhrase = true;
+  }
+
+  const last = markers[markers.length - 1];
+  if (last.end < line.length) {
+    const suffix = line.slice(last.end);
+    if (emittedPhrase && !suffix.startsWith(" ") && !out.endsWith(" ")) out += " ";
+    out += suffix;
+  }
+
+  return out;
 }
 
 function removeBoilerplate(text: string): string {
