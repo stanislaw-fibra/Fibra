@@ -73,7 +73,7 @@ export function Footer() {
           <div className="md:col-span-4">
             <p className="eyebrow eyebrow-on-dark mb-5">Newsletter Fibry</p>
             <p className="text-[15px] text-ink-400 mb-5">
-              Raz w miesiącu krótki list z najciekawszymi ofertami premium, prosto na Twoją skrzynkę.
+              Dołącz do 16 000+ osób, które uczą się inwestowania w nieruchomości z Bartoszem Nosiadkiem.
             </p>
             <NewsletterForm />
             <div className="mt-8 flex items-center gap-3">
