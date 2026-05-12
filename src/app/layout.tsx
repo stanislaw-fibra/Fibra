@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Inter, Instrument_Serif } from "next/font/google";
 import { AnalyticsScripts } from "@/components/consent/AnalyticsScripts";
 import { getCloudflareStreamCustomerCode } from "@/lib/cloudflare-stream";
@@ -51,13 +50,18 @@ export default function RootLayout({
       <head>
         {/* Cookiebot — MUSI być pierwszym skryptem w <head>, przed jakimkolwiek trackerem.
             data-blockingmode="auto" automatycznie blokuje GA/FB Pixel/inne znane skrypty
-            dopóki użytkownik nie zaakceptuje przez baner. */}
-        <Script
+            dopóki użytkownik nie zaakceptuje przez baner.
+
+            UWAGA: używamy raw <script> zamiast next/script <Script>, bo Cookiebot
+            po załadowaniu PRZEPISUJE swój <script> (zmienia src na consentcdn,
+            dodaje type/charset), co generuje hydration mismatch z next/script.
+            `suppressHydrationWarning` tłumi ostrzeżenie React (mod jest oczekiwany). */}
+        <script
           id="Cookiebot"
           src="https://consent.cookiebot.com/uc.js"
           data-cbid={COOKIEBOT_CBID}
           data-blockingmode="auto"
-          strategy="beforeInteractive"
+          suppressHydrationWarning
         />
         {/* Preconnect do źródeł LCP (posterów wideo). Oszczędza ~300 ms TTFB dla pierwszych kafelków hero. */}
         <link rel="preconnect" href="https://videodelivery.net" crossOrigin="anonymous" />
