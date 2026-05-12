@@ -2,6 +2,28 @@ import Link from "next/link";
 import { Logo } from "./Logo";
 import { NewsletterForm } from "./NewsletterForm";
 
+// Compliance / RODO (Grupa Fibra Sp. z o.o., NIP 6423147630).
+// gorodo.pl generuje dokumenty dynamicznie z NIP-u — auto-aktualizacja przy
+// zmianach prawnych. Każdy link otwiera się w nowej karcie (external service).
+const GORODO_LINKS = [
+  {
+    label: "Polityka prywatności",
+    href: "https://app.gorodo.pl/api/polityka_prywatnosci/6423147630/www.fibranieruchomosci.pl",
+  },
+  {
+    label: "Dla sygnalistów",
+    href: "https://app.gorodo.pl/api/aml/zgloszenie_nieprawidlowosci/6423147630",
+  },
+  {
+    label: "Żądanie RODO",
+    href: "https://app.gorodo.pl/api/zadanie/6423147630",
+  },
+  {
+    label: "Certyfikat RODO",
+    href: "https://www.gorodo.pl/certyfikat.php?nip=642-314-76-30",
+  },
+] as const;
+
 export function Footer() {
   return (
     <footer className="relative bg-ink-950 text-ink-200 mt-auto overflow-hidden">
@@ -83,12 +105,20 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-20 pt-8 hairline-dark-t flex flex-col md:flex-row justify-between gap-4 text-[12px] text-ink-500">
+        <div className="mt-20 pt-8 hairline-dark-t flex flex-col gap-4 text-[12px] text-ink-500 md:flex-row md:items-center md:justify-between">
           <p>&copy; {new Date().getFullYear()} Fibra Nieruchomości. Wszelkie prawa zastrzeżone.</p>
-          <div className="flex gap-6">
-            <Link href="/polityka-prywatnosci" className="hover:text-white transition-colors">
-              Polityka prywatności
-            </Link>
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
+            {GORODO_LINKS.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors"
+              >
+                {link.label}
+              </a>
+            ))}
             <Link href="/regulamin" className="hover:text-white transition-colors">
               Regulamin
             </Link>

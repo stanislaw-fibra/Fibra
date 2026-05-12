@@ -1,32 +1,39 @@
-"use client";
-
 import Script from "next/script";
-import { useEffect, useState } from "react";
-import { FIBRA_CONSENT_UPDATED_EVENT, readFibraConsent } from "@/lib/fibra-consent";
 
+/**
+ * Emituje skrypty trackerskie (GA4, Facebook Pixel) — Cookiebot w trybie
+ * `data-blockingmode="auto"` automatycznie BLOKUJE je do czasu uzyskania
+ * zgody użytkownika. Atrybuty `data-cookieconsent` jawnie deklarują kategorię
+ * dla pewności (auto-blocking + tagowanie = belt-and-suspenders).
+ *
+ * Kategorie Cookiebot:
+ *   - statistics  → analityka (GA4)
+ *   - marketing   → remarketing/reklamy (FB Pixel)
+ *
+ * UWAGA: w trybie z manualnym tagowaniem skrypty mają `type="text/plain"` —
+ * Cookiebot przepisuje typ na `application/javascript` po zgodzie.
+ */
 export function AnalyticsScripts() {
-  const [allowAnalytics, setAllowAnalytics] = useState(false);
-
-  useEffect(() => {
-    function sync() {
-      setAllowAnalytics(readFibraConsent() === "all");
-    }
-    sync();
-    window.addEventListener(FIBRA_CONSENT_UPDATED_EVENT, sync);
-    return () => window.removeEventListener(FIBRA_CONSENT_UPDATED_EVENT, sync);
-  }, []);
-
   const gaId = process.env.NEXT_PUBLIC_GA_ID?.trim();
   const fbPixelId = process.env.NEXT_PUBLIC_FB_PIXEL_ID?.trim();
-
-  if (!allowAnalytics) return null;
 
   return (
     <>
       {gaId ? (
         <>
-          <Script src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`} strategy="afterInteractive" />
-          <Script id="fibra-ga4" strategy="afterInteractive">
+          <Script
+            id="fibra-ga4-loader"
+            src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`}
+            strategy="afterInteractive"
+            type="text/plain"
+            data-cookieconsent="statistics"
+          />
+          <Script
+            id="fibra-ga4"
+            strategy="afterInteractive"
+            type="text/plain"
+            data-cookieconsent="statistics"
+          >
             {`
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
@@ -37,7 +44,12 @@ gtag('config', ${JSON.stringify(gaId)});
         </>
       ) : null}
       {fbPixelId ? (
-        <Script id="fibra-fb-pixel" strategy="afterInteractive">
+        <Script
+          id="fibra-fb-pixel"
+          strategy="afterInteractive"
+          type="text/plain"
+          data-cookieconsent="marketing"
+        >
           {`
 !function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
