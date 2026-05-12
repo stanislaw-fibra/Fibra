@@ -1,6 +1,7 @@
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { OpeningReels } from "@/components/home/OpeningReels";
+import { OfficeVirtualTour } from "@/components/home/OfficeVirtualTour";
 import { getAllOffers } from "@/lib/offers-query";
 import { HomeIntro } from "@/components/home/HomeIntro";
 import { SellWithFibra } from "@/components/home/SellWithFibra";
@@ -19,6 +20,7 @@ export default async function Home() {
       <Nav />
       <main className="flex-1">
         <OpeningReels offers={offers} />
+        <OfficeVirtualTour />
         <HomeIntro />
         <Marquee />
         <SellWithFibra />
