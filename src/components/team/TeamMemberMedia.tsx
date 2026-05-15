@@ -93,9 +93,18 @@ export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", c
     if (canNativeHls) {
       video.src = hlsSrc;
     } else if (Hls.isSupported()) {
-      const hls = new Hls({ enableWorker: true });
+      // abrEwmaDefaultEstimate podbity do 6 Mbps — domyślne 500 kbps powodowało,
+      // że ABR startował od 360p i dopiero powoli podbijał. Na krótkim, zapętlonym
+      // wideo pierwsza pętla (ta, którą widzi user) leciała w niskiej jakości.
+      const hls = new Hls({ enableWorker: true, abrEwmaDefaultEstimate: 6_000_000 });
       hls.loadSource(hlsSrc);
       hls.attachMedia(video);
+      // Po sparsowaniu manifestu — pin na najwyższą dostępną jakość. Autoprezentacja
+      // jest krótka i w pętli (~14 MB w 1080p), więc warto pokazać pełne HD od razu
+      // zamiast czekać, aż ABR się rozkręci.
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        if (hls.levels.length > 0) hls.currentLevel = hls.levels.length - 1;
+      });
       hlsRef.current = hls;
     }
     video.preload = "metadata";
