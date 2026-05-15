@@ -1,10 +1,12 @@
 import { Suspense } from "react";
 import { getAllActiveOffers } from "@/lib/offers-query";
+import { getPublicAgentBySlug } from "@/lib/team-query";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { Reveal } from "@/components/ui/Reveal";
 import { OfertyPageClient } from "@/app/oferty/OfertyPageClient";
 import { OfertyHeaderViewToggle } from "@/app/oferty/_ui/OfertyHeaderViewToggle";
+import { AgentHero } from "@/components/team/AgentHero";
 
 export const revalidate = 60;
 
@@ -14,8 +16,18 @@ export const metadata = {
     "Aktualne oferty z powiatu rybnickiego i wodzisławskiego - wideo, wirtualny spacer 3D i pełna obsługa od pierwszego kontaktu do aktu.",
 };
 
-export default async function OfertyPage() {
-  const offers = await getAllActiveOffers();
+type Props = {
+  searchParams: Promise<{ agent?: string }>;
+};
+
+export default async function OfertyPage({ searchParams }: Props) {
+  const { agent: agentSlugParam } = await searchParams;
+  const agentSlug = agentSlugParam?.trim().toLowerCase();
+
+  const [offers, agent] = await Promise.all([
+    getAllActiveOffers(),
+    agentSlug ? getPublicAgentBySlug(agentSlug) : Promise.resolve(null),
+  ]);
 
   const offersWord =
     offers.length === 1 ? "oferta" : offers.length < 5 ? "oferty" : "ofert";
@@ -57,6 +69,10 @@ export default async function OfertyPage() {
             </Reveal>
           </div>
         </section>
+
+        {/* Agent hero — pasek u góry listy gdy aktywny `?agent=<slug>` filter.
+            Pokazuje wideo-autoprezentację + CTA do pełnego profilu. */}
+        {agent ? <AgentHero agent={agent} variant="compact" /> : null}
 
         <Suspense fallback={null}>
           <OfertyPageClient allOffers={offers} />

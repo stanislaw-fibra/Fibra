@@ -4,6 +4,7 @@ import { toggleOfferActiveAction } from "@/app/panel/actions/offers";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { priceFormat } from "@/lib/offers";
 import { RefreshOffersButton } from "@/app/panel/_components/RefreshOffersButton";
+import { requirePanelScope } from "@/lib/panel-access";
 
 type Search = {
   category?: string;
@@ -96,14 +97,20 @@ export default async function PanelOffersPage({ searchParams }: Props) {
   const source = sp.source ?? "all";
   const q = (sp.q ?? "").trim();
 
+  // Scope: admin widzi wszystko, agent — tylko swoje (offers.agent_id = user_meta.agent_id).
+  const scope = await requirePanelScope();
+
   const admin = createSupabaseAdmin();
   let query = admin
     .from("offers")
     .select(
-      "id, galactica_offer_id, title, category, listing_type, price, city, is_active, created_at, offer_images ( image_url, order_index, is_primary ), offer_media ( cloudflare_video_short_id )",
+      "id, galactica_offer_id, title, category, listing_type, price, city, is_active, created_at, agent_id, offer_images ( image_url, order_index, is_primary ), offer_media ( cloudflare_video_short_id )",
     )
     .order("created_at", { ascending: false })
     .limit(400);
+
+  // ⬇ KRYTYCZNE: agent widzi TYLKO swoje oferty
+  if (scope.kind === "agent") query = query.eq("agent_id", scope.agentId);
 
   if (category !== "all") query = query.eq("category", category);
   if (listing !== "all") query = query.eq("listing_type", listing);

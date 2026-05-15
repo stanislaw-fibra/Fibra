@@ -155,6 +155,7 @@ export default async function PanelTeamPage({ searchParams }: Props) {
               photoUrl={m.photoUrl}
               justSaved={sp.saved === m.id}
               videoEnabled={schema.ready}
+              slug={m.slug}
             />
           ))}
         </div>

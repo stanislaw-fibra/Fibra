@@ -86,6 +86,8 @@ export interface Offer {
   agentEmail?: string;
   /** URL zdjęcia agenta (bucket `agent-photos` w Supabase). Gdy puste — pokazujemy inicjały. */
   agentPhotoUrl?: string;
+  /** Slug agenta — używany w publicznym URL `/agent/<slug>` i jako filter na `/oferty`. */
+  agentSlug?: string;
 }
 
 /**

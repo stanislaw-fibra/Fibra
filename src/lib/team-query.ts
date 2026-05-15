@@ -26,6 +26,8 @@ export type TeamMember = {
   order: number;
   /** Czy publicznie widoczny w sekcji „Zespół" na /o-fibrze. */
   isVisible: boolean;
+  /** Slug do publicznego URL `/agent/<slug>` (np. "justyna"). */
+  slug?: string;
 };
 
 const FOUNDER_ROLES = new Set([
@@ -53,11 +55,12 @@ type AgentRow = {
   team_order?: number | null;
   is_team_visible?: boolean | null;
   cloudflare_video_id?: string | null;
+  slug?: string | null;
 };
 
 const TEAM_SELECT = `
   id, name, email, phone_office, phone_mobile, photo_url, bio,
-  bio_long, team_role, team_order, is_team_visible, cloudflare_video_id
+  bio_long, team_role, team_order, is_team_visible, cloudflare_video_id, slug
 `;
 
 const TEAM_SELECT_LEGACY = `
@@ -117,6 +120,7 @@ function normalize(row: AgentRow, opts?: { applyDefaults?: boolean }): TeamMembe
     kind,
     order,
     isVisible,
+    slug: row.slug?.trim() || undefined,
   };
 }
 
@@ -164,6 +168,42 @@ export async function checkTeamSchemaReady(): Promise<{ ready: boolean; missing:
   if (missing.length > 0) return { ready: false, missing };
   // Inny błąd (np. RLS lub sieć) — traktujemy jako gotowy, żeby nie spamować banera.
   return { ready: true, missing: [] };
+}
+
+/**
+ * Pobiera agenta po publicznym slugu (np. "justyna"). Używane przez `/agent/[slug]`
+ * i przy filtrze ofert po agencie. Zwraca null gdy slug nie istnieje albo agent
+ * jest ukryty (`is_team_visible = false`).
+ */
+export async function getPublicAgentBySlug(slug: string): Promise<TeamMember | null> {
+  if (!slug?.trim()) return null;
+  const normalized = slug.trim().toLowerCase();
+  try {
+    const supabase = getSupabaseAnon();
+    if (!supabase) return null;
+    const { data, error } = await supabase
+      .from("agents")
+      .select(TEAM_SELECT)
+      .eq("slug", normalized)
+      .eq("is_team_visible", true)
+      .maybeSingle();
+    if (error) {
+      // Brak slug w schemacie — migracja niezaaplikowana; potraktuj jak brak agenta.
+      if (
+        isMissingTeamColumnError(error.message) ||
+        (error.message.toLowerCase().includes("does not exist") && error.message.toLowerCase().includes("slug"))
+      ) {
+        return null;
+      }
+      console.warn("[team-query] agent by slug:", error.message);
+      return null;
+    }
+    if (!data) return null;
+    return normalize(data as AgentRow, { applyDefaults: true });
+  } catch (e) {
+    console.warn("[team-query] agent by slug exception:", e);
+    return null;
+  }
 }
 
 /** Lista wszystkich agentów dla panelu admina (z fallbackiem dla starszego schematu). */
