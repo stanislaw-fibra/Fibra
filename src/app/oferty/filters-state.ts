@@ -28,6 +28,8 @@ export type Filters = {
   market: "all" | "primary" | "secondary";
   exclusiveOnly: boolean;
   features: string[];         // balkon, taras, piwnica, ogrod, winda, klimatyzacja, loggia, garaz
+  /** Filtr po slugu agenta (np. "justyna"). Pusty = wszyscy. */
+  agentSlug?: string;
 };
 
 export const DEFAULT_FILTERS: Filters = {
@@ -146,6 +148,7 @@ export function parseFiltersFromSearchParams(sp: URLSearchParams): Filters {
     market: market(sp.get("market")),
     exclusiveOnly: sp.get("exclusive") === "1",
     features: csv(sp.get("features")),
+    agentSlug: sp.get("agent")?.trim().toLowerCase() || undefined,
   };
 }
 
@@ -169,6 +172,7 @@ export function filtersToSearchParams(f: Filters): URLSearchParams {
   if (f.market !== "all") out.set("market", f.market);
   if (f.exclusiveOnly) out.set("exclusive", "1");
   if (f.features.length) out.set("features", f.features.join(","));
+  if (f.agentSlug) out.set("agent", f.agentSlug);
   return out;
 }
 
@@ -225,6 +229,7 @@ export function activeFilterCount(f: Filters): number {
   if (f.market !== "all") n++;
   if (f.exclusiveOnly) n++;
   if (f.features.length) n++;
+  if (f.agentSlug) n++;
   return n;
 }
 
@@ -322,6 +327,10 @@ export function applyFilters(offers: Offer[], f: Filters): Offer[] {
         const fn = FEATURE_MATCHERS[key];
         if (!fn || !fn(o)) return false;
       }
+    }
+
+    if (f.agentSlug) {
+      if ((o.agentSlug ?? "").toLowerCase() !== f.agentSlug) return false;
     }
 
     return true;

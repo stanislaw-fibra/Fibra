@@ -59,7 +59,8 @@ const OFFER_SELECT = `
   agent_phone_office,
   agent_email,
   agents (
-    photo_url
+    photo_url,
+    slug
   ),
   offer_media (
     cloudflare_video_short_id,
@@ -96,6 +97,15 @@ const OFFER_SELECT_PUBLIC_LIST_LEGACY = OFFER_SELECT_LEGACY.replace("offer_media
 const OFFER_SELECT_NO_YOUTUBE = OFFER_SELECT.replace("  youtube_url,\n", "");
 const OFFER_SELECT_PUBLIC_LIST_NO_YOUTUBE = OFFER_SELECT_NO_YOUTUBE.replace("offer_media (", "offer_media!inner (");
 
+// Legacy: kolumna `agents.slug` może jeszcze nie istnieć (świeży deploy, migracja
+// 20260512000000_agents_slug.sql niezaaplikowana). Wtedy embed `agents(slug)` zwróci
+// błąd — robimy retry bez `slug`, agent po prostu nie ma URL-a, public page 404.
+const OFFER_SELECT_NO_AGENT_SLUG = OFFER_SELECT.replace(
+  /(agents \(\s*\n\s*photo_url),\s*\n\s*slug\s*\n/,
+  "$1\n",
+);
+const OFFER_SELECT_PUBLIC_LIST_NO_AGENT_SLUG = OFFER_SELECT_NO_AGENT_SLUG.replace("offer_media (", "offer_media!inner (");
+
 // Legacy: `offer_floorplans` relacja może jeszcze nie istnieć (brak tabeli / brak FK cache).
 // Usuwamy cały fragment relacji, żeby select działał na starym schemacie.
 const OFFER_SELECT_NO_FLOORPLANS = OFFER_SELECT.replace(
@@ -112,6 +122,14 @@ function isMissingFloorPlanColumnsError(msg: string): boolean {
 function isMissingYoutubeColumnError(msg: string): boolean {
   const m = msg.toLowerCase();
   return m.includes("does not exist") && m.includes("youtube_url");
+}
+
+function isMissingAgentSlugColumnError(msg: string): boolean {
+  const m = msg.toLowerCase();
+  return (
+    (m.includes("does not exist") && m.includes("slug")) ||
+    (m.includes("schema cache") && m.includes("slug"))
+  );
 }
 
 function isMissingFloorPlansRelationError(msg: string): boolean {
@@ -187,7 +205,7 @@ type OfferRow = {
   agent_phone_mobile: string | null;
   agent_phone_office: string | null;
   agent_email: string | null;
-  agents: { photo_url: string | null } | { photo_url: string | null }[] | null;
+  agents: { photo_url: string | null; slug: string | null } | { photo_url: string | null; slug: string | null }[] | null;
   offer_media: MediaRow | MediaRow[] | null;
   offer_images: ImageRow[] | null;
   offer_floorplans?: {
@@ -489,6 +507,7 @@ export function mapOfferRow(row: OfferRow): Offer {
     agentPhoneOffice: row.agent_phone_office?.trim() || undefined,
     agentEmail: row.agent_email?.trim() || undefined,
     agentPhotoUrl: normalizeAgentHeadshotUrl(firstRel(row.agents)?.photo_url?.trim()) || undefined,
+    agentSlug: firstRel(row.agents)?.slug?.trim() || undefined,
     youtubeUrl: resolveYoutubeUrl(row.youtube_url ?? null, row.raw_params),
     hasShortVideo: Boolean(shortId),
     updatedAt: row.updated_at ?? undefined,
@@ -529,6 +548,23 @@ async function fetchPublicListingOfferRows(): Promise<OfferRow[] | null> {
       const retry = await supabase
         .from("offers")
         .select(OFFER_SELECT_PUBLIC_LIST_NO_YOUTUBE)
+        .eq("is_active", true)
+        .not("offer_media.cloudflare_video_short_id", "is", null)
+        .order("updated_at", { ascending: false });
+      if (retry.error) {
+        console.warn("[offers-query] Supabase public offers list:", retry.error.message);
+        return null;
+      }
+      const rows = ((retry.data ?? []) as unknown) as OfferRow[];
+      return rows.filter((row) => {
+        const m = firstRel(row.offer_media);
+        return Boolean(m?.cloudflare_video_short_id?.trim());
+      });
+    }
+    if (isMissingAgentSlugColumnError(error.message)) {
+      const retry = await supabase
+        .from("offers")
+        .select(OFFER_SELECT_PUBLIC_LIST_NO_AGENT_SLUG)
         .eq("is_active", true)
         .not("offer_media.cloudflare_video_short_id", "is", null)
         .order("updated_at", { ascending: false });
@@ -599,6 +635,18 @@ async function fetchAllActiveOfferRows(): Promise<OfferRow[] | null> {
       const retry = await supabase
         .from("offers")
         .select(OFFER_SELECT_NO_YOUTUBE)
+        .eq("is_active", true)
+        .order("updated_at", { ascending: false });
+      if (retry.error) {
+        console.warn("[offers-query] Supabase all active offers:", retry.error.message);
+        return null;
+      }
+      return ((retry.data ?? []) as unknown) as OfferRow[];
+    }
+    if (isMissingAgentSlugColumnError(error.message)) {
+      const retry = await supabase
+        .from("offers")
+        .select(OFFER_SELECT_NO_AGENT_SLUG)
         .eq("is_active", true)
         .order("updated_at", { ascending: false });
       if (retry.error) {

@@ -44,6 +44,44 @@ async function requireSessionUser() {
   return user;
 }
 
+/**
+ * Sprawdza scope (admin vs agent) i ownership oferty.
+ * - Admin (brak `agent_id` w meta) — może wszystko.
+ * - Agent — może edytować TYLKO oferty gdzie `offers.agent_id` === jego `user_metadata.agent_id`.
+ *
+ * Zwraca scope { kind, agentId? }. Robi redirect przy braku uprawnień.
+ */
+async function requireOfferAccess(offerId: string): Promise<{ kind: "admin" } | { kind: "agent"; agentId: string }> {
+  const user = await requireSessionUser();
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const rawAgentId = meta.agent_id;
+  const agentId = typeof rawAgentId === "string" && rawAgentId.trim() ? rawAgentId.trim() : null;
+  if (!agentId) return { kind: "admin" };
+
+  const admin = createSupabaseAdmin();
+  const { data, error } = await admin.from("offers").select("agent_id").eq("id", offerId).maybeSingle();
+  if (error || !data) {
+    redirect(`/panel/oferty?error=${encodeURIComponent("Oferta nie istnieje albo nie masz do niej dostępu.")}`);
+  }
+  if ((data.agent_id ?? null) !== agentId) {
+    redirect(`/panel/oferty?error=${encodeURIComponent("Brak uprawnień do edycji tej oferty.")}`);
+  }
+  return { kind: "agent", agentId };
+}
+
+/**
+ * Dla tworzenia NOWEJ oferty: agent musi podać samego siebie jako `agent_id` (force-overridujemy
+ * formularz). Admin może wybrać dowolnego agenta. Zwraca finalny `agent_id` do zapisania.
+ */
+async function resolveAgentIdForCreation(formAgentId: string | null): Promise<string | null> {
+  const user = await requireSessionUser();
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const rawAgentId = meta.agent_id;
+  const agentId = typeof rawAgentId === "string" && rawAgentId.trim() ? rawAgentId.trim() : null;
+  // Agent musi przypisać samego siebie — admin może wybrać kogokolwiek.
+  return agentId ?? formAgentId;
+}
+
 function strOrNull(v: FormDataEntryValue | null): string | null {
   if (v == null) return null;
   const s = String(v).trim();
@@ -119,10 +157,10 @@ function normalizeYoutubeUrlFromForm(v: FormDataEntryValue | null): string | nul
 }
 
 export async function toggleOfferActiveAction(formData: FormData) {
-  await requireSessionUser();
   const id = strOrNull(formData.get("id"));
   const activeRaw = strOrNull(formData.get("active"));
   if (!id || !activeRaw) return;
+  await requireOfferAccess(id);
   const is_active = activeRaw === "true";
   const admin = createSupabaseAdmin();
   const { error } = await admin.from("offers").update({ is_active }).eq("id", id);
@@ -146,7 +184,8 @@ export async function createOfferAction(formData: FormData) {
   }
 
   const advertisement_text = strOrNull(formData.get("advertisement_text")) ?? title.slice(0, 50);
-  const agent_id = strOrNull(formData.get("agent_id"));
+  // Agent z meta force-przypisany — admin może wybrać kogokolwiek.
+  const agent_id = await resolveAgentIdForCreation(strOrNull(formData.get("agent_id")));
 
   let agent_name: string | null = null;
   let agent_email: string | null = null;
@@ -228,12 +267,15 @@ export async function createOfferAction(formData: FormData) {
 }
 
 export async function updateOfferAction(formData: FormData) {
-  await requireSessionUser();
-  const admin = createSupabaseAdmin();
   const id = strOrNull(formData.get("id"));
   if (!id) redirect(`/panel/oferty?error=${encodeURIComponent("Brak ID oferty.")}`);
 
-  const agent_id = strOrNull(formData.get("agent_id"));
+  // Ownership: agent może edytować tylko swoje oferty; admin — wszystkie.
+  const scope = await requireOfferAccess(id);
+  const admin = createSupabaseAdmin();
+
+  // Agent: force-przypisz samego siebie, ignoruj manipulacje w formularzu.
+  const agent_id = scope.kind === "agent" ? scope.agentId : strOrNull(formData.get("agent_id"));
   let agent_name: string | null = null;
   let agent_email: string | null = null;
   let agent_phone_office: string | null = null;
@@ -316,14 +358,14 @@ export async function updateOfferAction(formData: FormData) {
 }
 
 export async function uploadOfferImageAction(formData: FormData) {
-  await requireSessionUser();
-  const admin = createSupabaseAdmin();
   const offerId = strOrNull(formData.get("offer_id"));
   const galactica_offer_id = strOrNull(formData.get("galactica_offer_id"));
   const file = formData.get("file");
   if (!offerId || !galactica_offer_id || !file || !(file instanceof File) || file.size === 0) {
     redirect(`/panel/oferty/${offerId ?? ""}?error=${encodeURIComponent("Wybierz plik graficzny.")}`);
   }
+  await requireOfferAccess(offerId);
+  const admin = createSupabaseAdmin();
 
   const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
   const baseStem = file.name.replace(/\.[^.]+$/, "").replace(/[^\w.\-]/g, "_").slice(0, 72) || "image";
@@ -378,11 +420,11 @@ function storagePathFromPublicUrl(url: string): string | null {
 }
 
 export async function deleteOfferImageAction(formData: FormData) {
-  await requireSessionUser();
-  const admin = createSupabaseAdmin();
   const imageId = strOrNull(formData.get("image_id"));
   const offerId = strOrNull(formData.get("offer_id"));
   if (!imageId || !offerId) return;
+  await requireOfferAccess(offerId);
+  const admin = createSupabaseAdmin();
 
   const { data: img } = await admin.from("offer_images").select("image_url").eq("id", imageId).maybeSingle();
   const path = img?.image_url ? storagePathFromPublicUrl(img.image_url) : null;
@@ -398,9 +440,10 @@ export async function deleteOfferImageAction(formData: FormData) {
 const FLOORPLANS_BUCKET = "offer-floorplans";
 
 export async function uploadOfferFloorPlanImageAction(formData: FormData) {
-  await requireSessionUser();
-  const admin = createSupabaseAdmin();
   const offerId = strOrNull(formData.get("offer_id"));
+  if (!offerId) return;
+  await requireOfferAccess(offerId);
+  const admin = createSupabaseAdmin();
   const galactica_offer_id = strOrNull(formData.get("galactica_offer_id"));
   const files = formData.getAll("file").filter((f) => f instanceof File) as File[];
   const realFiles = files.filter((f) => f.size > 0);
@@ -460,9 +503,10 @@ export async function uploadOfferFloorPlanImageAction(formData: FormData) {
 }
 
 export async function uploadOfferFloorPlanPdfAction(formData: FormData) {
-  await requireSessionUser();
-  const admin = createSupabaseAdmin();
   const offerId = strOrNull(formData.get("offer_id"));
+  if (!offerId) return;
+  await requireOfferAccess(offerId);
+  const admin = createSupabaseAdmin();
   const galactica_offer_id = strOrNull(formData.get("galactica_offer_id"));
   const files = formData.getAll("file").filter((f) => f instanceof File) as File[];
   const realFiles = files.filter((f) => f.size > 0);
@@ -524,9 +568,10 @@ export async function uploadOfferFloorPlanPdfAction(formData: FormData) {
 }
 
 export async function deleteOfferFloorPlanImageAction(formData: FormData) {
-  await requireSessionUser();
-  const admin = createSupabaseAdmin();
   const offerId = strOrNull(formData.get("offer_id"));
+  if (!offerId) return;
+  await requireOfferAccess(offerId);
+  const admin = createSupabaseAdmin();
   const floorplanId = strOrNull(formData.get("floorplan_id"));
   if (!offerId || !floorplanId) return;
 
@@ -559,9 +604,10 @@ export async function deleteOfferFloorPlanImageAction(formData: FormData) {
 }
 
 export async function deleteOfferFloorPlanPdfAction(formData: FormData) {
-  await requireSessionUser();
-  const admin = createSupabaseAdmin();
   const offerId = strOrNull(formData.get("offer_id"));
+  if (!offerId) return;
+  await requireOfferAccess(offerId);
+  const admin = createSupabaseAdmin();
   const floorplanId = strOrNull(formData.get("floorplan_id"));
   if (!offerId || !floorplanId) return;
 
@@ -605,12 +651,13 @@ function streamVideoIdOrRedirect(offerId: string, label: string, raw: string | n
 }
 
 export async function upsertOfferMediaAction(formData: FormData) {
-  const user = await requireSessionUser();
-  const admin = createSupabaseAdmin();
   const offerId = strOrNull(formData.get("offer_id"));
   if (!offerId) {
     redirect(`/panel/oferty?error=${encodeURIComponent("Brak identyfikatora oferty.")}`);
   }
+  await requireOfferAccess(offerId);
+  const user = await requireSessionUser();
+  const admin = createSupabaseAdmin();
 
   const { data: off, error: offErr } = await admin.from("offers").select("galactica_offer_id").eq("id", offerId).maybeSingle();
   if (offErr || !off?.galactica_offer_id) {
@@ -655,6 +702,7 @@ export async function attachStreamVideoSlotAction(
   slot: "short" | "long",
   videoId: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireOfferAccess(offerId);
   const user = await requireSessionUser();
   const trimmed = videoId.trim();
   if (!/^[a-zA-Z0-9_-]+$/.test(trimmed)) {

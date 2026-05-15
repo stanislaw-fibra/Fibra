@@ -8,6 +8,7 @@ import { OfferFloorPlanUploadForm } from "@/app/panel/_components/OfferFloorPlan
 import { OfferImageUploadForm } from "@/app/panel/_components/OfferImageUploadForm";
 import { PanelEditShell } from "@/app/panel/_components/PanelEditShell";
 import { cloudflareStreamIframeUrl } from "@/lib/cloudflare-stream";
+import { requireOfferOwnership } from "@/lib/panel-access";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
 const FORM_ID = "offer-edit-form";
@@ -95,6 +96,10 @@ export default async function PanelOfferEditPage({ params }: Props) {
   if (offerErr || !offer) notFound();
 
   const row = offer as OfferRecord;
+
+  // Ownership: agent może edytować tylko swoje oferty (admin — wszystko).
+  // Redirect na listę jeśli próbuje wejść w cudzą ofertę.
+  await requireOfferOwnership(row.agent_id);
 
   const [
     { data: agents },

@@ -30,6 +30,8 @@ type Props = {
   justSaved?: boolean;
   /** Jeśli false — kolumny migracji jeszcze nie ma; chowamy upload wideo i pokazujemy info. */
   videoEnabled?: boolean;
+  /** Publiczny slug agenta — gdy ustawiony, pokazujemy widget „Skopiuj link publiczny". */
+  slug?: string;
 };
 
 function positionOptionFor(order: number): string {
@@ -78,6 +80,7 @@ export function TeamMemberEditor({
   photoUrl,
   justSaved,
   videoEnabled = true,
+  slug,
 }: Props) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -276,6 +279,10 @@ export function TeamMemberEditor({
           <p className="mt-1 text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-700">
             {role || "Brak roli"}
           </p>
+
+          {/* Publiczny link agenta — można skopiować i wysłać klientowi.
+              Klient po wejściu zobaczy autoprezentację + listę ofert tego agenta. */}
+          {slug ? <AgentPublicLinkCopier slug={slug} /> : null}
 
           {/* Wariant 1: jest film — pokazujemy poster (miniaturę z Cloudflare) + przycisk
               „Pokaż podgląd". Iframe jest montowany TYLKO po kliknięciu przycisku, żeby
@@ -628,5 +635,73 @@ export function TeamMemberEditor({
         </div>
       </div>
     </article>
+  );
+}
+
+/**
+ * Mały widget: pokazuje publiczny URL agenta + przycisk kopiowania.
+ * Po skopiowaniu — krótki "Skopiowano!" toast (2s).
+ */
+function AgentPublicLinkCopier({ slug }: { slug: string }) {
+  const [copied, setCopied] = useState(false);
+  const url = `fibranieruchomosci.pl/agent/${slug}`;
+  const fullUrl = typeof window !== "undefined"
+    ? `${window.location.protocol}//${window.location.host.replace(/^.+?\./, "")}/agent/${slug}`
+    : `https://fibranieruchomosci.pl/agent/${slug}`;
+
+  return (
+    <div className="mt-4 rounded-[var(--radius-sm)] border border-ink-200/70 bg-ink-50/60 p-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-500">
+        Publiczny link do wysłania klientowi
+      </p>
+      <div className="mt-1.5 flex items-center gap-2">
+        <a
+          href={`/agent/${slug}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="min-w-0 flex-1 truncate text-[13px] font-medium text-brand-700 hover:text-brand-500 underline-offset-2 hover:underline transition-colors"
+          title={url}
+        >
+          {url}
+        </a>
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(fullUrl);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            } catch {
+              // Fallback: select-and-copy (legacy) — rzadko potrzebne w nowoczesnych panelu.
+              window.prompt("Skopiuj link", fullUrl);
+            }
+          }}
+          className={[
+            "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors shrink-0",
+            copied
+              ? "bg-emerald-500 text-white"
+              : "bg-ink-900 hover:bg-brand-500 text-white",
+          ].join(" ")}
+          aria-label="Skopiuj publiczny link agenta"
+        >
+          {copied ? (
+            <>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <path d="M2 6.5l2.5 2.5 5.5-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Skopiowano
+            </>
+          ) : (
+            <>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <rect x="3" y="3" width="7" height="7" rx="1.2" stroke="currentColor" strokeWidth="1.3" />
+                <path d="M2 7V2c0-.6.4-1 1-1h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              </svg>
+              Skopiuj
+            </>
+          )}
+        </button>
+      </div>
+    </div>
   );
 }
