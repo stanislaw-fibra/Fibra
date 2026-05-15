@@ -54,6 +54,23 @@ export function OfertyPageClient({ allOffers }: Props) {
       .map(([c]) => c);
   }, [allOffers]);
 
+  // Lista agentów do filtra — tylko ci, którzy mają slug (publiczny profil)
+  // i przynajmniej jedną ofertę. Sortowanie: malejąco po liczbie ofert.
+  const agents = useMemo(() => {
+    const map = new Map<string, { slug: string; name: string; count: number }>();
+    for (const o of allOffers) {
+      const slug = o.agentSlug?.trim();
+      const name = o.agentName?.trim();
+      if (!slug || !name) continue;
+      const prev = map.get(slug);
+      if (prev) prev.count += 1;
+      else map.set(slug, { slug, name, count: 1 });
+    }
+    return [...map.values()]
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "pl"))
+      .map(({ slug, name }) => ({ slug, name }));
+  }, [allOffers]);
+
   return (
     <>
       <FiltersBar
@@ -70,7 +87,7 @@ export function OfertyPageClient({ allOffers }: Props) {
 
       <section className="py-5 md:py-8">
         <div className="container-xl">
-          <ActiveFilterChips filters={filters} apply={apply} />
+          <ActiveFilterChips filters={filters} apply={apply} agents={agents} />
 
           <div
             className={[
@@ -115,6 +132,7 @@ export function OfertyPageClient({ allOffers }: Props) {
         advancedCount={advanced}
         matchesCount={currentList.length}
         cities={cities}
+        agents={agents}
       />
     </>
   );

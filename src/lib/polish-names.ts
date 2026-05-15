@@ -3,17 +3,18 @@
 // Jeżeli imię nie jest w mapie, zwracamy mianownik (bezpieczny fallback).
 // Zawsze zmieniamy wyłącznie imię; nazwisko pozostaje w mianowniku.
 
-type Case = "genitive" | "instrumental" | "vocative";
+type Case = "genitive" | "instrumental" | "vocative" | "accusative";
 
 const DECLENSIONS: Record<string, Record<Case, string>> = {
-  arkadiusz: { genitive: "Arkadiusza", instrumental: "Arkadiuszem", vocative: "Arkadiuszu" },
-  barbara: { genitive: "Barbary", instrumental: "Barbarą", vocative: "Barbaro" },
-  beata: { genitive: "Beaty", instrumental: "Beatą", vocative: "Beato" },
-  dariusz: { genitive: "Dariusza", instrumental: "Dariuszem", vocative: "Dariuszu" },
-  justyna: { genitive: "Justyny", instrumental: "Justyną", vocative: "Justyno" },
-  karina: { genitive: "Kariny", instrumental: "Kariną", vocative: "Karino" },
-  marta: { genitive: "Marty", instrumental: "Martą", vocative: "Marto" },
-  piotr: { genitive: "Piotra", instrumental: "Piotrem", vocative: "Piotrze" },
+  arkadiusz: { genitive: "Arkadiusza", instrumental: "Arkadiuszem", vocative: "Arkadiuszu", accusative: "Arkadiusza" },
+  barbara: { genitive: "Barbary", instrumental: "Barbarą", vocative: "Barbaro", accusative: "Barbarę" },
+  bartosz: { genitive: "Bartosza", instrumental: "Bartoszem", vocative: "Bartoszu", accusative: "Bartosza" },
+  beata: { genitive: "Beaty", instrumental: "Beatą", vocative: "Beato", accusative: "Beatę" },
+  dariusz: { genitive: "Dariusza", instrumental: "Dariuszem", vocative: "Dariuszu", accusative: "Dariusza" },
+  justyna: { genitive: "Justyny", instrumental: "Justyną", vocative: "Justyno", accusative: "Justynę" },
+  karina: { genitive: "Kariny", instrumental: "Kariną", vocative: "Karino", accusative: "Karinę" },
+  marta: { genitive: "Marty", instrumental: "Martą", vocative: "Marto", accusative: "Martę" },
+  piotr: { genitive: "Piotra", instrumental: "Piotrem", vocative: "Piotrze", accusative: "Piotra" },
 };
 
 function firstOf(fullName: string | null | undefined): string | undefined {
@@ -48,4 +49,9 @@ export function firstNameInstrumental(fullName: string | null | undefined): stri
 /** Wołacz ("Justyno!", "Dariuszu!"). */
 export function firstNameVocative(fullName: string | null | undefined): string | undefined {
   return decline(fullName, "vocative");
+}
+
+/** Biernik ("poznaj Justynę", "przez Arkadiusza"). */
+export function firstNameAccusative(fullName: string | null | undefined): string | undefined {
+  return decline(fullName, "accusative");
 }

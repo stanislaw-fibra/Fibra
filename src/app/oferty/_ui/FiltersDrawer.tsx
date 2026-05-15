@@ -13,6 +13,8 @@ type Props = {
   matchesCount: number;
   /** Lista miast zbudowana z ofert (do sekcji „Lokalizacja"). */
   cities: string[];
+  /** Lista agentów (slug + nazwa) zbudowana z ofert — do sekcji „Agent". */
+  agents: { slug: string; name: string }[];
 };
 
 const PRICE_PRESETS_SELL = [
@@ -30,7 +32,7 @@ const PRICE_PRESETS_RENT = [
   { label: "Powyżej 5 tys.", min: 5000, max: undefined },
 ];
 
-export function FiltersDrawer({ open, onClose, filters, apply, advancedCount, matchesCount, cities }: Props) {
+export function FiltersDrawer({ open, onClose, filters, apply, advancedCount, matchesCount, cities, agents }: Props) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -63,6 +65,7 @@ export function FiltersDrawer({ open, onClose, filters, apply, advancedCount, ma
       market: "all",
       exclusiveOnly: false,
       features: [],
+      agentSlug: undefined,
     });
   };
 
@@ -75,6 +78,8 @@ export function FiltersDrawer({ open, onClose, filters, apply, advancedCount, ma
     (filters.priceMin != null || filters.priceMax != null ? 1 : 0) +
     (filters.rooms.length ? 1 : 0) +
     advancedCount;
+
+  const selectedAgent = filters.agentSlug;
 
   return (
     <div
@@ -228,6 +233,24 @@ export function FiltersDrawer({ open, onClose, filters, apply, advancedCount, ma
                       apply({
                         cities: on ? [...filters.cities, c] : filters.cities.filter((v) => v !== c),
                       })
+                    }
+                  />
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {agents.length > 0 && (
+            <Section title="Agent prowadzący">
+              <div className="space-y-0.5">
+                {agents.map((a) => (
+                  <PopoverToggle
+                    key={a.slug}
+                    checked={selectedAgent === a.slug}
+                    label={a.name}
+                    onChange={(on) =>
+                      // Single-select: zaznaczenie ustawia agenta, odznaczenie czyści.
+                      apply({ agentSlug: on ? a.slug : undefined })
                     }
                   />
                 ))}
