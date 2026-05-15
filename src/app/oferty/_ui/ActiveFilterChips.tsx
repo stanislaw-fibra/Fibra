@@ -5,6 +5,8 @@ import { FEATURE_LABELS, CATEGORY_OPTIONS, type Filters } from "../filters-state
 type Props = {
   filters: Filters;
   apply: (patch: Partial<Filters>) => void;
+  /** Lista agentów (slug→nazwa) — żeby chip pokazał imię agenta zamiast sluga. */
+  agents?: { slug: string; name: string }[];
 };
 
 type Chip = { key: string; label: string; onRemove: () => void };
@@ -15,8 +17,17 @@ function fmtPrice(v: number): string {
   return String(v);
 }
 
-function chips(f: Filters, apply: Props["apply"]): Chip[] {
+function chips(f: Filters, apply: Props["apply"], agents: { slug: string; name: string }[]): Chip[] {
   const out: Chip[] = [];
+
+  if (f.agentSlug) {
+    const name = agents.find((a) => a.slug === f.agentSlug)?.name;
+    out.push({
+      key: "agent",
+      label: `Agent: ${name ?? f.agentSlug}`,
+      onRemove: () => apply({ agentSlug: undefined }),
+    });
+  }
 
   for (const cat of f.categories) {
     const label = CATEGORY_OPTIONS.find((c) => c.value === cat)?.label ?? cat;
@@ -114,8 +125,8 @@ function chips(f: Filters, apply: Props["apply"]): Chip[] {
   return out;
 }
 
-export function ActiveFilterChips({ filters, apply }: Props) {
-  const items = chips(filters, apply);
+export function ActiveFilterChips({ filters, apply, agents = [] }: Props) {
+  const items = chips(filters, apply, agents);
   if (items.length === 0) return null;
   return (
     <div className="flex flex-wrap items-center gap-2 py-4">

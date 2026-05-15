@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { TeamMemberMedia } from "@/components/team/TeamMemberMedia";
+import { firstName, firstNameGenitive, firstNameAccusative } from "@/lib/polish-names";
 import type { TeamMember } from "@/lib/team-query";
 
 type Props = {
@@ -19,6 +20,9 @@ type Props = {
 export function AgentHero({ agent, variant = "full" }: Props) {
   const isFounder = agent.kind === "founder";
   const phoneClean = (agent.phone ?? "").replace(/\s+/g, "");
+  const nameNom = firstName(agent.name) ?? agent.name;
+  const nameGen = firstNameGenitive(agent.name) ?? nameNom;
+  const nameAcc = firstNameAccusative(agent.name) ?? nameNom;
 
   if (variant === "compact") {
     return (
@@ -38,7 +42,7 @@ export function AgentHero({ agent, variant = "full" }: Props) {
             <div className="md:col-span-9">
               <p className="eyebrow inline-flex items-center gap-3 mb-3">
                 <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
-                Oferty od {agent.name.split(" ")[0]}
+                Oferty od {nameGen}
               </p>
               <h2
                 className="font-display text-ink-950 tracking-tight leading-[1.05]"
@@ -66,7 +70,7 @@ export function AgentHero({ agent, variant = "full" }: Props) {
                     href={`/agent/${agent.slug}`}
                     className="inline-flex items-center gap-2 rounded-full border border-ink-200 hover:border-ink-300 bg-white text-ink-900 px-5 py-2.5 text-[13px] md:text-[14px] font-medium transition-colors"
                   >
-                    Poznaj {agent.name.split(" ")[0]}
+                    Poznaj {nameAcc}
                     <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden>
                       <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>

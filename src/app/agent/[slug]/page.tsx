@@ -7,6 +7,7 @@ import { AgentHero } from "@/components/team/AgentHero";
 import { OfertyPageClient } from "@/app/oferty/OfertyPageClient";
 import { getPublicAgentBySlug } from "@/lib/team-query";
 import { getAllActiveOffers } from "@/lib/offers-query";
+import { firstNameAccusative } from "@/lib/polish-names";
 
 export const revalidate = 60;
 
@@ -50,7 +51,7 @@ export default async function AgentPage({ params }: Props) {
                   className="font-display text-ink-950 tracking-tight leading-[1.05]"
                   style={{ fontSize: "clamp(1.7rem, 3.6vw, 2.6rem)" }}
                 >
-                  Oferty prowadzone przez {agent.name.split(" ")[0]}
+                  Oferty prowadzone przez {firstNameAccusative(agent.name) ?? agent.name}
                 </h2>
               </div>
               <p className="hidden sm:block text-[11.5px] md:text-[12px] uppercase tracking-[0.14em] text-ink-500">
