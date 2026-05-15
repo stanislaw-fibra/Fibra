@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import Hls from "hls.js";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  cloudflareStreamIframeUrl,
   cloudflareStreamThumbnailUrl,
   cloudflareStreamThumbnailViaDeliveryNet,
+  sanitizeCloudflareVideoId,
 } from "@/lib/cloudflare-stream";
 
 type Props = {
@@ -24,34 +25,41 @@ type Props = {
 /**
  * Karta z portretem osoby z zespołu Fibry.
  *
- * Logika fallbacku:
- *  1. Jeżeli `videoId` jest ustawione i mamy `NEXT_PUBLIC_CLOUDFLARE_STREAM_CUSTOMER_CODE` → pionowy iframe Stream.
- *  2. Inaczej, jeżeli mamy `photoUrl` → next/image z portretem.
- *  3. W ostateczności inicjały na gradiencie marki.
+ * Wideo agenta odtwarza się przez natywny `<video>` + HLS (`videodelivery.net`),
+ * tak samo jak reels ofert na stronie głównej — autoplay, wyciszone, w pętli.
+ * Dzięki temu „podgląd" to żywe wideo w pełnej jakości HLS, a nie statyczny,
+ * mocno skompresowany JPEG (poprzednio ~50 KB — wyglądało słabo).
  *
- * Jeden „play overlay" pojawia się nad iframe-em po kliknięciu (lazy mount).
- * Iframe jest ładowany dopiero po wejściu w viewport, żeby nie obciążać LCP strony O Fibrze.
+ * Klik w „Zobacz autoprezentację" → włącza dźwięk, restart od początku,
+ * pokazuje natywne kontrolki.
+ *
+ * Fallback: brak wideo → next/image z portretem → inicjały.
+ * Wideo montowane dopiero po wejściu w viewport (IntersectionObserver).
  */
 export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", className = "" }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const [shouldMount, setShouldMount] = useState(false);
-  const [playing, setPlaying] = useState(false);
+  const [revealVideo, setRevealVideo] = useState(false);
+  /** Czy user kliknął play z dźwiękiem (wtedy: unmute + kontrolki). */
+  const [activated, setActivated] = useState(false);
 
-  // Wszystkie warianty mają teraz `aspect-[9/16]` — natywny format pionowych nagrań prezentacyjnych.
-  // Klient zwrócił uwagę, że przy szerszych proporcjach (3/4) wideo grało, ale obok widać było
-  // krawędzie kontenera (kontener szerszy niż natywne wideo). Dopasowując kontener do dokładnego
-  // formatu wideo, eliminujemy te krawędzie. Zdjęcie-fallback zostaje wyświetlone z `object-cover`
-  // (kadrowanie centrowane na twarzy przez `object-position`) — to akceptowalne, bo zdjęcie pełni
-  // rolę placeholderu do czasu wgrania filmu.
   const aspectClass = "aspect-[9/16]";
-  const iframeUrl = videoId ? cloudflareStreamIframeUrl(videoId) : null;
-  const posterUrl = videoId
-    ? cloudflareStreamThumbnailUrl(videoId, { time: "0.5s", height: 1200 }) ||
-      cloudflareStreamThumbnailViaDeliveryNet(videoId, { time: "0.5s", height: 1200 })
+  const streamId = videoId ? sanitizeCloudflareVideoId(videoId) : null;
+  const hlsSrc = useMemo(
+    () => (streamId ? `https://videodelivery.net/${streamId}/manifest/video.m3u8` : null),
+    [streamId],
+  );
+  // Poster (klatka pod wideo, póki HLS się ładuje) — wysokie 1600 px dla ostrości na retina.
+  const posterUrl = streamId
+    ? cloudflareStreamThumbnailUrl(streamId, { time: "1.5s", height: 1600 }) ||
+      cloudflareStreamThumbnailViaDeliveryNet(streamId, { time: "1.5s", height: 1600 })
     : null;
 
+  // Mount wideo dopiero gdy karta wchodzi w viewport.
   useEffect(() => {
-    if (!iframeUrl) return;
+    if (!hlsSrc) return;
     const el = wrapRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
@@ -68,20 +76,70 @@ export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", c
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [iframeUrl]);
+  }, [hlsSrc]);
 
-  // Ramka i kontener — wspólny dla każdego wariantu.
+  // Setup HLS + autoplay muted loop.
+  useEffect(() => {
+    if (!shouldMount || !hlsSrc) return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.loop = true;
+    video.playsInline = true;
+    video.muted = true;
+    setRevealVideo(false);
+
+    const canNativeHls = !!video.canPlayType("application/vnd.apple.mpegurl");
+    if (canNativeHls) {
+      video.src = hlsSrc;
+    } else if (Hls.isSupported()) {
+      const hls = new Hls({ enableWorker: true });
+      hls.loadSource(hlsSrc);
+      hls.attachMedia(video);
+      hlsRef.current = hls;
+    }
+    video.preload = "metadata";
+    void video.play().catch(() => void 0);
+
+    return () => {
+      try {
+        video.pause();
+      } catch {
+        /* ignore */
+      }
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+      setRevealVideo(false);
+    };
+  }, [shouldMount, hlsSrc]);
+
   const containerClass = [
     "relative w-full overflow-hidden rounded-[var(--radius-lg)] ring-1 ring-ink-200/70 shadow-[var(--shadow-cinematic)] bg-gradient-to-br from-brand-500/10 to-accent-400/10",
     aspectClass,
     className,
   ].join(" ");
 
-  // ===== 1) Cloudflare Stream =====
-  if (iframeUrl) {
+  // ===== 1) Cloudflare Stream — autoplay muted loop, klik = dźwięk =====
+  if (hlsSrc) {
+    const activate = () => {
+      const v = videoRef.current;
+      setActivated(true);
+      if (v) {
+        v.muted = false;
+        try {
+          v.currentTime = 0;
+        } catch {
+          /* ignore */
+        }
+        void v.play().catch(() => void 0);
+      }
+    };
+
     return (
       <div ref={wrapRef} className={containerClass}>
-        {/* Poster z CF — pokazuje się natychmiast, póki iframe się ładuje albo gdy user nie kliknął play. */}
+        {/* Poster (klatka HLS) — pod wideo, znika gdy wideo gotowe. */}
         {posterUrl ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
@@ -89,40 +147,49 @@ export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", c
             alt={`${name} — autoprezentacja`}
             className={[
               "absolute inset-0 h-full w-full object-cover transition-opacity duration-500",
-              playing ? "opacity-0" : "opacity-100",
+              revealVideo ? "opacity-0" : "opacity-100",
             ].join(" ")}
+            draggable={false}
           />
         ) : photoUrl ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={photoUrl}
-            alt={`${name} — fallback portret`}
+            alt={`${name} — portret`}
             className={[
               "absolute inset-0 h-full w-full object-cover transition-opacity duration-500",
-              playing ? "opacity-0" : "opacity-100",
+              revealVideo ? "opacity-0" : "opacity-100",
             ].join(" ")}
+            draggable={false}
           />
         ) : null}
 
-        {shouldMount && playing ? (
-          <iframe
-            src={`${iframeUrl}?autoplay=true&muted=false&letterboxColor=transparent&controls=true`}
-            title={`${name} — wideo prezentacja`}
-            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="absolute inset-0 h-full w-full"
+        {shouldMount ? (
+          <video
+            ref={videoRef}
+            className={[
+              "absolute inset-0 h-full w-full object-cover transition-opacity duration-300",
+              revealVideo ? "opacity-100" : "opacity-0",
+            ].join(" ")}
+            muted
+            loop
+            playsInline
+            controls={activated}
+            controlsList="nodownload"
+            preload="metadata"
+            aria-label={`${name} — autoprezentacja`}
+            onLoadedData={() => setRevealVideo(true)}
+            onPlaying={() => setRevealVideo(true)}
           />
         ) : null}
 
-        {!playing && (
+        {/* Overlay „Zobacz autoprezentację" — tylko póki user nie włączył dźwięku. */}
+        {!activated && (
           <button
             type="button"
-            onClick={() => {
-              setShouldMount(true);
-              setPlaying(true);
-            }}
-            className="absolute inset-0 z-10 flex items-end justify-center bg-gradient-to-t from-ink-950/60 via-ink-950/10 to-transparent transition-opacity duration-300 hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
-            aria-label={`Odtwórz wideo: ${name}`}
+            onClick={activate}
+            className="group absolute inset-0 z-10 flex items-end justify-center bg-gradient-to-t from-ink-950/55 via-ink-950/5 to-transparent transition-opacity duration-300 hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
+            aria-label={`Odtwórz autoprezentację z dźwiękiem: ${name}`}
           >
             <span className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/95 px-5 py-3 text-[13px] font-semibold text-ink-950 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.45)] transition-transform group-hover:scale-105">
               <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent-500 text-white">
@@ -149,7 +216,7 @@ export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", c
           sizes={variant === "founder" ? "(min-width: 1024px) 40vw, (min-width: 768px) 448px, 384px" : "(min-width: 1024px) 30vw, (min-width: 640px) 50vw, 100vw"}
           className="object-cover"
           style={{ objectPosition: variant === "founder" ? "center 28%" : "center top" }}
-          quality={78}
+          quality={85}
         />
         <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-ink-950/25 via-transparent to-transparent" />
       </div>
