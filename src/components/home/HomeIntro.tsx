@@ -3,9 +3,21 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { TeamMemberMedia } from "@/components/team/TeamMemberMedia";
 
 const FOUNDER_PHOTO =
   "https://yrkvochsziertbvzbnol.supabase.co/storage/v1/object/public/agent-photos/Bartosz%20Nosiadek.jpg";
+
+const FOUNDER_NAME_FALLBACK = "Bartosz Nosiadek";
+const FOUNDER_ROLE_FALLBACK = "Założyciel, Prezes Zarządu";
+
+type Props = {
+  founderName?: string;
+  founderRole?: string;
+  /** Cloudflare Stream ID autoprezentacji założyciela — gdy ustawione, zastępuje zdjęcie. */
+  founderVideoId?: string;
+  founderPhotoUrl?: string;
+};
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -19,7 +31,16 @@ const fadeUp = {
   show: { opacity: 1, y: 0, transition: { duration: 0.85, ease } },
 };
 
-export function HomeIntro() {
+export function HomeIntro({
+  founderName,
+  founderRole,
+  founderVideoId,
+  founderPhotoUrl,
+}: Props) {
+  const name = founderName?.trim() || FOUNDER_NAME_FALLBACK;
+  const role = founderRole?.trim() || FOUNDER_ROLE_FALLBACK;
+  const hasVideo = Boolean(founderVideoId?.trim());
+
   return (
     <section
       id="fibra-story"
@@ -28,7 +49,7 @@ export function HomeIntro() {
       <div className="absolute inset-0 -z-10 grad-radial-brand opacity-40" />
       <div className="container-xl">
         <motion.div
-          className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-start"
+          className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-start lg:items-center"
           variants={stagger}
           initial="hidden"
           whileInView="show"
@@ -109,37 +130,54 @@ export function HomeIntro() {
             </motion.div>
           </div>
 
+          {/* Założyciel — autoprezentacja wideo (Cloudflare Stream, ten sam film co
+              na /o-fibrze). Autoodtwarzanie wyciszone w pętli, klik = dźwięk.
+              Gdy brak wideo — fallback do statycznego portretu. */}
           <motion.figure
             variants={fadeUp}
-            className="lg:col-span-5 relative overflow-hidden rounded-[var(--radius-lg)] ring-1 ring-ink-200/60 shadow-[var(--shadow-soft)] bg-ink-100"
+            className="lg:col-span-5 m-0 flex flex-col items-center lg:items-end"
           >
-            <div className="relative aspect-[4/5] w-full">
-              <Image
-                src={FOUNDER_PHOTO}
-                alt="Bartosz Nosiadek - Założyciel, Prezes Zarządu Fibra"
-                fill
-                sizes="(min-width: 1024px) 40vw, (min-width: 640px) 60vw, 92vw"
-                className="object-cover"
-                style={{
-                  objectPosition: "center 58%",
-                  transform: "scale(1.1)",
-                  transformOrigin: "center 45%",
-                }}
-                quality={72}
-              />
-              <div
-                className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-ink-950/75 via-ink-950/25 to-transparent"
-                aria-hidden
-              />
+            <div className="w-full max-w-[300px] sm:max-w-[340px] lg:max-w-[380px]">
+              {hasVideo ? (
+                <TeamMemberMedia
+                  videoId={founderVideoId}
+                  photoUrl={founderPhotoUrl}
+                  name={name}
+                  variant="founder"
+                />
+              ) : (
+                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[var(--radius-lg)] ring-1 ring-ink-200/60 shadow-[var(--shadow-soft)] bg-ink-100">
+                  <Image
+                    src={founderPhotoUrl || FOUNDER_PHOTO}
+                    alt={`${name} - ${role} Fibra`}
+                    fill
+                    sizes="(min-width: 1024px) 380px, (min-width: 640px) 340px, 300px"
+                    className="object-cover"
+                    style={{
+                      objectPosition: "center 58%",
+                      transform: "scale(1.1)",
+                      transformOrigin: "center 45%",
+                    }}
+                    quality={78}
+                  />
+                  <div
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-ink-950/75 via-ink-950/25 to-transparent"
+                    aria-hidden
+                  />
+                </div>
+              )}
+
+              {/* Podpis pod kadrem — editorialny, czysty; nie zasłania wideo. */}
+              <figcaption className="mt-5 text-center lg:text-left">
+                <p className="font-display text-[20px] md:text-[22px] leading-tight text-ink-950">
+                  {name}
+                </p>
+                <p className="mt-1.5 flex items-center justify-center lg:justify-start gap-2.5 text-[10.5px] md:text-[11px] uppercase tracking-[0.16em] text-ink-500 font-medium">
+                  <span aria-hidden className="h-3 w-5 border-t border-brand-500/70" />
+                  {role}
+                </p>
+              </figcaption>
             </div>
-            <figcaption className="absolute inset-x-0 bottom-0 p-6 md:p-7 text-white">
-              <p className="font-display text-[22px] md:text-[26px] leading-tight text-balance">
-                Bartosz Nosiadek
-              </p>
-              <p className="mt-1.5 text-[11px] md:text-[12px] uppercase tracking-[0.18em] text-white/85 font-medium">
-                Założyciel, Prezes Zarządu
-              </p>
-            </figcaption>
           </motion.figure>
         </motion.div>
 
