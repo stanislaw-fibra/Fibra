@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Logo } from "./Logo";
 import { NewsletterForm } from "./NewsletterForm";
@@ -17,10 +18,6 @@ const GORODO_LINKS = [
   {
     label: "Żądanie RODO",
     href: "https://app.gorodo.pl/api/zadanie/6423147630",
-  },
-  {
-    label: "Certyfikat RODO",
-    href: "https://www.gorodo.pl/certyfikat.php?nip=642-314-76-30",
   },
 ] as const;
 
@@ -59,6 +56,10 @@ export function Footer() {
                 ["/oferty", "Oferty"],
                 ["/sprzedaj-z-fibra", "Sprzedaj z Fibrą"],
                 ["/o-fibrze", "O Fibrze"],
+                ["/przewodnik-inwestora", "Przewodnik Inwestora"],
+                ["/zarzadzanie-najmem", "Zarządzanie najmem"],
+                ["/galeria-inwestycji", "Galeria inwestycji"],
+                ["/prospekt-informacyjny", "Prospekt informacyjny"],
                 ["/kontakt", "Kontakt"],
               ].map(([h, l]) => (
                 <li key={h}>
@@ -105,8 +106,26 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-20 pt-8 hairline-dark-t flex flex-col gap-4 text-[12px] text-ink-500 md:flex-row md:items-center md:justify-between">
-          <p>&copy; {new Date().getFullYear()} Fibra Nieruchomości. Wszelkie prawa zastrzeżone.</p>
+        <div className="mt-20 pt-8 hairline-dark-t flex flex-col gap-6 text-[12px] text-ink-500 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-4">
+            <a
+              href="https://www.gorodo.pl/certyfikat.php?nip=6423147630"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Certyfikat wdrożenia RODO — GoRODO.pl"
+              title="Certyfikat wdrożenia RODO — GoRODO.pl"
+              className="shrink-0 transition-transform duration-300 hover:scale-[1.06]"
+            >
+              <Image
+                src="/gorodo_badge.webp"
+                alt="Certyfikat wdrożenia RODO — GoRODO.pl"
+                width={48}
+                height={62}
+                className="h-12 w-auto drop-shadow-[0_4px_10px_rgba(0,90,148,0.4)]"
+              />
+            </a>
+            <p>&copy; {new Date().getFullYear()} Fibra Nieruchomości. Wszelkie prawa zastrzeżone.</p>
+          </div>
           <div className="flex flex-wrap gap-x-5 gap-y-2">
             {GORODO_LINKS.map((link) => (
               <a
