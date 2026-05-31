@@ -14,6 +14,7 @@ type NavLink = {
 
 const LINKS: NavLink[] = [
   { href: "/oferty", label: "Oferty" },
+  { href: "/dla-firm", label: "Dla firm" },
   { href: "/sprzedaj-z-fibra", label: "Sprzedaj z Fibrą" },
   {
     href: "/przewodnik-inwestora",

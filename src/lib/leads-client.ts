@@ -4,7 +4,8 @@ export type LeadSource =
   | "contact_page"
   | "sprzedaj_page"
   | "home_form"
-  | "newsletter_footer";
+  | "newsletter_footer"
+  | "b2b_page";
 
 export type SubmitLeadInput = {
   source: LeadSource;
