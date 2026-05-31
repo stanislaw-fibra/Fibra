@@ -10,7 +10,7 @@ export type SortMode = "newest" | "price-asc" | "price-desc" | "area-asc" | "are
 export type Filters = {
   view: ViewMode;
   sort: SortMode;
-  /** Wolny tekst (lupka) — szukane słowa kluczowe; matchowane w tytule,
+  /** Wolny tekst (lupka) - szukane słowa kluczowe; matchowane w tytule,
    * mieście, dzielnicy, kategorii, opisie i numerze referencyjnym. */
   query: string;
   categories: string[];       // mieszkania|domy|dzialki|lokale|obiekty
@@ -357,7 +357,7 @@ export function applyFilters(offers: Offer[], f: Filters): Offer[] {
   return sorted;
 }
 
-/** Policz ile ofert z pełnej listy pasuje do filtrów — dla CTA „zobacz N więcej". */
+/** Policz ile ofert z pełnej listy pasuje do filtrów - dla CTA „zobacz N więcej". */
 export function countMatches(offers: Offer[], f: Filters): number {
   return applyFilters(offers, f).length;
 }

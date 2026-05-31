@@ -64,9 +64,9 @@ export function VideoCard({
     playback && myIdx >= 0 && activeIdx >= 0 ? Math.abs(myIdx - activeIdx) : Infinity;
 
   // Preload ring (ile `<video>` trzymamy w DOM bez niszczenia HLS):
-  //  - desktop:    ±1 — hover zmienia często, szerszy ring zjada pasmo bez sensu.
-  //  - mobile:     ±2 — kolejny klip zdąży się podciągnąć, zanim user do niego dotrze.
-  //  - grid-first:  0 — w 2x2 grid mobile gra tylko 1 kafel, reszta to plakaty.
+  //  - desktop:    ±1 - hover zmienia często, szerszy ring zjada pasmo bez sensu.
+  //  - mobile:     ±2 - kolejny klip zdąży się podciągnąć, zanim user do niego dotrze.
+  //  - grid-first:  0 - w 2x2 grid mobile gra tylko 1 kafel, reszta to plakaty.
   const preloadRing = playback
     ? playback.isDesktop
       ? 1
@@ -83,8 +83,8 @@ export function VideoCard({
     playback && hasVideo && playback.activeSlug === offer.slug,
   );
   // Priming sąsiedniej karty tylko na mobile w trybach scrollowanych (viewport pokazuje
-  // ~jeden klip naraz, więc wideo obok gra „w kulisach" muted — jak w Reels / TikTok).
-  // Dla grid-first nie primujemy nikogo — w 2x2 wszystkie 4 są jednocześnie widoczne
+  // ~jeden klip naraz, więc wideo obok gra „w kulisach" muted - jak w Reels / TikTok).
+  // Dla grid-first nie primujemy nikogo - w 2x2 wszystkie 4 są jednocześnie widoczne
   // i tylko pierwsza ma grać (reszta = plakaty).
   const primedNeighbor =
     !!playback &&
@@ -96,7 +96,7 @@ export function VideoCard({
   const playing =
     hasVideo && (playback ? isListActive || primedNeighbor : legacyInView);
 
-  // Dopóki karta jest tylko primowana (neighbor), wymuszamy mute — dźwięk
+  // Dopóki karta jest tylko primowana (neighbor), wymuszamy mute - dźwięk
   // odzywa się dopiero gdy karta faktycznie staje się aktywna.
   const effectiveMuted = isListActive ? muted : true;
 
@@ -178,7 +178,7 @@ export function VideoCard({
 
   const isHero = surfaceTheme === "hero";
   /** Hero strony głównej: tytuł sklejony z kadrem filmu (overlay z gradientem na dole),
-   *  zarówno na mobile, jak i desktop — większy kontrast i mniej „zlewających się" linijek pod kaflem. */
+   *  zarówno na mobile, jak i desktop - większy kontrast i mniej „zlewających się" linijek pod kaflem. */
   const heroOverlayTitle = isHero && !showCardFooter;
 
   const shellClass = isHero
@@ -194,7 +194,7 @@ export function VideoCard({
   // (typ + transakcja) razem zasłaniały zbyt dużą powierzchnię filmu, więc
   // używamy teraz pojedynczej, zwartej pigułki.
   // pr-8 dodajemy tylko gdy mute button JEST FAKTYCZNIE widoczny (isListActive),
-  // a nie wszędzie gdzie mamy video — wcześniej to obcinało chip na nieaktywnych kartach.
+  // a nie wszędzie gdzie mamy video - wcześniej to obcinało chip na nieaktywnych kartach.
   const showMuteButton = canToggleSound && isListActive;
   const topRowClass = [
     isHero
@@ -204,7 +204,7 @@ export function VideoCard({
     showMuteButton ? "pr-8 sm:pr-10 md:pr-11" : "",
   ].join(" ");
 
-  // Tekst pod filmem — responsywny. Hero: zwięzły overlay-style. Non-hero (np. /oferty?view=video):
+  // Tekst pod filmem - responsywny. Hero: zwięzły overlay-style. Non-hero (np. /oferty?view=video):
   // pełna premium-hierarchia: bold tytuł (Inter), wyraźny eyebrow, oddzielony separator pod metą + ceną,
   // pełny przycisk-pill jako CTA. Klient zwracał uwagę, że wcześniej tekst pod kartą się „zlewał".
   const textWrapClass = isHero
@@ -292,7 +292,7 @@ export function VideoCard({
           <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-ink-950/55 via-ink-950/15 to-transparent z-[1] pointer-events-none" />
 
           <div className={topRowClass}>
-            {/* Pojedynczy chip „[ikona] Mieszk. · Zakup" — gwarantowana jedna linijka,
+            {/* Pojedynczy chip „[ikona] Mieszk. · Zakup" - gwarantowana jedna linijka,
                 ~50% mniejszy ślad nad kadrem niż dwa osobne chipy. Numer indeksu został
                 usunięty, bo był wizualnym szumem, a film ma być pierwszoplanowy. */}
             <OfferTypeListingChip
@@ -305,7 +305,7 @@ export function VideoCard({
 
           {heroOverlayTitle ? (
             <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[4]">
-              {/* Mocniejszy, dłuższy gradient — żeby tytuł był pewnie widoczny nawet na jasnych
+              {/* Mocniejszy, dłuższy gradient - żeby tytuł był pewnie widoczny nawet na jasnych
                   klatkach filmu. To jest „hook" zachęcający do kliknięcia (klient prosił
                   wielokrotnie, żeby tytuły nie umykały). */}
               <div
@@ -313,7 +313,7 @@ export function VideoCard({
                 aria-hidden
               />
               <div className="relative px-3 pb-3 pt-16 sm:px-4 sm:pb-4 sm:pt-20 md:px-5 md:pb-5 md:pt-24">
-                {/* Tytuł: sans-serif (Inter) bold — Instrument Serif (font-display) jest dostępny
+                {/* Tytuł: sans-serif (Inter) bold - Instrument Serif (font-display) jest dostępny
                     tylko w weight 400, więc dla prawdziwego „hooka" przełączamy na Inter Bold.
                     Mobile bumpnięty z 13.5 → 17 px (czytelne z dystansu trzymania telefonu),
                     desktop z 18-20 → 22-26 px (rzuca się w oczy w siatce 4-up). Cienie złożone:
@@ -324,7 +324,7 @@ export function VideoCard({
                 >
                   {offer.title}
                 </h3>
-                {/* Mikro-CTA jako część hooka — białe, drobne, ale wyraźnie sugeruje akcję.
+                {/* Mikro-CTA jako część hooka - białe, drobne, ale wyraźnie sugeruje akcję.
                     Pojawia się tylko od sm w górę, żeby nie zaśmiecać kafla 2x2 na małym mobile. */}
                 <span className="mt-1.5 hidden sm:inline-flex items-center gap-1.5 text-[11.5px] md:text-[12.5px] font-semibold uppercase tracking-[0.16em] text-white/95 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
                   Zobacz ofertę
@@ -352,8 +352,8 @@ export function VideoCard({
       </div>
 
       {heroOverlayTitle ? (
-        // Pod kaflem hero — wyraźny wiersz: typ + lokalizacja · metraż · cena.
-        // Kontrast podbity (white/95 zamiast 65) — klient zwracał uwagę, że szare napisy
+        // Pod kaflem hero - wyraźny wiersz: typ + lokalizacja · metraż · cena.
+        // Kontrast podbity (white/95 zamiast 65) - klient zwracał uwagę, że szare napisy
         // są nieczytelne, więc redukujemy szarość do minimum.
         <div className="px-1 pt-2 sm:pt-2.5 md:pt-3">
           <div className="flex items-center justify-between gap-2 text-[11.5px] sm:text-[12px] md:text-[12.5px] tabular-nums">
@@ -422,7 +422,7 @@ export function VideoCard({
               </>
             ) : (
               // Non-hero: meta i cena z większym kontrastem i wyraźniejszą hierarchią.
-              // Cena jest drugą informacją po tytule, której wzrok szuka — boldujemy ją mocno.
+              // Cena jest drugą informacją po tytule, której wzrok szuka - boldujemy ją mocno.
               <>
                 <span className="text-[13px] sm:text-[13.5px] font-medium text-ink-700 tabular-nums">
                   {offer.area} m²{offer.rooms ? ` · ${offer.rooms} pok.` : ""}

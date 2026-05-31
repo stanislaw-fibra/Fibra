@@ -4,9 +4,9 @@ import Image from "next/image";
 import { useGalleryLightbox } from "./GalleryLightbox";
 
 type Props = {
-  /** Docelowo oczekuje tej samej listy co Provider — używamy Providera jako single source of truth. */
+  /** Docelowo oczekuje tej samej listy co Provider - używamy Providera jako single source of truth. */
   images: string[];
-  /** Liczba widocznych miniaturek (kolumn). Domyślnie 6 — zachowuje wyrazistość galerii w pierwszym viewportcie. */
+  /** Liczba widocznych miniaturek (kolumn). Domyślnie 6 - zachowuje wyrazistość galerii w pierwszym viewportcie. */
   limit?: number;
   /** Etykieta nagłówka mini-galerii. */
   label?: string;
@@ -25,7 +25,7 @@ function pluralPhotos(n: number): string {
 /**
  * Mini-galeria pod hero oferty: 5 miniaturek (1 duży kafel + 4 mniejsze) z wyraźnym
  * kaflem „+N" na resztę, plus pełnoszerokościowa belka „Otwórz galerię". Klik na dowolny
- * kafel otwiera pełnoekranowy lightbox przy dokładnie tym zdjęciu — bez kotwicy / przewijania.
+ * kafel otwiera pełnoekranowy lightbox przy dokładnie tym zdjęciu - bez kotwicy / przewijania.
  *
  * Cel: galeria ma być natychmiast czytelna jako galeria (nie pasek miniatur), żeby user
  * po wejściu na ofertę widział, że jest tam więcej zdjęć i jak je otworzyć.
@@ -79,7 +79,7 @@ export function OfferMiniGallery({
       </div>
 
       <div className="grid grid-cols-4 grid-rows-2 gap-1.5 sm:gap-2">
-        {/* Duży kafel — od razu czyta się jako "to jest galeria, kliknij". */}
+        {/* Duży kafel - od razu czyta się jako "to jest galeria, kliknij". */}
         {heroSrc ? (
           <button
             type="button"

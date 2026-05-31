@@ -10,7 +10,7 @@ export function OfertyHeaderViewToggle() {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  /** Widok wyłącznie z URL — spójnie z `useFilters()` / `parseFiltersFromSearchParams`. */
+  /** Widok wyłącznie z URL - spójnie z `useFilters()` / `parseFiltersFromSearchParams`. */
   const view: ViewMode = useMemo(
     () => (searchParams.get("view") === "gallery" ? "gallery" : "video"),
     [searchParams],

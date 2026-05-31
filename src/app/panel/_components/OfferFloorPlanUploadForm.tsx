@@ -16,15 +16,15 @@ type Props = {
 };
 
 /**
- * Sekcja „Rzut" — formularze obraz + PDF.
+ * Sekcja „Rzut" - formularze obraz + PDF.
  *
  * Zmiany w stosunku do poprzedniej wersji (klient skarżył się, że dodany .jpg „znika"):
  *
  * 1. Drop zone i input pokrywają się z formularzem przez `formAction` na nadrzędnym `<form>`.
- *    Po wybraniu / upuszczeniu plików formularz JEST WYSYŁANY AUTOMATYCZNIE — nie trzeba
+ *    Po wybraniu / upuszczeniu plików formularz JEST WYSYŁANY AUTOMATYCZNIE - nie trzeba
  *    klikać dodatkowego przycisku, żeby plik się utrwalił.
  * 2. Wyraźna informacja statusu: „Wysyłam plik do bazy…" / „Zapisano".
- * 3. Awaryjny przycisk „Wyślij teraz" — gdy auto-submit zostanie zablokowany przez przeglądarkę
+ * 3. Awaryjny przycisk „Wyślij teraz" - gdy auto-submit zostanie zablokowany przez przeglądarkę
  *    (np. wskutek własnego rozszerzenia), klient ma jeszcze fallback.
  */
 export function OfferFloorPlanUploadForm({
@@ -53,7 +53,7 @@ export function OfferFloorPlanUploadForm({
         galacticaOfferId={galacticaOfferId}
         kind="pdf"
         title="PDF rzutu"
-        helper="Sam plik PDF — zapisuje się automatycznie po upuszczeniu."
+        helper="Sam plik PDF - zapisuje się automatycznie po upuszczeniu."
         accept="application/pdf,.pdf"
         items={pdfs}
         action={uploadOfferFloorPlanPdfAction}
@@ -133,7 +133,7 @@ function FloorPlanCard({
     if (!filtered.length) return;
     setFiles(filtered);
     setNativeInputFiles(inputRef.current, filtered);
-    // Auto-submit — kluczowa zmiana: po wybraniu plików formularz IDZIE OD RAZU,
+    // Auto-submit - kluczowa zmiana: po wybraniu plików formularz IDZIE OD RAZU,
     // klient nie musi szukać przycisku „Dodaj zdjęcia".
     // Małe opóźnienie, żeby React zdążył odświeżyć stan inputa przed submitem.
     window.setTimeout(() => {
@@ -236,7 +236,7 @@ function FloorPlanCard({
             {submitting ? "Wysyłam plik do bazy…" : "Przeciągnij plik tutaj lub kliknij"}
           </p>
           <p className="mt-1 text-[12px] text-ink-300">
-            {kind === "image" ? "JPG, PNG, WebP — wiele plików naraz." : "PDF — wiele plików naraz."}
+            {kind === "image" ? "JPG, PNG, WebP - wiele plików naraz." : "PDF - wiele plików naraz."}
             {" "}
             Plik zapisuje się automatycznie po upuszczeniu.
           </p>
@@ -283,7 +283,7 @@ function FloorPlanCard({
           </div>
         ) : null}
 
-        {/* Awaryjny przycisk „Wyślij teraz" — pokazuje się tylko gdy są wybrane pliki, ale auto-submit
+        {/* Awaryjny przycisk „Wyślij teraz" - pokazuje się tylko gdy są wybrane pliki, ale auto-submit
             się nie powiódł (np. extension blokuje requestSubmit). */}
         {files.length > 0 ? (
           <button

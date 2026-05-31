@@ -27,7 +27,7 @@ const STEPS: { n: string; title: string; body: string }[] = [
   {
     n: "04",
     title: "Promocja oferty",
-    body: "Oprócz tradycyjnych miejsc publikacji (portale ogłoszeniowe) oferta jest eksponowana na innowacyjnej wideostronie www oraz odpłatnie — z naszych środków — reklamowana w mediach społecznościowych.",
+    body: "Oprócz tradycyjnych miejsc publikacji (portale ogłoszeniowe) oferta jest eksponowana na innowacyjnej wideostronie www oraz odpłatnie - z naszych środków - reklamowana w mediach społecznościowych.",
   },
   {
     n: "05",

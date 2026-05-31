@@ -4,8 +4,8 @@ import { AnalyticsScripts } from "@/components/consent/AnalyticsScripts";
 import { getCloudflareStreamCustomerCode } from "@/lib/cloudflare-stream";
 import "./globals.css";
 
-// Cookiebot CBID — z panelu manage.cookiebot.com (Bartosz, 2026-05-12).
-// Tryb data-blockingmode="auto" — Cookiebot sam blokuje znane trackery przed
+// Cookiebot CBID - z panelu manage.cookiebot.com (Bartosz, 2026-05-12).
+// Tryb data-blockingmode="auto" - Cookiebot sam blokuje znane trackery przed
 // uzyskaniem zgody, więc nie trzeba ręcznie gate'ować GA/FB Pixel.
 const COOKIEBOT_CBID = "f74cf9e3-5a07-4574-bc83-3e970cfa9d62";
 
@@ -48,7 +48,7 @@ export default function RootLayout({
       className={`${inter.variable} ${instrument.variable} h-full scroll-smooth`}
     >
       <head>
-        {/* Cookiebot — MUSI być pierwszym skryptem w <head>, przed jakimkolwiek trackerem.
+        {/* Cookiebot - MUSI być pierwszym skryptem w <head>, przed jakimkolwiek trackerem.
             data-blockingmode="auto" automatycznie blokuje GA/FB Pixel/inne znane skrypty
             dopóki użytkownik nie zaakceptuje przez baner.
 

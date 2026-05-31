@@ -6,13 +6,13 @@ import { detectGalacticaLists, injectBlockBreaks } from "@/lib/description-block
 // nie poprawia gramatyki, nie wstawia własnych boldów.
 //
 // Klient (Bartosz) prosił: minimum reguł, treść 1:1 z Galactici. Lista 9 zasad opisana
-// w cleanDescription() na dole pliku — każda ma uzasadnienie.
+// w cleanDescription() na dole pliku - każda ma uzasadnienie.
 //
 // Patrz: FIBRA_IMPORTER_CONTEXT.md sekcja 4.
 
 // Tylko 2 wzorce: oczywiste boilerplate Galactici / spam systemowy.
 // Wszystkie pozostałe ("zadzwoń i dowiedz się więcej", "potrzebujesz finansowania", itp.)
-// celowo USUNIĘTE — agent może to legalnie wpisać i nie mamy prawa za niego decydować.
+// celowo USUNIĘTE - agent może to legalnie wpisać i nie mamy prawa za niego decydować.
 const BOILERPLATE_LINE_PATTERNS: RegExp[] = [
   /oferta wysłana z systemu/i,
   /\bprowizja\s*0\s*%/i,
@@ -100,11 +100,11 @@ function convertHtmlToTextWithInline(input: string): string {
 }
 
 /**
- * Minimalne porządki — tylko BEZPIECZNE, nieinwazyjne fixy. Klient prosił:
+ * Minimalne porządki - tylko BEZPIECZNE, nieinwazyjne fixy. Klient prosił:
  * minimum reguł, treść 1:1 z Galactici.
  *
  * Zostaje:
- *  - usunięcie niewidzialnych Unicode (ZWSP, ZWJ, ZWNJ, BOM) — psują match patternów
+ *  - usunięcie niewidzialnych Unicode (ZWSP, ZWJ, ZWNJ, BOM) - psują match patternów
  *  - „65m2" → „65 m²" (uniwersalny standard branżowy, agent na Otodom widzi tak samo)
  *
  * Wyrzucone (były wcześniej, za inwazyjne):
@@ -124,7 +124,7 @@ function fixCommonTypos(text: string): string {
 }
 
 /**
- * Detekcja bold/underline/italic w stylu Galactici — finalna reguła.
+ * Detekcja bold/underline/italic w stylu Galactici - finalna reguła.
  *
  * Galactica koduje formatowanie agenta przez WIELOKROTNE SPACJE wokół frazy.
  * Reguła została wyprowadzona z trzech tur kalibracji od Bartosza oraz survey
@@ -145,7 +145,7 @@ function fixCommonTypos(text: string): string {
  *     - zaczyna się od cyfry → <b>         (liczby: "25 m 2", "3", "1250")
  *     - inaczej → <u>                      (frazy tekstowe: "dwie garderoby")
  *
- * Krytyczne: ten krok MUSI być przed `normalizeWhitespace` — ta zwija multi-spacje.
+ * Krytyczne: ten krok MUSI być przed `normalizeWhitespace` - ta zwija multi-spacje.
  */
 function detectGalacticaBolds(text: string): string {
   const s = text.replace(/\u00a0/g, " ");
@@ -311,7 +311,7 @@ function removeTrailingAgentSignature(text: string, agentName: string | null | u
 
 function normalizeWhitespace(text: string): string {
   // Trim każdej linii; zwijamy multi-spacje (ZA boldami, więc bezpiecznie) oraz multi-newlines.
-  // UWAGA: kolejność wykonania pipeline'a: detectGalacticaBolds JEST WCZEŚNIEJ — markery
+  // UWAGA: kolejność wykonania pipeline'a: detectGalacticaBolds JEST WCZEŚNIEJ - markery
   // double-space już zostały zamienione na <b>...</b>. Tu zwijamy resztę spacji.
   const lines = text.split("\n").map((l) => l.replace(/[ \t ]+/g, " ").trim());
 
@@ -331,17 +331,17 @@ function normalizeWhitespace(text: string): string {
 }
 
 /**
- * Pipeline 9 reguł — zatwierdzone z Bartoszem. Każdy krok ma uzasadnienie:
+ * Pipeline 9 reguł - zatwierdzone z Bartoszem. Każdy krok ma uzasadnienie:
  *
- *  1. decode entities       — Galactica double-encoduje (`&amp;oacute;`)
- *  2. HTML → tekst          — `<br>` na końcach linii, listy/akapity Galactici
- *  3. minimum typo fixów    — tylko m² + niewidzialne Unicode
- *  4. detect Galactica bolds — double-space wokół frazy → `<b>...</b>`
- *  5. usuń 2 wzorce spamu   — „oferta wysłana z systemu", „prowizja 0%"
- *  6. normalize whitespace  — zwija pozostałe multi-spacje (boldy już są w `<b>`)
- *  7. usuń podpis agenta    — samotne "Imię Nazwisko" na końcu
- *  8. inject block breaks   — `\n\n` przed nagłówkami i listami (parser potrzebuje)
- *  9. final normalize       — porządek po block breaks
+ *  1. decode entities       - Galactica double-encoduje (`&amp;oacute;`)
+ *  2. HTML → tekst          - `<br>` na końcach linii, listy/akapity Galactici
+ *  3. minimum typo fixów    - tylko m² + niewidzialne Unicode
+ *  4. detect Galactica bolds - double-space wokół frazy → `<b>...</b>`
+ *  5. usuń 2 wzorce spamu   - „oferta wysłana z systemu", „prowizja 0%"
+ *  6. normalize whitespace  - zwija pozostałe multi-spacje (boldy już są w `<b>`)
+ *  7. usuń podpis agenta    - samotne "Imię Nazwisko" na końcu
+ *  8. inject block breaks   - `\n\n` przed nagłówkami i listami (parser potrzebuje)
+ *  9. final normalize       - porządek po block breaks
  */
 export function cleanDescription(
   raw: string | null | undefined,
@@ -371,7 +371,7 @@ export function cleanDescription(
   s = removeTrailingAgentSignature(s, agentName);
 
   // 8a. wykryj sekcje "nagłówek + linie kończące się przecinkami" jako listy Galactici
-  //     — dodaj `- ` przed każdą pozycją, żeby parser zrobił `<ul>` w renderze.
+  //     - dodaj `- ` przed każdą pozycją, żeby parser zrobił `<ul>` w renderze.
   s = detectGalacticaLists(s);
 
   // 8b. wstaw puste linie przed nagłówkami i listami (parser auto-detekcji)

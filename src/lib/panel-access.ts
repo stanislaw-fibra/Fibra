@@ -6,16 +6,16 @@ import { createSupabaseServer } from "@/lib/supabase/server";
 /**
  * Model dostępu do panelu:
  *
- *   user_metadata.agent_id = null/brak  →  ADMIN — widzi i edytuje wszystko
- *   user_metadata.agent_id = "<uuid>"   →  AGENT — widzi i edytuje TYLKO oferty,
+ *   user_metadata.agent_id = null/brak  →  ADMIN - widzi i edytuje wszystko
+ *   user_metadata.agent_id = "<uuid>"   →  AGENT - widzi i edytuje TYLKO oferty,
  *                                          gdzie `offers.agent_id` matchuje to UUID
  *
  * Admin tworzy konta agentów w Supabase Dashboard (Authentication → Users → Add user)
  * i w polu "Raw user meta data" wpisuje `{"agent_id": "<uuid-z-tabeli-agents>"}`.
  *
  * Funkcja zwraca scope:
- *   { kind: "admin" } — pełny dostęp
- *   { kind: "agent", agentId } — ograniczony do tego agenta
+ *   { kind: "admin" } - pełny dostęp
+ *   { kind: "agent", agentId } - ograniczony do tego agenta
  *
  * Przy braku sesji robi `redirect("/panel/login")`.
  */

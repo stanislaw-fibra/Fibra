@@ -14,7 +14,7 @@ function initialsFromName(name?: string): string {
 
 /**
  * Awatar agenta - zdjęcie z Supabase bucketu `agent-photos` lub placeholder
- * z inicjałami na gradiencie brand. `object-top` — portrety: twarz w górnej części kadru.
+ * z inicjałami na gradiencie brand. `object-top` - portrety: twarz w górnej części kadru.
  * Rozmiary: sticky `sm` (~44px), sekcja kontakt na ofercie `md` (do ~100px desktop), `lg` większe karty.
  */
 export function AgentAvatar({

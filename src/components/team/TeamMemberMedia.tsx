@@ -10,15 +10,15 @@ import {
 } from "@/lib/cloudflare-stream";
 
 type Props = {
-  /** Cloudflare Stream ID — gdy puste, pokazujemy zdjęcie. */
+  /** Cloudflare Stream ID - gdy puste, pokazujemy zdjęcie. */
   videoId?: string;
   /** URL do zdjęcia (fallback / poster). */
   photoUrl?: string;
   /** Imię i nazwisko (alt). */
   name: string;
-  /** Wariant — różny aspect i scaling: founder (większe, 3/4) lub member (5/7 wąziej). */
+  /** Wariant - różny aspect i scaling: founder (większe, 3/4) lub member (5/7 wąziej). */
   variant?: "founder" | "member";
-  /** Kontrolne tło — np. tonacja brand/accent. */
+  /** Kontrolne tło - np. tonacja brand/accent. */
   className?: string;
 };
 
@@ -26,9 +26,9 @@ type Props = {
  * Karta z portretem osoby z zespołu Fibry.
  *
  * Wideo agenta odtwarza się przez natywny `<video>` + HLS (`videodelivery.net`),
- * tak samo jak reels ofert na stronie głównej — autoplay, wyciszone, w pętli.
+ * tak samo jak reels ofert na stronie głównej - autoplay, wyciszone, w pętli.
  * Dzięki temu „podgląd" to żywe wideo w pełnej jakości HLS, a nie statyczny,
- * mocno skompresowany JPEG (poprzednio ~50 KB — wyglądało słabo).
+ * mocno skompresowany JPEG (poprzednio ~50 KB - wyglądało słabo).
  *
  * Klik w „Zobacz autoprezentację" → włącza dźwięk, restart od początku,
  * pokazuje natywne kontrolki.
@@ -51,7 +51,7 @@ export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", c
     () => (streamId ? `https://videodelivery.net/${streamId}/manifest/video.m3u8` : null),
     [streamId],
   );
-  // Poster (klatka pod wideo, póki HLS się ładuje) — wysokie 1600 px dla ostrości na retina.
+  // Poster (klatka pod wideo, póki HLS się ładuje) - wysokie 1600 px dla ostrości na retina.
   const posterUrl = streamId
     ? cloudflareStreamThumbnailUrl(streamId, { time: "1.5s", height: 1600 }) ||
       cloudflareStreamThumbnailViaDeliveryNet(streamId, { time: "1.5s", height: 1600 })
@@ -93,13 +93,13 @@ export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", c
     if (canNativeHls) {
       video.src = hlsSrc;
     } else if (Hls.isSupported()) {
-      // abrEwmaDefaultEstimate podbity do 6 Mbps — domyślne 500 kbps powodowało,
+      // abrEwmaDefaultEstimate podbity do 6 Mbps - domyślne 500 kbps powodowało,
       // że ABR startował od 360p i dopiero powoli podbijał. Na krótkim, zapętlonym
       // wideo pierwsza pętla (ta, którą widzi user) leciała w niskiej jakości.
       const hls = new Hls({ enableWorker: true, abrEwmaDefaultEstimate: 6_000_000 });
       hls.loadSource(hlsSrc);
       hls.attachMedia(video);
-      // Po sparsowaniu manifestu — pin na najwyższą dostępną jakość. Autoprezentacja
+      // Po sparsowaniu manifestu - pin na najwyższą dostępną jakość. Autoprezentacja
       // jest krótka i w pętli (~14 MB w 1080p), więc warto pokazać pełne HD od razu
       // zamiast czekać, aż ABR się rozkręci.
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -130,7 +130,7 @@ export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", c
     className,
   ].join(" ");
 
-  // ===== 1) Cloudflare Stream — autoplay muted loop, klik = dźwięk =====
+  // ===== 1) Cloudflare Stream - autoplay muted loop, klik = dźwięk =====
   if (hlsSrc) {
     const activate = () => {
       const v = videoRef.current;
@@ -148,12 +148,12 @@ export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", c
 
     return (
       <div ref={wrapRef} className={containerClass}>
-        {/* Poster (klatka HLS) — pod wideo, znika gdy wideo gotowe. */}
+        {/* Poster (klatka HLS) - pod wideo, znika gdy wideo gotowe. */}
         {posterUrl ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={posterUrl}
-            alt={`${name} — autoprezentacja`}
+            alt={`${name} - autoprezentacja`}
             className={[
               "absolute inset-0 h-full w-full object-cover transition-opacity duration-500",
               revealVideo ? "opacity-0" : "opacity-100",
@@ -164,7 +164,7 @@ export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", c
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={photoUrl}
-            alt={`${name} — portret`}
+            alt={`${name} - portret`}
             className={[
               "absolute inset-0 h-full w-full object-cover transition-opacity duration-500",
               revealVideo ? "opacity-0" : "opacity-100",
@@ -186,13 +186,13 @@ export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", c
             controls={activated}
             controlsList="nodownload"
             preload="metadata"
-            aria-label={`${name} — autoprezentacja`}
+            aria-label={`${name} - autoprezentacja`}
             onLoadedData={() => setRevealVideo(true)}
             onPlaying={() => setRevealVideo(true)}
           />
         ) : null}
 
-        {/* Overlay „Zobacz autoprezentację" — tylko póki user nie włączył dźwięku. */}
+        {/* Overlay „Zobacz autoprezentację" - tylko póki user nie włączył dźwięku. */}
         {!activated && (
           <button
             type="button"

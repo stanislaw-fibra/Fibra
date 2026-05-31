@@ -5,10 +5,10 @@ import { useState } from "react";
 type Props = {
   url: string;
   title?: string;
-  /** W modalu — od razu pokazuj iframe (bez drugiego kliknięcia „Uruchom spacer”). */
+  /** W modalu - od razu pokazuj iframe (bez drugiego kliknięcia „Uruchom spacer”). */
   embedImmediately?: boolean;
   /**
-   * `modal` — wysoka ramka (~pełny ekran w modalu), zamiast sztywnego aspect-ratio z karty oferty.
+   * `modal` - wysoka ramka (~pełny ekran w modalu), zamiast sztywnego aspect-ratio z karty oferty.
    */
   layoutVariant?: "card" | "modal";
 };
@@ -18,7 +18,7 @@ type Props = {
  * poster z przyciskiem "Uruchom spacer" - iframe ładujemy dopiero po kliknięciu.
  *
  * Mobile: wyższy kadr (aspect 4/5) + wyraźne CTA „Otwórz w pełnym ekranie"
- * pod ramką — natywny przycisk Matterporta bywa za mały do trafienia palcem,
+ * pod ramką - natywny przycisk Matterporta bywa za mały do trafienia palcem,
  * a iOS Safari dodatkowo nie pozwala na iframe fullscreen API.
  */
 export function OfferMatterport({
@@ -109,7 +109,7 @@ export function OfferMatterport({
         )}
       </div>
 
-      {/* Mobile: duży, jasny przycisk fullscreen — natywna ikonka Matterporta jest
+      {/* Mobile: duży, jasny przycisk fullscreen - natywna ikonka Matterporta jest
           zbyt mała do trafienia palcem, a na iOS iframe fullscreen nie działa. */}
       <a
         href={url}

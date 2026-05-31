@@ -11,7 +11,7 @@ type Props = {
 /**
  * Pasek nad tytułem oferty: typ nieruchomości (dom/mieszkanie/działka) + transakcja (zakup/wynajem).
  * Klient zwracał uwagę, że na mobile typ oferty był w ogóle niewidoczny dopóki nie zjechało się
- * w dół strony — dlatego oba chipy stoją tu razem, są wyraziste i pojawiają się jeszcze przed
+ * w dół strony - dlatego oba chipy stoją tu razem, są wyraziste i pojawiają się jeszcze przed
  * pierwszym wierszem hero (zarówno w widoku desktop, jak i mobile).
  */
 export function OfferListingHighlight({ listingType, kind, kindLabel }: Props) {

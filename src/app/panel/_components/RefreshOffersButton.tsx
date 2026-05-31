@@ -76,7 +76,7 @@ export function RefreshOffersButton() {
       const updatedTotal = c + u;
       const summary =
         data.status === "skipped"
-          ? "Brak nowych danych — nic nie zmieniono."
+          ? "Brak nowych danych - nic nie zmieniono."
           : `Zaktualizowano ${updatedTotal} ${pluralOffers(updatedTotal)}, ${c} ${c === 1 ? "nowa" : "nowych"}, ${d} ${d === 1 ? "usunięta" : pluralOffers(d) === "oferty" ? "usunięte" : "usuniętych"}.`;
 
       setStatus("success");

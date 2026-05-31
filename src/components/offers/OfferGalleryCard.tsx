@@ -36,8 +36,8 @@ function specs(offer: Offer): { label: string; value: string }[] {
 }
 
 /**
- * Karta oferty w widoku galerii — duży kadr, elegancka, bez auto-playback.
- * Świadomie unikamy odtwarzania wideo w tej wersji — user wszedł tu po spokojny,
+ * Karta oferty w widoku galerii - duży kadr, elegancka, bez auto-playback.
+ * Świadomie unikamy odtwarzania wideo w tej wersji - user wszedł tu po spokojny,
  * czytelny przegląd oferty ze zdjęciami. Wideo kryje się na stronie szczegółów.
  */
 export function OfferGalleryCard({ offer, priority = false }: Props) {

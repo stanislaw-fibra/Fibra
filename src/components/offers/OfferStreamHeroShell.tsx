@@ -11,7 +11,7 @@ type Props = {
   poster: string;
   streamId: string;
   videoSrc?: string;
-  /** Status / nowość — pozycjonowane absolutnie względem kadru */
+  /** Status / nowość - pozycjonowane absolutnie względem kadru */
   children?: React.ReactNode;
 };
 

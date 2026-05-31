@@ -5,9 +5,9 @@ import type { Offer } from "@/lib/offers";
 import { VideoCard } from "@/components/home/VideoCard";
 import { ListVideoPlaybackProvider } from "@/components/media/ListVideoPlayback";
 
-/** Maks. liczba kafli w hero — desktop wymaga 4-kolumnowej, jednej linii. */
+/** Maks. liczba kafli w hero - desktop wymaga 4-kolumnowej, jednej linii. */
 const HERO_MAX_DESKTOP = 4;
-/** Mobile: dokładnie 4 kafle (2x2 grid w stylu YT Shorts) — pierwszy gra, reszta to plakaty. */
+/** Mobile: dokładnie 4 kafle (2x2 grid w stylu YT Shorts) - pierwszy gra, reszta to plakaty. */
 const HERO_MAX_MOBILE = 4;
 
 export function OpeningReelsGrid({ offers }: { offers: Offer[] }) {
@@ -18,7 +18,7 @@ export function OpeningReelsGrid({ offers }: { offers: Offer[] }) {
 
   return (
     <>
-      {/* DESKTOP — 4 kafle obok siebie, pełny premium look.
+      {/* DESKTOP - 4 kafle obok siebie, pełny premium look.
           Od md+ wymuszamy 4 kolumny (a nie 2) aby na laptopie ofery były widoczne
           nad fold zaraz po wejściu. Aspect spłaszczony do 4:5 / 5:7 na średnich
           ekranach, dopiero od xl wracamy do pełnego pionowego 9:16. */}
@@ -41,7 +41,7 @@ export function OpeningReelsGrid({ offers }: { offers: Offer[] }) {
         </ListVideoPlaybackProvider>
       </div>
 
-      {/* MOBILE — siatka 2x2 (Reels-style). 9:15 odrobinę niżej niż 9:16, żeby na
+      {/* MOBILE - siatka 2x2 (Reels-style). 9:15 odrobinę niżej niż 9:16, żeby na
           niższych telefonach nic nie ucinało; metraż pod kaflem w VideoCard. */}
       <div className="md:hidden w-full">
         <ListVideoPlaybackProvider orderedSlugs={mobileSlugs} mobileMode="grid-first">

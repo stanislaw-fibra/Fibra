@@ -8,7 +8,7 @@ type Props = {
   rows?: number;
   placeholder?: string;
   className?: string;
-  /** Etykieta nad polem — opcjonalna. */
+  /** Etykieta nad polem - opcjonalna. */
   label?: string;
   /** Pomocniczy hint pod polem (np. „akapity oddziel pustą linią"). */
   hint?: React.ReactNode;
@@ -17,12 +17,12 @@ type Props = {
 /**
  * Lekka textarea z toolbarem: B / I / U + lista + nagłówek.
  *
- * Klient prosił, żeby agenci mogli formatować opis bez znajomości HTML — zaznaczasz tekst,
+ * Klient prosił, żeby agenci mogli formatować opis bez znajomości HTML - zaznaczasz tekst,
  * klikasz B, dostajesz `<b>tekst</b>`. To samo dla I, U. Lista wstawia myślnik na początku
  * linii (bo nasz parser auto-detekcji rozpoznaje `- ` jako bullet). Nagłówek dokleja `:` na
  * końcu linii (pattern który auto-detekcja rozpoznaje jako podnagłówek sekcji).
  *
- * Toolbar nie jest WYSIWYG — to celowo. Pełen rich editor (TipTap / Lexical) byłby
+ * Toolbar nie jest WYSIWYG - to celowo. Pełen rich editor (TipTap / Lexical) byłby
  * over-engineering i wprowadziłby dużo zależności. Klient potrzebuje TYLKO B / I / U,
  * a auto-detekcja struktury robi resztę.
  *
@@ -51,13 +51,13 @@ export function RichTextarea({
     const selected = value.slice(start, end);
     const next = value.slice(0, start) + before + selected + after + value.slice(end);
     ta.value = next;
-    // Po wstawieniu: jeśli była selekcja — zaznacz to co teraz w środku, jeśli nie — kursor wewnątrz tagów
+    // Po wstawieniu: jeśli była selekcja - zaznacz to co teraz w środku, jeśli nie - kursor wewnątrz tagów
     const newStart = start + before.length;
     const newEnd = newStart + selected.length;
     ta.selectionStart = newStart;
     ta.selectionEnd = newEnd;
     ta.focus();
-    // React-controlled inputs łapią value przez native event — dispatch żeby form data się zsynchronizowało
+    // React-controlled inputs łapią value przez native event - dispatch żeby form data się zsynchronizowało
     ta.dispatchEvent(new Event("input", { bubbles: true }));
   }, []);
 
@@ -172,7 +172,7 @@ export function RichTextarea({
 
         <span aria-hidden className="mx-1 h-5 w-px bg-ink-300/80" />
 
-        <button type="button" onClick={toggleList} className={buttonClass} title="Lista — myślnik na początku linii">
+        <button type="button" onClick={toggleList} className={buttonClass} title="Lista - myślnik na początku linii">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
             <circle cx="3" cy="4" r="1" fill="currentColor" />
             <circle cx="3" cy="8" r="1" fill="currentColor" />

@@ -99,7 +99,7 @@ const OFFER_SELECT_PUBLIC_LIST_NO_YOUTUBE = OFFER_SELECT_NO_YOUTUBE.replace("off
 
 // Legacy: kolumna `agents.slug` może jeszcze nie istnieć (świeży deploy, migracja
 // 20260512000000_agents_slug.sql niezaaplikowana). Wtedy embed `agents(slug)` zwróci
-// błąd — robimy retry bez `slug`, agent po prostu nie ma URL-a, public page 404.
+// błąd - robimy retry bez `slug`, agent po prostu nie ma URL-a, public page 404.
 const OFFER_SELECT_NO_AGENT_SLUG = OFFER_SELECT.replace(
   /(agents \(\s*\n\s*photo_url),\s*\n\s*slug\s*\n/,
   "$1\n",
@@ -244,7 +244,7 @@ function normalizeAgentHeadshotUrl(url: string | null | undefined): string | und
 
 /**
  * Gdy `offers.agent_id` jest puste lub embed `agents` nie zwraca wiersza (np. stary import),
- * a w wierszu jest `agent_name` — dociągnij `photo_url` z tabeli `agents` po dokładnym dopasowaniu nazwy.
+ * a w wierszu jest `agent_name` - dociągnij `photo_url` z tabeli `agents` po dokładnym dopasowaniu nazwy.
  */
 async function attachAgentPhotoUrlIfMissing(offer: Offer): Promise<Offer> {
   if (offer.agentPhotoUrl?.trim()) return offer;
@@ -277,7 +277,7 @@ function pickYoutubeUrl(raw: Record<string, unknown> | null | undefined): string
   return undefined;
 }
 
-/** Preferujemy edytowalną kolumnę `youtube_url`. Fallback — link z importu Galactiki w `raw_params`. */
+/** Preferujemy edytowalną kolumnę `youtube_url`. Fallback - link z importu Galactiki w `raw_params`. */
 function resolveYoutubeUrl(
   explicit: string | null | undefined,
   raw: Record<string, unknown> | null | undefined,
@@ -296,7 +296,7 @@ function normalizeRawUrl(value: unknown): string | undefined {
 
 /**
  * Link do obrazu rzutu / wizualizacji układu z parametrów Galactica (trafiają do `raw_params`).
- * Nazwy parametrów bywają różne — próbujemy znanych kluczy, potem heurystykę po nazwie pola.
+ * Nazwy parametrów bywają różne - próbujemy znanych kluczy, potem heurystykę po nazwie pola.
  */
 function pickFloorPlanImageUrl(raw: Record<string, unknown> | null | undefined): string | undefined {
   if (!raw) return undefined;
@@ -400,12 +400,12 @@ export function mapOfferRow(row: OfferRow): Offer {
   const area = kind === "grunt" ? (areaPlot || areaTotal || areaUsable) : areaUsable || areaTotal;
 
   const displayTitle = (row.advertisement_text?.trim() || row.title?.trim() || "Oferta").slice(0, 120);
-  // Wstaw breaks blokowe „w locie" — istniejące opisy w bazie były zapisywane bez `\n\n`
+  // Wstaw breaks blokowe „w locie" - istniejące opisy w bazie były zapisywane bez `\n\n`
   // między akapitami, przez co cały tekst lądował w jednym `<p>` (bez nagłówków, bez list).
-  // Re-import jest niepotrzebny — naprawiamy przy odczycie tym samym helperem co importer.
+  // Re-import jest niepotrzebny - naprawiamy przy odczycie tym samym helperem co importer.
   const desc = injectBlockBreaks(row.description?.trim() || "");
   // Excerpt = plain text (tags inline jak <b>/<u>/<i> stripowane), bo to krótki preview
-  // pod kafelkami — formatowanie pojawia się dopiero w pełnym opisie oferty.
+  // pod kafelkami - formatowanie pojawia się dopiero w pełnym opisie oferty.
   // Strip: usuń tagi open/close, zwij kolejne whitespace, weź pierwsze 217 znaków.
   const plainDesc = desc.replace(/<\/?(?:b|strong|i|em|u)>/gi, "").replace(/\s+/g, " ").trim();
   const excerpt = plainDesc.length > 220 ? `${plainDesc.slice(0, 217)}…` : plainDesc || displayTitle;
@@ -691,7 +691,7 @@ async function fetchOfferRow(
 
   async function attachFloorplansIfPossible(row: OfferRow | null): Promise<OfferRow | null> {
     if (!row) return null;
-    // Jeśli relacja została już zaciągnięta i coś w niej jest — nie dublujemy.
+    // Jeśli relacja została już zaciągnięta i coś w niej jest - nie dublujemy.
     if (Array.isArray(row.offer_floorplans) && row.offer_floorplans.length > 0) return row;
     if (!supabase) return row;
     try {
@@ -704,7 +704,7 @@ async function fetchOfferRow(
       if (fpErr) return row;
       (row as unknown as { offer_floorplans?: unknown }).offer_floorplans = fps ?? [];
     } catch {
-      // brak tabeli / brak uprawnień — ignorujemy (fallback zostaje na primary URL)
+      // brak tabeli / brak uprawnień - ignorujemy (fallback zostaje na primary URL)
     }
     return row;
   }
@@ -755,7 +755,7 @@ async function fetchOfferRow(
 }
 
 /** Lista publiczna z krótkim filmem (homepage, tryb Video w /oferty).
- *  Zwracamy WYŁĄCZNIE oferty z Cloudflare streamId i realnymi mediami. Brak fallbacku na mocki —
+ *  Zwracamy WYŁĄCZNIE oferty z Cloudflare streamId i realnymi mediami. Brak fallbacku na mocki -
  *  pusta lista jest poprawna i klient renderuje stan „brak ofert". */
 export async function getAllOffers(): Promise<Offer[]> {
   try {
@@ -773,7 +773,7 @@ export async function getAllOffers(): Promise<Offer[]> {
   return [];
 }
 
-/** Wszystkie aktywne oferty (bez wymogu krótkiego filmu) — katalog /oferty.
+/** Wszystkie aktywne oferty (bez wymogu krótkiego filmu) - katalog /oferty.
  *  Również tylko z Supabase, bez fallbacków na mocki; oferty bez realnych mediów odpadają. */
 export async function getAllActiveOffers(): Promise<Offer[]> {
   try {
@@ -788,10 +788,10 @@ export async function getAllActiveOffers(): Promise<Offer[]> {
 }
 
 /**
- * Jedna oferta — wyłącznie z Supabase:
+ * Jedna oferta - wyłącznie z Supabase:
  *  1) po kolumnie `slug` (kanoniczne URL-e typu `tytul-FIB-DS-4127`)
- *  2) po `id` (UUID) — stare linki
- *  3) po `galactica_offer_id` (np. `FIB-DS-4127` samotnie) — kompatybilność wstecz
+ *  2) po `id` (UUID) - stare linki
+ *  3) po `galactica_offer_id` (np. `FIB-DS-4127` samotnie) - kompatybilność wstecz
  *
  * Jeśli chcesz wiedzieć, czy trafiono w URL kanoniczny (i ewentualnie zrobić 301),
  * porównaj zwrócone `offer.slug` z `slug` z URL-a.

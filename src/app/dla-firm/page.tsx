@@ -5,7 +5,7 @@ import { Footer } from "@/components/site/Footer";
 import { DlaFirmLanding } from "@/components/dla-firm/DlaFirmLanding";
 
 export const metadata: Metadata = {
-  title: "Mieszkania dla firm — Rybnik, Wodzisław, Jastrzębie · Fibra Nieruchomości",
+  title: "Mieszkania dla firm - Rybnik, Wodzisław, Jastrzębie · Fibra Nieruchomości",
   description:
     "Wynajem mieszkania dla firmy na zachodnim Śląsku: umeblowane mieszkania służbowe, faktura VAT, jeden kontakt, umowy od 3 miesięcy. Mieszkania dla pracowników w Rybniku, Wodzisławiu, Jastrzębiu, Żorach i Radlinie.",
   keywords: [
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "/dla-firm" },
   openGraph: {
-    title: "Mieszkania dla firm — Rybnik, Wodzisław, Jastrzębie",
+    title: "Mieszkania dla firm - Rybnik, Wodzisław, Jastrzębie",
     description:
       "Umeblowane mieszkania na wynajem dla firm. Faktura VAT, jeden kontakt, umowy od 3 miesięcy. Zachodni Śląsk: Rybnik, Wodzisław, Jastrzębie, Żory.",
     url: "/dla-firm",
@@ -52,7 +52,7 @@ const FAQ_JSON_LD = {
       acceptedAnswer: {
         "@type": "Answer",
         text:
-          "Najczęściej zawieramy umowy na 3, 6, 12 lub 24 miesiące. Krótsze umowy dla ekip montażowych są możliwe — wymagają indywidualnej rozmowy.",
+          "Najczęściej zawieramy umowy na 3, 6, 12 lub 24 miesiące. Krótsze umowy dla ekip montażowych są możliwe - wymagają indywidualnej rozmowy.",
       },
     },
     {
@@ -61,7 +61,7 @@ const FAQ_JSON_LD = {
       acceptedAnswer: {
         "@type": "Answer",
         text:
-          "Tak. Mówimy po polsku, angielsku i ukraińsku — pracownika wprowadzamy bez pośrednictwa Twojego HR. W razie potrzeby pomagamy z meldunkiem czasowym.",
+          "Tak. Mówimy po polsku, angielsku i ukraińsku - pracownika wprowadzamy bez pośrednictwa Twojego HR. W razie potrzeby pomagamy z meldunkiem czasowym.",
       },
     },
     {
@@ -79,7 +79,7 @@ const FAQ_JSON_LD = {
       acceptedAnswer: {
         "@type": "Answer",
         text:
-          "Najem mieszkania dla pracownika jest standardowo kosztem uzyskania przychodu. W kwestii VAT zalecamy konsultację z księgową — orzecznictwo NSA jest korzystne, ale praktyka skarbówki bywa różna.",
+          "Najem mieszkania dla pracownika jest standardowo kosztem uzyskania przychodu. W kwestii VAT zalecamy konsultację z księgową - orzecznictwo NSA jest korzystne, ale praktyka skarbówki bywa różna.",
       },
     },
   ],

@@ -5,12 +5,12 @@ import { Footer } from "@/components/site/Footer";
 import { Reveal } from "@/components/ui/Reveal";
 
 export const metadata: Metadata = {
-  title: "Przewodnik Inwestora — Fibra Nieruchomości",
+  title: "Przewodnik Inwestora - Fibra Nieruchomości",
   description:
     "Bezpieczne lokowanie kapitału w gotowe „pod klucz” apartamenty z najmem. Model, parametry finansowe, zabezpieczenia i FAQ inwestora.",
   alternates: { canonical: "/przewodnik-inwestora" },
   openGraph: {
-    title: "Przewodnik Inwestora — Fibra Nieruchomości",
+    title: "Przewodnik Inwestora - Fibra Nieruchomości",
     description:
       "Bezpieczne lokowanie kapitału w gotowe „pod klucz” apartamenty z najmem. Model, parametry finansowe, zabezpieczenia i FAQ inwestora.",
     url: "/przewodnik-inwestora",
@@ -24,25 +24,25 @@ const WHY_2025 = [
     n: "01",
     title: "Niski poziom pustostanów",
     body:
-      "Rekordowo niski poziom pustostanów w miastach < 100 tys. mieszkańców — popyt na najem stabilny i przewidywalny.",
+      "Rekordowo niski poziom pustostanów w miastach < 100 tys. mieszkańców - popyt na najem stabilny i przewidywalny.",
   },
   {
     n: "02",
     title: "Realnie ujemne stopy",
     body:
-      "Stopy depozytowe w bankach są realnie ujemne — kapitał trzymany na lokacie traci na wartości.",
+      "Stopy depozytowe w bankach są realnie ujemne - kapitał trzymany na lokacie traci na wartości.",
   },
   {
     n: "03",
     title: "Inflacja kosztów budowy",
     body:
-      "Materiały i robocizna drożeją w skali roku — dziś kupujesz taniej niż za dwa lata.",
+      "Materiały i robocizna drożeją w skali roku - dziś kupujesz taniej niż za dwa lata.",
   },
   {
     n: "04",
     title: "Real assets w cenie",
     body:
-      "Inwestorzy przenoszą środki z lokat i obligacji do aktywów rzeczowych — nieruchomość pracuje na siebie.",
+      "Inwestorzy przenoszą środki z lokat i obligacji do aktywów rzeczowych - nieruchomość pracuje na siebie.",
   },
 ];
 
@@ -59,13 +59,13 @@ const MODEL_STEPS = [
     n: "01",
     title: "Kup",
     body:
-      "Kupujesz lokal z pełnym wykończeniem pod klucz — łazienka, kuchnia, AGD w cenie.",
+      "Kupujesz lokal z pełnym wykończeniem pod klucz - łazienka, kuchnia, AGD w cenie.",
   },
   {
     n: "02",
     title: "Wynajmij",
     body:
-      "My (Fibra) znajdujemy najemcę, podpisujemy umowę i rozliczamy media — bez udziału właściciela.",
+      "My (Fibra) znajdujemy najemcę, podpisujemy umowę i rozliczamy media - bez udziału właściciela.",
   },
   {
     n: "03",
@@ -93,7 +93,7 @@ const SAFETY = [
     n: "02",
     title: "Rachunek powierniczy",
     body:
-      "Środki trafiają do nas dopiero po postępie robót — wypłacane po zakończonym etapie sprawdzonym przez inspektorów banku.",
+      "Środki trafiają do nas dopiero po postępie robót - wypłacane po zakończonym etapie sprawdzonym przez inspektorów banku.",
   },
   {
     n: "03",
@@ -110,14 +110,14 @@ const SAFETY = [
     n: "05",
     title: "Zarządzanie najmem A–Z",
     body:
-      "Obsługujemy cały proces najmu — ogromna oszczędność czasu i minimalny pustostan.",
+      "Obsługujemy cały proces najmu - ogromna oszczędność czasu i minimalny pustostan.",
   },
 ];
 
 const FAQ = [
   {
     q: "Czy mogę finansować zakup kredytem?",
-    a: "Tak — współpracujące banki finansują nawet 80 % wartości mieszkania, a możliwe jest, aby rata kredytu była niższa niż czynsz najmu.",
+    a: "Tak - współpracujące banki finansują nawet 80 % wartości mieszkania, a możliwe jest, aby rata kredytu była niższa niż czynsz najmu.",
   },
   {
     q: "Co z podatkiem?",
@@ -125,7 +125,7 @@ const FAQ = [
   },
   {
     q: "A jeśli najemca nie płaci?",
-    a: "Fibra monitoruje płatności, prowadzi windykację i — w razie potrzeby — rozwiązuje umowę z najemcą oraz poszukuje kolejnego. Dodatkowym zabezpieczeniem dla inwestora jest pobierana od najemcy kaucja.",
+    a: "Fibra monitoruje płatności, prowadzi windykację i - w razie potrzeby - rozwiązuje umowę z najemcą oraz poszukuje kolejnego. Dodatkowym zabezpieczeniem dla inwestora jest pobierana od najemcy kaucja.",
   },
 ];
 
@@ -173,8 +173,7 @@ export default function PrzewodnikInwestoraPage() {
               </Reveal>
               <Reveal delay={180}>
                 <p className="mt-5 md:mt-8 text-[16px] md:text-[19px] leading-[1.55] text-ink-700 text-pretty">
-                  Opracowanie Grupy Fibra Sp. z o.o. — czerwiec 2025. Co krok, co liczba i co
-                  ryzyko — pokazujemy bez owijania w bawełnę.
+                  Opracowanie Grupy Fibra Sp. z o.o.
                 </p>
               </Reveal>
             </div>
@@ -277,7 +276,7 @@ export default function PrzewodnikInwestoraPage() {
                   className="font-display text-ink-950 tracking-tight leading-[1.05] text-balance"
                   style={{ fontSize: "clamp(1.75rem, 4vw, 3rem)" }}
                 >
-                  „Kup — Wynajmij — Odbieraj przelew”.
+                  „Kup - Wynajmij - Odbieraj przelew”.
                 </h2>
               </Reveal>
             </div>

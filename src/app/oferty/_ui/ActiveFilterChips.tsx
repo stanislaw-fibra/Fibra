@@ -5,7 +5,7 @@ import { FEATURE_LABELS, CATEGORY_OPTIONS, type Filters } from "../filters-state
 type Props = {
   filters: Filters;
   apply: (patch: Partial<Filters>) => void;
-  /** Lista agentów (slug→nazwa) — żeby chip pokazał imię agenta zamiast sluga. */
+  /** Lista agentów (slug→nazwa) - żeby chip pokazał imię agenta zamiast sluga. */
   agents?: { slug: string; name: string }[];
 };
 

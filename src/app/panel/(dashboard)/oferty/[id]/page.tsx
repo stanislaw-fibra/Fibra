@@ -87,7 +87,7 @@ export default async function PanelOfferEditPage({ params }: Props) {
 
   const admin = createSupabaseAdmin();
   // Najpierw spróbuj z `youtube_url`. Jeśli kolumny nie ma w bazie (migracja nieuruchomiona),
-  // odpalimy fallback bez tej kolumny — żeby panel nie padał całkowicie.
+  // odpalimy fallback bez tej kolumny - żeby panel nie padał całkowicie.
   let offerRes = await admin.from("offers").select("*, youtube_url").eq("id", id).maybeSingle();
   if (offerRes.error?.message?.toLowerCase().includes("youtube_url")) {
     offerRes = await admin.from("offers").select("*").eq("id", id).maybeSingle();
@@ -97,7 +97,7 @@ export default async function PanelOfferEditPage({ params }: Props) {
 
   const row = offer as OfferRecord;
 
-  // Ownership: agent może edytować tylko swoje oferty (admin — wszystko).
+  // Ownership: agent może edytować tylko swoje oferty (admin - wszystko).
   // Redirect na listę jeśli próbuje wejść w cudzą ofertę.
   await requireOfferOwnership(row.agent_id);
 
@@ -245,7 +245,7 @@ export default async function PanelOfferEditPage({ params }: Props) {
         <section className="rounded-[var(--radius-md)] border border-white/10 bg-white/[0.04] p-6 md:p-8 mt-10">
           <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-300 mb-2">Rzut (zdjęcie / PDF)</h2>
           <p className="text-[13px] text-ink-300 mb-6">
-            Wystarczy upuścić plik na pole — zostanie zapisany od razu, bez dodatkowego kliknięcia.
+            Wystarczy upuścić plik na pole - zostanie zapisany od razu, bez dodatkowego kliknięcia.
             Pliki dodane tutaj pojawią się w przycisku „Rzut 3D” na publicznej stronie oferty.
           </p>
           <OfferFloorPlanUploadForm

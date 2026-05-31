@@ -24,7 +24,7 @@ async function ensureUniqueOfferSlug(admin: SupabaseClient, candidate: string): 
 
 /**
  * Odświeża publiczną stronę oferty po kanonicznym slug-u (publiczny URL to
- * `/oferty/{slug}`, nie `/oferty/{uuid}`). Gdy slug jest pusty — fallback do UUID-a.
+ * `/oferty/{slug}`, nie `/oferty/{uuid}`). Gdy slug jest pusty - fallback do UUID-a.
  */
 async function revalidateOfferPublicPath(admin: SupabaseClient, offerId: string) {
   const { data } = await admin.from("offers").select("slug").eq("id", offerId).maybeSingle();
@@ -46,8 +46,8 @@ async function requireSessionUser() {
 
 /**
  * Sprawdza scope (admin vs agent) i ownership oferty.
- * - Admin (brak `agent_id` w meta) — może wszystko.
- * - Agent — może edytować TYLKO oferty gdzie `offers.agent_id` === jego `user_metadata.agent_id`.
+ * - Admin (brak `agent_id` w meta) - może wszystko.
+ * - Agent - może edytować TYLKO oferty gdzie `offers.agent_id` === jego `user_metadata.agent_id`.
  *
  * Zwraca scope { kind, agentId? }. Robi redirect przy braku uprawnień.
  */
@@ -78,7 +78,7 @@ async function resolveAgentIdForCreation(formAgentId: string | null): Promise<st
   const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
   const rawAgentId = meta.agent_id;
   const agentId = typeof rawAgentId === "string" && rawAgentId.trim() ? rawAgentId.trim() : null;
-  // Agent musi przypisać samego siebie — admin może wybrać kogokolwiek.
+  // Agent musi przypisać samego siebie - admin może wybrać kogokolwiek.
   return agentId ?? formAgentId;
 }
 
@@ -94,7 +94,7 @@ function boolFromCheckbox(v: FormDataEntryValue | null): boolean {
 
 /**
  * Bezpieczne sanityzowanie opisu z formularza panelu admina. Bartosz prosił, żeby
- * dało się dodawać boldy/kursywy/podkreślenia ręcznie — przepuszczamy whitelisted
+ * dało się dodawać boldy/kursywy/podkreślenia ręcznie - przepuszczamy whitelisted
  * inline tagi, resztę agresywnie strip. To samo robi importer dla treści z Galactici.
  */
 function sanitizedDescriptionFromForm(v: FormDataEntryValue | null): string | null {
@@ -184,7 +184,7 @@ export async function createOfferAction(formData: FormData) {
   }
 
   const advertisement_text = strOrNull(formData.get("advertisement_text")) ?? title.slice(0, 50);
-  // Agent z meta force-przypisany — admin może wybrać kogokolwiek.
+  // Agent z meta force-przypisany - admin może wybrać kogokolwiek.
   const agent_id = await resolveAgentIdForCreation(strOrNull(formData.get("agent_id")));
 
   let agent_name: string | null = null;
@@ -270,7 +270,7 @@ export async function updateOfferAction(formData: FormData) {
   const id = strOrNull(formData.get("id"));
   if (!id) redirect(`/panel/oferty?error=${encodeURIComponent("Brak ID oferty.")}`);
 
-  // Ownership: agent może edytować tylko swoje oferty; admin — wszystkie.
+  // Ownership: agent może edytować tylko swoje oferty; admin - wszystkie.
   const scope = await requireOfferAccess(id);
   const admin = createSupabaseAdmin();
 

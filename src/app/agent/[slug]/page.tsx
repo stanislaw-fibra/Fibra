@@ -16,9 +16,9 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const agent = await getPublicAgentBySlug(slug);
-  if (!agent) return { title: "Agent — Fibra Nieruchomości" };
+  if (!agent) return { title: "Agent - Fibra Nieruchomości" };
   return {
-    title: `${agent.name} — oferty | Fibra Nieruchomości`,
+    title: `${agent.name} - oferty | Fibra Nieruchomości`,
     description: `Auto-prezentacja i aktualne oferty: ${agent.name}, ${agent.role}. Fibra Nieruchomości w Radlinie.`,
   };
 }
@@ -68,7 +68,7 @@ export default async function AgentPage({ params }: Props) {
 
         {agentOffers.length > 0 ? (
           <Suspense fallback={null}>
-            {/* Reużywamy katalogu — filtry + sortowanie + view toggle działają w obrębie ofert agenta. */}
+            {/* Reużywamy katalogu - filtry + sortowanie + view toggle działają w obrębie ofert agenta. */}
             <OfertyPageClient allOffers={agentOffers} />
           </Suspense>
         ) : (
@@ -79,7 +79,7 @@ export default async function AgentPage({ params }: Props) {
                   W tej chwili nie ma aktywnych ofert.
                 </p>
                 <p className="mt-3 text-ink-700 text-[15px] md:text-[16px]">
-                  Zadzwoń lub napisz — chętnie pomogę znaleźć nieruchomość albo
+                  Zadzwoń lub napisz - chętnie pomogę znaleźć nieruchomość albo
                   doradzić w sprzedaży.
                 </p>
               </div>

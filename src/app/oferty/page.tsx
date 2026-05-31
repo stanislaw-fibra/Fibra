@@ -36,7 +36,7 @@ export default async function OfertyPage({ searchParams }: Props) {
     <>
       <Nav />
       <main className="flex-1 pt-[72px]">
-        {/* Pasek nagłówkowy katalogu — celowo bardzo niski, żeby oferty (wraz
+        {/* Pasek nagłówkowy katalogu - celowo bardzo niski, żeby oferty (wraz
             z paskiem filtrów) były widoczne nad fold od razu po wejściu, na
             mobile i na desktop. Pełny opisowy hero przeniesiony jest pod
             paskiem filtrów (sticky-like flow), ten blok służy tylko jako
@@ -70,7 +70,7 @@ export default async function OfertyPage({ searchParams }: Props) {
           </div>
         </section>
 
-        {/* Agent hero — pasek u góry listy gdy aktywny `?agent=<slug>` filter.
+        {/* Agent hero - pasek u góry listy gdy aktywny `?agent=<slug>` filter.
             Pokazuje wideo-autoprezentację + CTA do pełnego profilu. */}
         {agent ? <AgentHero agent={agent} variant="compact" /> : null}
 

@@ -42,9 +42,9 @@ type FilmSlotProps = {
 };
 
 /**
- * Slot wgrywania krótkiego, pionowego filmu na Cloudflare Stream — to materiał, który gra
+ * Slot wgrywania krótkiego, pionowego filmu na Cloudflare Stream - to materiał, który gra
  * w pętli na karcie oferty na stronie głównej i w katalogu. Klient zwracał uwagę, że dla dłuższych
- * filmów nie ma sensu wgrywać dużych plików — zamiast tego mamy oddzielne pole „Link do YouTube"
+ * filmów nie ma sensu wgrywać dużych plików - zamiast tego mamy oddzielne pole „Link do YouTube"
  * w formularzu ogólnym oferty.
  */
 function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
@@ -205,7 +205,7 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
     <div className="rounded-[var(--radius-md)] border border-white/10 bg-ink-900/35 p-5 sm:p-6 flex flex-col min-h-[260px]">
       <h3 className="text-[16px] font-semibold text-white leading-snug">Krótki, pionowy film</h3>
       <p className="mt-2 text-[13px] text-ink-300 leading-relaxed">
-        Materiał wyświetlany na karcie oferty — strona główna, katalog. <strong className="text-white">Bez filmu oferta nie pojawi się na stronie.</strong>
+        Materiał wyświetlany na karcie oferty - strona główna, katalog. <strong className="text-white">Bez filmu oferta nie pojawi się na stronie.</strong>
       </p>
 
       {!showDropzone ? (
@@ -216,7 +216,7 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
             </div>
           ) : (
             <p className="text-[12px] text-ink-300 leading-relaxed">
-              Film jest zapisany. Podgląd w panelu nie jest dostępny — możesz sprawdzić odtwarzanie na publicznej stronie oferty.
+              Film jest zapisany. Podgląd w panelu nie jest dostępny - możesz sprawdzić odtwarzanie na publicznej stronie oferty.
             </p>
           )}
           <button
@@ -269,7 +269,7 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
             <p className="text-[15px] font-semibold text-white leading-snug max-w-[28ch]">
               Przeciągnij plik tutaj lub kliknij, żeby wybrać
             </p>
-            <p className="mt-3 text-[12px] text-ink-300">MP4, MOV, do 500 MB. Wgranie i powiązanie zachodzi od razu — bez dodatkowego „Zapisz".</p>
+            <p className="mt-3 text-[12px] text-ink-300">MP4, MOV, do 500 MB. Wgranie i powiązanie zachodzi od razu - bez dodatkowego „Zapisz".</p>
           </div>
         </>
       )}
@@ -328,7 +328,7 @@ export function OfferFilmSection({
       <h2 className="font-display text-[1.45rem] md:text-[1.6rem] text-white leading-tight">Filmy do oferty</h2>
       <p className="mt-3 text-[14px] text-ink-200 max-w-[60ch] leading-relaxed">
         Krótki film (Cloudflare) gra na karcie oferty. Dłuższą prezentację dodajesz przez link
-        do YouTube w sekcji powyżej — nic więcej nie musisz robić.
+        do YouTube w sekcji powyżej - nic więcej nie musisz robić.
       </p>
 
       <div className="mt-8 grid gap-5 lg:grid-cols-2">
@@ -361,9 +361,9 @@ export function OfferFilmSection({
             )}
           </div>
 
-          {/* Przycisk-kotwica — przewija stronę do pola „Link do YouTube" w sekcji „Dane oferty"
-              i fokusuje input. Tekst zmienia się dynamicznie: gdy linku nie ma — „Dodaj link",
-              gdy jest — „Zmień link". Nie używamy <a href="#…"> żeby zostać w tym samym scrollu
+          {/* Przycisk-kotwica - przewija stronę do pola „Link do YouTube" w sekcji „Dane oferty"
+              i fokusuje input. Tekst zmienia się dynamicznie: gdy linku nie ma - „Dodaj link",
+              gdy jest - „Zmień link". Nie używamy <a href="#…"> żeby zostać w tym samym scrollu
               i wymusić focus po przewinięciu. */}
           <button
             type="button"
@@ -412,12 +412,12 @@ export function OfferFilmSection({
         ) : (
           <div className="space-y-4">
             <p className="text-[12px] text-ink-300 leading-relaxed">
-              Tylko dla administratora technicznego — gdy nie korzystasz z przesyłania pliku powyżej.
+              Tylko dla administratora technicznego - gdy nie korzystasz z przesyłania pliku powyżej.
             </p>
             <form key={`${shortVideoId ?? ""}`} action={upsertOfferMediaAction} className="space-y-4 max-w-xl">
               <input type="hidden" name="offer_id" value={offerId} />
               <label className="block">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-300">ID — krótki film (Cloudflare)</span>
+                <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-300">ID - krótki film (Cloudflare)</span>
                 <input
                   name="cloudflare_video_short_id"
                   type="text"
@@ -427,7 +427,7 @@ export function OfferFilmSection({
                 />
               </label>
               <p className="text-[12px] text-ink-300">
-                Możesz wyczyścić i zapisać — usuniesz powiązanie z krótkim filmem dla tej oferty.
+                Możesz wyczyścić i zapisać - usuniesz powiązanie z krótkim filmem dla tej oferty.
               </p>
               <div className="flex flex-wrap gap-3">
                 <button

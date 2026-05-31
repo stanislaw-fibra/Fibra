@@ -32,7 +32,7 @@ export async function upsertOffer(
   sourceBranch: string = "unknown",
 ): Promise<OfferSyncResult> {
   if (mapped.galactica_offer_id.startsWith("MANUAL-")) {
-    // Spec: nie nadpisuj ofert ręcznych — ale taki ID nie powinien nigdy trafić z Galactiki.
+    // Spec: nie nadpisuj ofert ręcznych - ale taki ID nie powinien nigdy trafić z Galactiki.
     // Zwracamy skipped dla bezpieczeństwa.
     const { data } = await supabase
       .from("offers")
@@ -136,7 +136,7 @@ export async function upsertOffer(
 }
 
 /**
- * Zapewnia unikalność slug-a. Przy kolizji (niezwykle rzadkie — tylko gdy dwa różne
+ * Zapewnia unikalność slug-a. Przy kolizji (niezwykle rzadkie - tylko gdy dwa różne
  * tytuły dadzą identyczny slug i Galactica ID też się pokryje) doklejamy krótki
  * losowy suffix.
  */
@@ -178,7 +178,7 @@ export async function deactivateMissingOffers(
 ): Promise<number> {
   const branch = (sourceBranch ?? "").trim();
   if (!branch) {
-    // Bez jawnej gałęzi nie dezaktywujemy niczego — zabezpieczenie przed
+    // Bez jawnej gałęzi nie dezaktywujemy niczego - zabezpieczenie przed
     // masowym zgaszeniem cudzych ofert.
     return 0;
   }

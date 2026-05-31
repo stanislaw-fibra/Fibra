@@ -47,7 +47,7 @@ export interface DownloadedZip {
 }
 
 // Pobiera NAJNOWSZY plik oferty_*.zip z FTP do lokalnego /tmp.
-// skipFilenames — lista nazw plików, które zostały już przetworzone (pomiń je).
+// skipFilenames - lista nazw plików, które zostały już przetworzone (pomiń je).
 export async function downloadLatestOffersZip(
   config: FtpConfig = getFtpConfig(),
   skipFilenames: string[] = [],

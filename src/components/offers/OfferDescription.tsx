@@ -1,13 +1,13 @@
 // Prezentacja opisu oferty z CRM.
 //
-// Zasady (prosta, świadoma logika — nie markdown):
+// Zasady (prosta, świadoma logika - nie markdown):
 // - puste linie dzielą tekst na bloki
 // - w bloku jednolinijkowym krótka linia kończąca się `:` / `1. ...` / bez
 //   interpunkcji zdaniowej → podnagłówek sekcji
 // - blok wielolinijkowy zaczynający się myślnikiem (`-` / `•` / `*`) → lista
 // - w pozostałych blokach paragraf: wewnętrzne \n zachowujemy jako <br/>,
 //   dzięki czemu treści z Galactiki (punkty bez myślników, oddzielone tylko
-//   newline'em) pozostają czytelne — zamiast sklejać się w jeden ciąg.
+//   newline'em) pozostają czytelne - zamiast sklejać się w jeden ciąg.
 
 type Block =
   | { type: "paragraph"; lines: string[] }
@@ -38,7 +38,7 @@ function looksLikeStandaloneHeading(line: string): boolean {
 }
 
 function parseDescription(raw: string): Block[] {
-  // Bloki oddzielone pustymi liniami. W bloku — linie.
+  // Bloki oddzielone pustymi liniami. W bloku - linie.
   const rawBlocks = raw
     .split(/\n{2,}/)
     .map((chunk) =>
@@ -56,7 +56,7 @@ function parseDescription(raw: string): Block[] {
     const t = stripInlineTagsForDetect(line);
     return HEADING_COLON_RE.test(t) && t.length <= MAX_HEADING_LEN;
   };
-  // Treść nagłówka — usuwamy tylko końcowy dwukropek, ale ZACHOWUJEMY inline tagi
+  // Treść nagłówka - usuwamy tylko końcowy dwukropek, ale ZACHOWUJEMY inline tagi
   // (`<b>`, `<u>`, `<i>`), żeby h3 mógł je wyrenderować przez `hasInlineHtml` w renderze.
   const cleanHeadingText = (line: string): string => {
     // Usuń `:` na końcu, ale ZACHOWAJ inline tagi (`<b>`, `<u>`, `<i>`).
@@ -90,7 +90,7 @@ function parseDescription(raw: string): Block[] {
       }
 
       if (looksLikeStandaloneHeading(line)) {
-        // Zachowujemy oryginalną linię z inline tagami — renderer wyemituje rich HTML.
+        // Zachowujemy oryginalną linię z inline tagami - renderer wyemituje rich HTML.
         blocks.push({ type: "heading", text: line });
         continue;
       }
@@ -153,9 +153,9 @@ function hasInlineHtml(line: string): boolean {
 
 /**
  * Sanityzuje i normalizuje inline-HTML w jednym wierszu opisu (b, strong, i, em, u).
- * Wszystko inne — atrybuty, tagi blokowe, spurious markup — zostaje usunięte. Bezpieczne
+ * Wszystko inne - atrybuty, tagi blokowe, spurious markup - zostaje usunięte. Bezpieczne
  * do bezpośredniego wsadzenia w `dangerouslySetInnerHTML`. Defense-in-depth: na poziomie
- * importu mamy już sanityzację, ale renderujemy też tu — żeby ręczne edycje w panelu
+ * importu mamy już sanityzację, ale renderujemy też tu - żeby ręczne edycje w panelu
  * nie wprowadziły dziury bezpieczeństwa.
  */
 function sanitizeInlineHtml(line: string): string {
@@ -178,7 +178,7 @@ function sanitizeInlineHtml(line: string): string {
 function renderLine(line: string, key: number, isFirst: boolean) {
   // Jeśli linia ma już rich-formatting z Galactiki (np. `<b>oferta</b> zaprasza`),
   // renderujemy ją przez sanityzowany dangerouslySetInnerHTML. Klient prosił, żeby boldy
-  // i kursywy z Galactici były szanowane 1:1 — to jest dokładnie tu.
+  // i kursywy z Galactici były szanowane 1:1 - to jest dokładnie tu.
   if (hasInlineHtml(line)) {
     return (
       <span

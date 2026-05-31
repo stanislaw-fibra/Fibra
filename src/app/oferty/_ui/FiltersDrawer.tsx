@@ -13,7 +13,7 @@ type Props = {
   matchesCount: number;
   /** Lista miast zbudowana z ofert (do sekcji „Lokalizacja"). */
   cities: string[];
-  /** Lista agentów (slug + nazwa) zbudowana z ofert — do sekcji „Agent". */
+  /** Lista agentów (slug + nazwa) zbudowana z ofert - do sekcji „Agent". */
   agents: { slug: string; name: string }[];
 };
 

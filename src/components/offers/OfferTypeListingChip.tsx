@@ -67,7 +67,7 @@ const KIND_ICON: Record<OfferKind, () => ReactElement> = {
   lokal: ShopIcon,
 };
 
-/** Krótka, zgrabna nazwa kategorii — żeby zawsze zmieściło się w jednej linii nad filmem. */
+/** Krótka, zgrabna nazwa kategorii - żeby zawsze zmieściło się w jednej linii nad filmem. */
 function shortKindLabel(kind?: OfferKind, kindLabel?: string): string {
   // Skracamy „Mieszkanie" do „Mieszk." i „Penthouse" do „Pent.", żeby na mobilnym kaflu (2x2)
   // chip nie łamał się w drugą linię nawet z „Wynajem" obok.
@@ -85,10 +85,10 @@ function listingShort(listingType: Offer["listingType"] | undefined): string {
  *
  * Klient zwracał uwagę, że dwa osobne chipy („MIESZKANIE" + „WYNAJEM") razem zasłaniały zbyt dużą
  * część filmu i potrafiły się łamać w dwie linie nawet na desktopie. Tu mamy jeden pasek
- * `[ikona] Mieszk. · Wynajem` — gwarantowana jedna linijka, ~50% mniejszy ślad nad kadrem,
+ * `[ikona] Mieszk. · Wynajem` - gwarantowana jedna linijka, ~50% mniejszy ślad nad kadrem,
  * a info o typie i transakcji od pierwszej sekundy widoczne.
  *
- * Wariant `media-dark` jest używany na karcie wideo (ciemny kadr — biały tekst, półprzezroczyste tło).
+ * Wariant `media-dark` jest używany na karcie wideo (ciemny kadr - biały tekst, półprzezroczyste tło).
  */
 export function OfferTypeListingChip({
   kind,
@@ -145,10 +145,10 @@ export function OfferTypeListingChip({
     );
   }
 
-  // media-dark — domyślny wariant nad kadrem wideo. Tłumione tło, biały tekst, kolorowy akcent
+  // media-dark - domyślny wariant nad kadrem wideo. Tłumione tło, biały tekst, kolorowy akcent
   // przy „Zakup"/„Wynajem", żeby od pierwszej sekundy było wiadomo o jaką transakcję chodzi.
   // Na bardzo wąskich kaflach 2x2 (mobile) chip jest celowo zwarty: drobniejszy padding,
-  // mniejszy font i kropka jako separator zamiast `·` ze spacjami — zmieści się obok mute buttona.
+  // mniejszy font i kropka jako separator zamiast `·` ze spacjami - zmieści się obok mute buttona.
   return (
     <span
       title={ariaLabel}

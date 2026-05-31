@@ -3,9 +3,9 @@ import { DlaFirmContactForm } from "./DlaFirmContactForm";
 import { DlaFirmFaq } from "./DlaFirmFaq";
 
 /* -------------------------------------------------------------------------- */
-/* /dla-firm — landing B2B                                                     */
+/* /dla-firm - landing B2B                                                     */
 /* Ton: spokojny, korporacyjny, dużo oddechu. Bez marketingowego żargonu,      */
-/* bez „Persona A/B/C/D", bez liczb-zapchajdziur. Treść skondensowana —        */
+/* bez „Persona A/B/C/D", bez liczb-zapchajdziur. Treść skondensowana -        */
 /* HR-owiec ma w 30 sekund wiedzieć, czego się spodziewać.                    */
 /* -------------------------------------------------------------------------- */
 
@@ -23,7 +23,7 @@ const CITIES = [
 const VALUES = [
   {
     title: "Jeden kontakt, jedna faktura",
-    body: "Umowa B2B z Grupą Fibra. Co miesiąc jedna faktura VAT za wszystkie mieszkania — niezależnie od liczby lokali i miast.",
+    body: "Umowa B2B z Grupą Fibra. Co miesiąc jedna faktura VAT za wszystkie mieszkania - niezależnie od liczby lokali i miast.",
   },
   {
     title: "Mieszkania gotowe do wprowadzenia",
@@ -66,7 +66,7 @@ const STEPS = [
 const SEGMENTS = [
   {
     title: "Relokacja specjalistów",
-    body: "Mieszkania pod osoby z wyższymi oczekiwaniami — inżynierowie, kadra zarządzająca, zespoły IT relokowane do śląskich oddziałów.",
+    body: "Mieszkania pod osoby z wyższymi oczekiwaniami - inżynierowie, kadra zarządzająca, zespoły IT relokowane do śląskich oddziałów.",
   },
   {
     title: "Projekty i serwis w terenie",
@@ -102,7 +102,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Co jeśli pracownik wyprowadzi się wcześniej niż planowano?",
-    a: "Standardowa umowa pozwala wypowiedzieć ją z jednomiesięcznym okresem, bez kar — przy zgłoszeniu z wyprzedzeniem.",
+    a: "Standardowa umowa pozwala wypowiedzieć ją z jednomiesięcznym okresem, bez kar - przy zgłoszeniu z wyprzedzeniem.",
   },
   {
     q: "Czy można zakwaterować dwie osoby w jednym mieszkaniu?",
@@ -126,7 +126,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Jak szybko można podpisać umowę i wprowadzić pracownika?",
-    a: "Standardowo 5–10 dni roboczych od pierwszego kontaktu do przekazania kluczy. W trybie pilnym — następnego dnia, jeśli mamy gotowy lokal.",
+    a: "Standardowo 5–10 dni roboczych od pierwszego kontaktu do przekazania kluczy. W trybie pilnym - następnego dnia, jeśli mamy gotowy lokal.",
   },
   {
     q: "Co jeśli w trakcie roku będę potrzebować więcej mieszkań?",
@@ -207,7 +207,7 @@ export function DlaFirmLanding() {
 
             <Reveal delay={320}>
               <p className="mt-12 md:mt-16 text-[13.5px] text-white/55 leading-relaxed max-w-2xl">
-                Odpowiadamy w ciągu dwóch godzin roboczych. Działamy lokalnie —
+                Odpowiadamy w ciągu dwóch godzin roboczych. Działamy lokalnie -
                 Grupa Fibra, biuro w Radlinie.
               </p>
             </Reveal>
@@ -503,7 +503,7 @@ export function DlaFirmLanding() {
               </Reveal>
               <Reveal delay={140}>
                 <p className="mt-6 text-[15.5px] text-ink-700 leading-[1.7] max-w-md">
-                  Brak odpowiedzi na konkretne pytanie? Zapraszamy do kontaktu —
+                  Brak odpowiedzi na konkretne pytanie? Zapraszamy do kontaktu -
                   odpowiadamy w ciągu dwóch godzin roboczych.
                 </p>
               </Reveal>

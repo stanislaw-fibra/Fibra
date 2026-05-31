@@ -3,12 +3,12 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Cookiebot CookieDeclaration — auto-generowana lista cookies używanych
+ * Cookiebot CookieDeclaration - auto-generowana lista cookies używanych
  * przez serwis. Skrypt `cd.js` musi być wstawiony BEZPOŚREDNIO w miejscu
  * gdzie chcemy widzieć tabelę (Cookiebot wstawia HTML wokół skryptu).
  *
  * Dlatego nie używamy `next/script` (strategy="afterInteractive" pakuje
- * skrypt do końca <body>) — montujemy element przez `appendChild` w ref.
+ * skrypt do końca <body>) - montujemy element przez `appendChild` w ref.
  */
 export function CookieDeclaration({ cbid }: { cbid: string }) {
   const containerRef = useRef<HTMLDivElement | null>(null);

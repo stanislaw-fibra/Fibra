@@ -89,7 +89,7 @@ export function parseGalacticaXml(xml: string): ParsedXml {
       }
     }
 
-    // <oferta_usun> jest albo w <lista_ofert> albo luzem — obsłuż oba
+    // <oferta_usun> jest albo w <lista_ofert> albo luzem - obsłuż oba
     const usunRoot1 = (lista.oferta_usun as unknown[] | undefined) ?? [];
     const usunRoot2 = ((plik as Record<string, unknown>).oferta_usun as unknown[] | undefined) ?? [];
     for (const u of [...usunRoot1, ...usunRoot2]) {

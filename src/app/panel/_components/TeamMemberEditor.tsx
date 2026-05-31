@@ -28,9 +28,9 @@ type Props = {
   photoUrl?: string;
   /** searchParam-driven flag: czy ten konkretny agent dostał ?saved={id}. */
   justSaved?: boolean;
-  /** Jeśli false — kolumny migracji jeszcze nie ma; chowamy upload wideo i pokazujemy info. */
+  /** Jeśli false - kolumny migracji jeszcze nie ma; chowamy upload wideo i pokazujemy info. */
   videoEnabled?: boolean;
-  /** Publiczny slug agenta — gdy ustawiony, pokazujemy widget „Skopiuj link publiczny". */
+  /** Publiczny slug agenta - gdy ustawiony, pokazujemy widget „Skopiuj link publiczny". */
   slug?: string;
 };
 
@@ -95,9 +95,9 @@ export function TeamMemberEditor({
   const [forceReplace, setForceReplace] = useState(false);
   const [showJustSaved, setShowJustSaved] = useState<boolean>(justSaved ?? false);
   const [visibleLocal, setVisibleLocal] = useState<boolean>(isVisible);
-  // Czy podgląd filmu (iframe) ma być zamontowany. Domyślnie NIE — tuż po uploadzie Cloudflare
+  // Czy podgląd filmu (iframe) ma być zamontowany. Domyślnie NIE - tuż po uploadzie Cloudflare
   // potrzebuje 15-30 sekund, żeby przetworzyć film. Przy automatycznym mount-cie iframe pokazywał
-  // „video not found". Pokazujemy poster + przycisk „Pokaż podgląd" — admin sam decyduje, kiedy
+  // „video not found". Pokazujemy poster + przycisk „Pokaż podgląd" - admin sam decyduje, kiedy
   // sprawdzić. Plus to po prostu szybciej ładuje stronę panelu (jedna mniej iframe).
   const [showVideoPreview, setShowVideoPreview] = useState(false);
   const toggleId = useId();
@@ -109,7 +109,7 @@ export function TeamMemberEditor({
     return () => window.clearTimeout(t);
   }, [showJustSaved]);
 
-  // Animowany progress bar — kopia patternu z OfferFilmSection.FilmSlot, który działa.
+  // Animowany progress bar - kopia patternu z OfferFilmSection.FilmSlot, który działa.
   useEffect(() => {
     if (phase !== "uploading" && phase !== "saving") return;
     const intervalId = window.setInterval(() => {
@@ -214,7 +214,7 @@ export function TeamMemberEditor({
           return;
         }
 
-        // Server atomicznie ustawił is_team_visible=true — odzwierciedlamy to w UI od razu,
+        // Server atomicznie ustawił is_team_visible=true - odzwierciedlamy to w UI od razu,
         // żeby admin nie musiał klikać toggle ręcznie. Form przy „Zapisz" wyśle then is_team_visible=on
         // (czyli bez zmiany w bazie), więc nic się nie cofnie.
         if (attach.visibilityEnabled) {
@@ -224,9 +224,9 @@ export function TeamMemberEditor({
         setPhase("done");
         setPct(100);
         setForceReplace(false);
-        // Reset poster cache — żeby od razu pokazać poster z nowo wgranego filmu po refresh.
+        // Reset poster cache - żeby od razu pokazać poster z nowo wgranego filmu po refresh.
         setShowVideoPreview(false);
-        // Odświeżamy stronę dopiero po 12 sekundach — wtedy Cloudflare zazwyczaj kończy
+        // Odświeżamy stronę dopiero po 12 sekundach - wtedy Cloudflare zazwyczaj kończy
         // przetwarzanie i odpalenie iframe nie pokazuje już „video not found". Klient może
         // też kliknąć „Sprawdź ponownie" w bannerze, gdy chce odświeżyć ręcznie.
         window.setTimeout(() => {
@@ -256,7 +256,7 @@ export function TeamMemberEditor({
   );
 
   // Wzorzec drag-drop kopiowany z OfferFilmSection.FilmSlot (sprawdzone że działa):
-  // proste preventDefault na Enter/Over/Leave i jeden Drop. Bez dragCounter — nie potrzeba,
+  // proste preventDefault na Enter/Over/Leave i jeden Drop. Bez dragCounter - nie potrzeba,
   // bo dropzone to jeden element, który albo trzyma stan dragging, albo nie.
   const onDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -273,27 +273,27 @@ export function TeamMemberEditor({
   return (
     <article className="rounded-[var(--radius-md)] border border-white/10 bg-paper p-6 md:p-8">
       <div className="grid gap-8 lg:grid-cols-12">
-        {/* Lewa kolumna — wideo / drop zone. */}
+        {/* Lewa kolumna - wideo / drop zone. */}
         <div className="lg:col-span-5">
           <h3 className="font-display text-[1.6rem] text-ink-950 leading-tight">{name}</h3>
           <p className="mt-1 text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-700">
             {role || "Brak roli"}
           </p>
 
-          {/* Publiczny link agenta — można skopiować i wysłać klientowi.
+          {/* Publiczny link agenta - można skopiować i wysłać klientowi.
               Klient po wejściu zobaczy autoprezentację + listę ofert tego agenta. */}
           {slug ? <AgentPublicLinkCopier slug={slug} /> : null}
 
-          {/* Wariant 1: jest film — pokazujemy poster (miniaturę z Cloudflare) + przycisk
+          {/* Wariant 1: jest film - pokazujemy poster (miniaturę z Cloudflare) + przycisk
               „Pokaż podgląd". Iframe jest montowany TYLKO po kliknięciu przycisku, żeby
               tuż po uploadzie nie pokazywać „video not found", póki Cloudflare przetwarza film.
-              Plus szybciej ładuje stronę panelu — bez auto-iframe per agent. */}
+              Plus szybciej ładuje stronę panelu - bez auto-iframe per agent. */}
           {!showDropzone && hasVideo ? (
             <div className="mt-5">
               <div className="relative aspect-[9/16] max-w-[280px] mx-auto lg:mx-0 overflow-hidden rounded-[var(--radius-md)] ring-1 ring-ink-200/60 bg-ink-950">
                 {posterUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={posterUrl} alt={`${name} — poster`} className="absolute inset-0 h-full w-full object-cover" />
+                  <img src={posterUrl} alt={`${name} - poster`} className="absolute inset-0 h-full w-full object-cover" />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center text-white/60">
                     <span className="font-display text-[2rem]">{name.charAt(0).toUpperCase()}</span>
@@ -303,7 +303,7 @@ export function TeamMemberEditor({
                 {showVideoPreview && iframeUrl ? (
                   <iframe
                     src={iframeUrl}
-                    title={`${name} — wideo`}
+                    title={`${name} - wideo`}
                     className="absolute inset-0 h-full w-full"
                     allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -355,7 +355,7 @@ export function TeamMemberEditor({
             </div>
           ) : null}
 
-          {/* Wariant 2: nie ma filmu lub user kliknął „Zmień film" — pokazujemy duży, jednoznaczny dropzone. */}
+          {/* Wariant 2: nie ma filmu lub user kliknął „Zmień film" - pokazujemy duży, jednoznaczny dropzone. */}
           {showDropzone ? (
             <>
               <input
@@ -408,7 +408,7 @@ export function TeamMemberEditor({
                       : "Przeciągnij film tutaj lub kliknij"}
                 </p>
                 <p className="mt-2 text-[12.5px] text-ink-700 leading-relaxed max-w-[28ch]">
-                  Pionowe wideo prezentacyjne agenta. MP4, MOV — do 500 MB.
+                  Pionowe wideo prezentacyjne agenta. MP4, MOV - do 500 MB.
                 </p>
 
                 {(phase === "uploading" || phase === "saving") && (
@@ -435,13 +435,13 @@ export function TeamMemberEditor({
                   }}
                   className="mt-3 text-[12px] text-ink-600 hover:text-ink-900 underline underline-offset-2"
                 >
-                  Anuluj — wróć do podglądu obecnego filmu
+                  Anuluj - wróć do podglądu obecnego filmu
                 </button>
               ) : null}
             </>
           ) : null}
 
-          {/* Stany komunikacyjne — błąd / sukces. Migracja dostaje WIELKI banner. */}
+          {/* Stany komunikacyjne - błąd / sukces. Migracja dostaje WIELKI banner. */}
           {phase === "error" && errorIsMigration && errorMsg ? (
             <div className="mt-4 max-w-[320px] mx-auto lg:mx-0 rounded-[var(--radius-md)] border-2 border-amber-400/70 bg-amber-100/70 p-4">
               <p className="text-[13px] font-bold text-amber-900 leading-tight">Migracja bazy wymagana</p>
@@ -471,7 +471,7 @@ export function TeamMemberEditor({
               </p>
               <p className="mt-2 text-[12.5px] text-emerald-900/90 leading-relaxed">
                 <strong className="text-emerald-900">Cloudflare przetwarza film ~15-30 sek.</strong>{" "}
-                Jeśli klikniesz „Pokaż podgląd" i zobaczysz „video not found" — odczekaj chwilę
+                Jeśli klikniesz „Pokaż podgląd" i zobaczysz „video not found" - odczekaj chwilę
                 i kliknij „Sprawdź ponownie" poniżej.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -503,13 +503,13 @@ export function TeamMemberEditor({
             </div>
           ) : null}
 
-          {/* Wariant 3: wideo wyłączone całkiem (migracja nie pojechała) — pokazujemy zdjęcie + info. */}
+          {/* Wariant 3: wideo wyłączone całkiem (migracja nie pojechała) - pokazujemy zdjęcie + info. */}
           {!videoEnabled ? (
             <div className="mt-5 max-w-[280px] mx-auto lg:mx-0">
               {photoUrl ? (
                 <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[var(--radius-md)] ring-1 ring-ink-200/60 bg-paper-warm">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photoUrl} alt={`${name} — zdjęcie`} className="absolute inset-0 h-full w-full object-cover" />
+                  <img src={photoUrl} alt={`${name} - zdjęcie`} className="absolute inset-0 h-full w-full object-cover" />
                 </div>
               ) : (
                 <div className="aspect-[3/4] w-full flex items-center justify-center rounded-[var(--radius-md)] ring-1 ring-ink-200/60 bg-paper-warm">
@@ -523,14 +523,14 @@ export function TeamMemberEditor({
           ) : null}
         </div>
 
-        {/* Prawa kolumna — pola tekstowe + zapis. */}
+        {/* Prawa kolumna - pola tekstowe + zapis. */}
         <div className="lg:col-span-7">
           {showJustSaved ? (
             <div className="mb-5 rounded-[var(--radius-sm)] border border-emerald-400/40 bg-emerald-50 px-4 py-3 text-[13px] text-emerald-800 flex items-center gap-2">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                 <path d="M3 7.5l3 3L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              Zapisano dane — strona /o-fibrze odświeży się automatycznie.
+              Zapisano dane - strona /o-fibrze odświeży się automatycznie.
             </div>
           ) : null}
 
@@ -640,7 +640,7 @@ export function TeamMemberEditor({
 
 /**
  * Mały widget: pokazuje publiczny URL agenta + przycisk kopiowania.
- * Po skopiowaniu — krótki "Skopiowano!" toast (2s).
+ * Po skopiowaniu - krótki "Skopiowano!" toast (2s).
  */
 function AgentPublicLinkCopier({ slug }: { slug: string }) {
   const [copied, setCopied] = useState(false);
@@ -672,7 +672,7 @@ function AgentPublicLinkCopier({ slug }: { slug: string }) {
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
             } catch {
-              // Fallback: select-and-copy (legacy) — rzadko potrzebne w nowoczesnych panelu.
+              // Fallback: select-and-copy (legacy) - rzadko potrzebne w nowoczesnych panelu.
               window.prompt("Skopiuj link", fullUrl);
             }
           }}

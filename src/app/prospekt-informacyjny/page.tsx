@@ -5,12 +5,12 @@ import { Footer } from "@/components/site/Footer";
 import { Reveal } from "@/components/ui/Reveal";
 
 export const metadata: Metadata = {
-  title: "Prospekt informacyjny — Fibra Nieruchomości",
+  title: "Prospekt informacyjny - Fibra Nieruchomości",
   description:
-    "Prospekt informacyjny inwestycji Osiedle Zamysłów — podpisany dokument do pobrania.",
+    "Prospekt informacyjny inwestycji Osiedle Zamysłów - podpisany dokument do pobrania.",
   alternates: { canonical: "/prospekt-informacyjny" },
   openGraph: {
-    title: "Prospekt informacyjny — Fibra Nieruchomości",
+    title: "Prospekt informacyjny - Fibra Nieruchomości",
     description: "Pobierz podpisany prospekt informacyjny inwestycji Osiedle Zamysłów.",
     url: "/prospekt-informacyjny",
     type: "website",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   },
 };
 
-// TODO: Bartek dośle finalny PDF — wtedy podmień URL na hostowany u nas
+// TODO: Bartek dośle finalny PDF - wtedy podmień URL na hostowany u nas
 // (np. Supabase Storage `documents/prospekt-informacyjny.pdf`).
 const PROSPEKT_URL =
   "https://p1.galapp.net/BCK/0309/Web/e0ec1d5c/Grafika/Prospekt_informacyjny_128F_podpisany.pdf";
@@ -44,7 +44,7 @@ export default function ProspektInformacyjnyPage() {
                   className="font-display text-ink-950 leading-[1.05] tracking-tight text-balance"
                   style={{ fontSize: "clamp(2rem, 5vw, 3.75rem)" }}
                 >
-                  Pełne dane inwestycji — czarno na białym.
+                  Pełne dane inwestycji - czarno na białym.
                 </h1>
               </Reveal>
               <Reveal delay={180}>
@@ -87,10 +87,10 @@ export default function ProspektInformacyjnyPage() {
                       Dokument PDF · Podpisany
                     </p>
                     <h2 className="mt-2 font-display text-ink-950 text-[1.75rem] md:text-[2.2rem] leading-tight tracking-tight">
-                      Prospekt informacyjny — Osiedle Zamysłów
+                      Prospekt informacyjny - Osiedle Zamysłów
                     </h2>
                     <p className="mt-4 text-[15.5px] md:text-[16px] text-ink-700 leading-[1.7] max-w-2xl">
-                      Pobierz aktualną wersję prospektu. Dokument otworzy się w nowej karcie —
+                      Pobierz aktualną wersję prospektu. Dokument otworzy się w nowej karcie -
                       możesz go również zapisać lub wydrukować.
                     </p>
 
@@ -112,22 +112,6 @@ export default function ProspektInformacyjnyPage() {
                           />
                         </svg>
                       </a>
-                      <a
-                        href={PROSPEKT_URL}
-                        download
-                        className="inline-flex items-center justify-center gap-2 rounded-full border border-ink-900/15 text-ink-900 hover:bg-ink-900 hover:text-white px-7 py-3.5 text-[14px] md:text-[15px] font-medium transition-colors active:scale-[0.98]"
-                      >
-                        Pobierz PDF
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-                          <path
-                            d="M7 2v8m0 0L4 7m3 3l3-3M2 12h10"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </a>
                     </div>
                   </div>
                 </div>
@@ -137,7 +121,7 @@ export default function ProspektInformacyjnyPage() {
             <Reveal delay={140}>
               <p className="mt-8 mx-auto max-w-3xl text-center text-[12.5px] text-ink-500 leading-[1.6]">
                 Prospekt informacyjny stanowi integralną część umowy deweloperskiej. Dokument
-                aktualizowany przez dewelopera — w razie wątpliwości skontaktuj się z nami przed
+                aktualizowany przez dewelopera - w razie wątpliwości skontaktuj się z nami przed
                 podjęciem decyzji.
               </p>
             </Reveal>
@@ -157,7 +141,7 @@ export default function ProspektInformacyjnyPage() {
             </Reveal>
             <Reveal delay={100}>
               <p className="mt-5 text-[16px] md:text-[18px] text-ink-700 leading-[1.65]">
-                Zadzwoń, napisz albo skorzystaj z formularza — przeprowadzimy Cię przez dokument
+                Zadzwoń, napisz albo skorzystaj z formularza - przeprowadzimy Cię przez dokument
                 punkt po punkcie.
               </p>
             </Reveal>

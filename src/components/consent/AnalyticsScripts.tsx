@@ -1,7 +1,7 @@
 import Script from "next/script";
 
 /**
- * Emituje skrypty trackerskie (GA4, Facebook Pixel) — Cookiebot w trybie
+ * Emituje skrypty trackerskie (GA4, Facebook Pixel) - Cookiebot w trybie
  * `data-blockingmode="auto"` automatycznie BLOKUJE je do czasu uzyskania
  * zgody użytkownika. Atrybuty `data-cookieconsent` jawnie deklarują kategorię
  * dla pewności (auto-blocking + tagowanie = belt-and-suspenders).
@@ -10,7 +10,7 @@ import Script from "next/script";
  *   - statistics  → analityka (GA4)
  *   - marketing   → remarketing/reklamy (FB Pixel)
  *
- * UWAGA: w trybie z manualnym tagowaniem skrypty mają `type="text/plain"` —
+ * UWAGA: w trybie z manualnym tagowaniem skrypty mają `type="text/plain"` -
  * Cookiebot przepisuje typ na `application/javascript` po zgodzie.
  */
 export function AnalyticsScripts() {

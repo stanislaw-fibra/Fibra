@@ -54,7 +54,7 @@ export function OfertyPageClient({ allOffers }: Props) {
       .map(([c]) => c);
   }, [allOffers]);
 
-  // Lista agentów do filtra — tylko ci, którzy mają slug (publiczny profil)
+  // Lista agentów do filtra - tylko ci, którzy mają slug (publiczny profil)
   // i przynajmniej jedną ofertę. Sortowanie: malejąco po liczbie ofert.
   const agents = useMemo(() => {
     const map = new Map<string, { slug: string; name: string; count: number }>();
@@ -205,12 +205,12 @@ function EmptyState({
       <h3 className="font-display text-[22px] md:text-[26px] text-ink-950 max-w-[30ch] mx-auto leading-tight">
         {noneInGallery
           ? "Nic nie pasuje do tych kryteriów"
-          : "W tym widoku nic nie znaleźliśmy — ale w pełnym katalogu tak"}
+          : "W tym widoku nic nie znaleźliśmy - ale w pełnym katalogu tak"}
       </h3>
       <p className="mt-3 text-[14px] text-ink-600 max-w-md mx-auto">
         {canSwitchToGallery
           ? `W widoku zdjęciowym jest aż ${galleryCount} ofert pasujących do Twoich filtrów.`
-          : "Spróbuj poluzować filtry lub zacznij od nowa — pokażemy wszystko."}
+          : "Spróbuj poluzować filtry lub zacznij od nowa - pokażemy wszystko."}
       </p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
         {canSwitchToGallery && (
@@ -249,7 +249,7 @@ function VideoTailCta({ extra, onSwitch }: { extra: number; onSwitch: () => void
       >
         <p className="eyebrow text-ink-500 mb-2">Nie znalazłeś tego, czego szukasz?</p>
         <p className="font-display text-[22px] md:text-[28px] leading-tight text-ink-950 max-w-[26ch]">
-          Przełącz na widok klasyczny — jest tam {extra}{" "}
+          Przełącz na widok klasyczny - jest tam {extra}{" "}
           {extra === 1 ? "dodatkowa oferta" : extra < 5 ? "dodatkowe oferty" : "dodatkowych ofert"}.
         </p>
         <span className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink-950 group-hover:bg-brand-500 text-white px-5 py-2.5 text-[13px] font-medium transition-colors">

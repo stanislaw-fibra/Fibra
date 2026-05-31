@@ -1,5 +1,5 @@
 // Odmiana polskich imion agentów w przypadkach używanych w UI.
-// Proste, przewidywalne — brak heurystyk, które mogłyby się pomylić.
+// Proste, przewidywalne - brak heurystyk, które mogłyby się pomylić.
 // Jeżeli imię nie jest w mapie, zwracamy mianownik (bezpieczny fallback).
 // Zawsze zmieniamy wyłącznie imię; nazwisko pozostaje w mianowniku.
 

@@ -16,7 +16,7 @@ export const revalidate = 60;
 export default async function Home() {
   const [offers, team] = await Promise.all([getAllOffers(), getPublicTeamMembers()]);
 
-  // Założyciel (Bartosz) — jego autoprezentacja wideo zastępuje statyczne zdjęcie
+  // Założyciel (Bartosz) - jego autoprezentacja wideo zastępuje statyczne zdjęcie
   // w sekcji „Zespół, który zna ten rynek".
   const founder = team.find((m) => m.kind === "founder");
 

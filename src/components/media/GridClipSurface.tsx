@@ -42,12 +42,12 @@ function destroyHls(hlsRef: { current: Hls | null }, video: HTMLVideoElement | n
 
 /**
  * Klip na karcie listy: poster zawsze pod wideo; reveal ekspozycją po
- * `onLoadedData` (pierwsza klatka gotowa) — to najszybszy moment, w którym
+ * `onLoadedData` (pierwsza klatka gotowa) - to najszybszy moment, w którym
  * możemy pokazać wideo zamiast miniatury. Po ujawnieniu klatki wideo
- * NIE chowamy go przy pauzie — żeby kolejne scrolle nie „mrugały"
+ * NIE chowamy go przy pauzie - żeby kolejne scrolle nie „mrugały"
  * w rytmie plakat → film → plakat. Efekt netto: TikTok-owe przewijanie.
  *
- * Sąsiednie, niegrające sloty (w ringu) są „priming" — HLS dopala
+ * Sąsiednie, niegrające sloty (w ringu) są „priming" - HLS dopala
  * pierwszy segment, więc przy zmianie aktywnej karty `play()` zachodzi
  * praktycznie natychmiast.
  */

@@ -13,7 +13,7 @@ function label(listingType: Offer["listingType"] | undefined): "Wynajem" | "Zaku
 }
 
 /**
- * Jednolity tag transakcji (wynajem / zakup) — strona oferty, katalog wideo, karta galerii.
+ * Jednolity tag transakcji (wynajem / zakup) - strona oferty, katalog wideo, karta galerii.
  */
 export function OfferListingTypeTag({ listingType, variant = "page", className = "" }: Props) {
   const text = label(listingType);
@@ -23,7 +23,7 @@ export function OfferListingTypeTag({ listingType, variant = "page", className =
     "inline-flex shrink-0 items-center justify-center rounded-full font-medium uppercase tabular-nums";
 
   if (variant === "page") {
-    // Strona oferty — etykieta (label), nie przycisk: subtelne tło, kolorowa kropka
+    // Strona oferty - etykieta (label), nie przycisk: subtelne tło, kolorowa kropka
     // i delikatny outline w kolorze marki, aby pozostała czytelna i elegancka.
     return (
       <span
@@ -66,7 +66,7 @@ export function OfferListingTypeTag({ listingType, variant = "page", className =
     );
   }
 
-  // media-dark — nad filmem / ciemnym kadrem; lekko, bez „przyciskowego” cienia
+  // media-dark - nad filmem / ciemnym kadrem; lekko, bez „przyciskowego” cienia
   return (
     <span
       title={rent ? "Oferta wynajmu" : "Oferta zakupu"}

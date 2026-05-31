@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { submitLead } from "@/lib/leads-client";
 
-// GA4 / Meta Pixel — typujemy minimalnie, żeby nie wymagać deklaracji globalnych.
+// GA4 / Meta Pixel - typujemy minimalnie, żeby nie wymagać deklaracji globalnych.
 type Gtag = (cmd: "event", name: string, params?: Record<string, unknown>) => void;
 type FbqFn = ((cmd: "track" | "trackCustom", name: string, params?: Record<string, unknown>) => void) & {
   callMethod?: unknown;
@@ -83,7 +83,7 @@ export function DlaFirmContactForm() {
           </h3>
           <p className="text-[15px] text-ink-600 max-w-md mx-auto leading-relaxed">
             Zapytanie trafiło do naszego zespołu B2B. Odezwiemy się w ciągu 2 godzin
-            roboczych — najczęściej dużo szybciej.
+            roboczych - najczęściej dużo szybciej.
           </p>
           <p className="mt-6 text-[13px] text-ink-500">
             Pilna sprawa?{" "}
@@ -140,7 +140,7 @@ export function DlaFirmContactForm() {
 
           <p className="mt-6 text-[12.5px] text-ink-500 leading-relaxed">
             Odpowiadamy w ciągu <strong className="text-ink-700">2 godzin roboczych</strong>.
-            W weekend — najpóźniej w poniedziałek rano.
+            W weekend - najpóźniej w poniedziałek rano.
           </p>
         </>
       )}

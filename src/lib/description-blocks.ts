@@ -1,7 +1,7 @@
 /**
  * Wstawia puste linie tam, gdzie strukturalnie powinny być separatory bloków,
  * a Galactica/agent ich nie wpisał. Bez tego cały opis lądował w jednym `<p>`
- * — bez nagłówków, bez list — bo nasz parser auto-detekcji wymaga `\n\n`.
+ * - bez nagłówków, bez list - bo nasz parser auto-detekcji wymaga `\n\n`.
  *
  * Używane w dwóch miejscach:
  *   - importer (`description-cleaner.ts`): naprawiamy świeże dane przed zapisem
@@ -9,7 +9,7 @@
  *     przy odczycie, żeby nie trzeba było czekać na re-import po deployu
  *
  * Zasady:
- *  1) Linia kończąca się `:` (potencjalny nagłówek) — daj jej puste linie wokół
+ *  1) Linia kończąca się `:` (potencjalny nagłówek) - daj jej puste linie wokół
  *     (przed i po), żeby parser potraktował ją jako samodzielny blok.
  *  2) Pierwsza linia z myślnikiem po plain-texcie → break przed (otwiera listę).
  *  3) Ostatnia linia z myślnikiem przed plain-textem → break po (zamyka listę).
@@ -76,7 +76,7 @@ export function detectGalacticaLists(text: string): string {
     // Sprawdź ile linii wygląda jak pozycje listy (kończą się `,` lub `.`).
     const matchingItems = itemIdxs.filter((idx) => endsAsListItem(out[idx]));
     if (matchingItems.length < 2) continue;
-    // Wymagaj większości — w przeciwnym razie traktujemy jako paragraph.
+    // Wymagaj większości - w przeciwnym razie traktujemy jako paragraph.
     if (matchingItems.length / itemIdxs.length < 0.5) continue;
 
     // Owijamy każdą pozycję myślnikiem (jeśli już nie ma).
@@ -129,7 +129,7 @@ export function injectBlockBreaks(text: string): string {
 
     out.push(line);
 
-    // Reguła 1b: po nagłówku-z-dwukropkiem pusta linia (chyba że dalej jest bullet — parser obsłuży)
+    // Reguła 1b: po nagłówku-z-dwukropkiem pusta linia (chyba że dalej jest bullet - parser obsłuży)
     if (
       isShortHeadingColon(line) &&
       next !== undefined &&

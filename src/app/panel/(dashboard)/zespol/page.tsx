@@ -31,7 +31,7 @@ export default async function PanelTeamPage({ searchParams }: Props) {
 
   return (
     <div className="max-w-5xl">
-      {/* Globalny strażnik — przechwytuje "puszczone obok dropzone'u" pliki, żeby przeglądarka
+      {/* Globalny strażnik - przechwytuje "puszczone obok dropzone'u" pliki, żeby przeglądarka
           ich nie otwierała w nowej karcie (problem klienta: drag-drop tylko odświeżał stronę). */}
       <TeamPanelGlobalDropGuard />
 
@@ -47,7 +47,7 @@ export default async function PanelTeamPage({ searchParams }: Props) {
         </p>
       </div>
 
-      {/* WAŻNY BANNER: migracja bazy. Jeżeli kolumn brakuje — pokazujemy 3-krokową instrukcję
+      {/* WAŻNY BANNER: migracja bazy. Jeżeli kolumn brakuje - pokazujemy 3-krokową instrukcję
           z gotowym SQL do skopiowania. Bez tego admin nie wgra filmów ani nie zapisze ról. */}
       {!schema.ready ? (
         <section className="mb-10 rounded-[var(--radius-md)] border-2 border-amber-400/70 bg-amber-300/[0.08] p-5 sm:p-6">
@@ -87,7 +87,7 @@ export default async function PanelTeamPage({ searchParams }: Props) {
               </pre>
 
               <p className="mt-3 text-[12.5px] text-amber-100/90">
-                Bez tej migracji panel nadal działa w trybie ograniczonym — opis (kolumna <code>bio</code>)
+                Bez tej migracji panel nadal działa w trybie ograniczonym - opis (kolumna <code>bio</code>)
                 zapisuje się normalnie, ale rola, pozycja, widoczność i wgrywanie wideo wymagają nowych kolumn.
               </p>
             </div>
@@ -137,7 +137,7 @@ export default async function PanelTeamPage({ searchParams }: Props) {
       {members.length === 0 ? (
         <p className="rounded-[var(--radius-md)] border border-white/10 bg-white/5 px-6 py-10 text-[14px] text-ink-200 leading-relaxed">
           Nie znaleziono żadnych agentów. Najpierw dodaj agentów przez przycisk „Dodaj do bazy" powyżej
-          (Bartosz / Justyna / Arkadiusz) lub bezpośrednio w Supabase (tabela <code>agents</code>) —
+          (Bartosz / Justyna / Arkadiusz) lub bezpośrednio w Supabase (tabela <code>agents</code>) -
           potem wrócą tutaj jako edytowalne karty zespołu.
         </p>
       ) : (

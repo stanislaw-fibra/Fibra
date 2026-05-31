@@ -5,12 +5,12 @@ import { Footer } from "@/components/site/Footer";
 import { Reveal } from "@/components/ui/Reveal";
 
 export const metadata: Metadata = {
-  title: "Zarządzanie najmem — Fibra Nieruchomości",
+  title: "Zarządzanie najmem - Fibra Nieruchomości",
   description:
     "Kompleksowa obsługa najmu: przygotowanie mieszkania, dobór najemcy, umowy, rozliczenia, media i serwis techniczny. Pasywny dochód bez zaangażowania.",
   alternates: { canonical: "/zarzadzanie-najmem" },
   openGraph: {
-    title: "Zarządzanie najmem — Fibra Nieruchomości",
+    title: "Zarządzanie najmem - Fibra Nieruchomości",
     description:
       "Kompleksowa obsługa najmu: przygotowanie mieszkania, dobór najemcy, umowy, rozliczenia, media i serwis techniczny.",
     url: "/zarzadzanie-najmem",
@@ -23,33 +23,33 @@ const INVESTOR_SCOPE = [
   {
     title: "Przygotowanie mieszkania",
     body:
-      "Wykończenie pod klucz, drobne poprawki, sesja zdjęciowa i przygotowanie oferty — lokal idzie na rynek w pełnej formie.",
+      "Wykończenie pod klucz, drobne poprawki, sesja zdjęciowa i przygotowanie oferty - lokal idzie na rynek w pełnej formie.",
   },
   {
     title: "Dobór najemcy",
     body:
-      "Weryfikacja, rozmowy, sprawdzenie zdolności i historii — wybieramy osoby, które realnie zadbają o lokal.",
+      "Weryfikacja, rozmowy, sprawdzenie zdolności i historii - wybieramy osoby, które realnie zadbają o lokal.",
   },
   {
     title: "Obsługa administracyjna",
     body:
-      "Umowy, aneksy, protokoły, rozliczenia mediów i okresowe kontrole — wszystko po naszej stronie.",
+      "Umowy, aneksy, protokoły, rozliczenia mediów i okresowe kontrole - wszystko po naszej stronie.",
   },
   {
     title: "Inwestor zagraniczny",
     body:
-      "Pełny zdalny serwis — możesz zarabiać w Polsce bez fizycznej obecności w kraju.",
+      "Pełny zdalny serwis - możesz zarabiać w Polsce bez fizycznej obecności w kraju.",
   },
 ];
 
 const TENANT_SCOPE = [
   {
     title: "Jasne warunki",
-    body: "Umowa, protokoły, ubezpieczenia i przepisanie liczników — wszystko podane na tacy.",
+    body: "Umowa, protokoły, ubezpieczenia i przepisanie liczników - wszystko podane na tacy.",
   },
   {
     title: "Terminowe rozliczenia",
-    body: "Stały kontakt, czyste rozliczenia mediów i opłat — bez niespodzianek pod koniec miesiąca.",
+    body: "Stały kontakt, czyste rozliczenia mediów i opłat - bez niespodzianek pod koniec miesiąca.",
   },
   {
     title: "Sprawny serwis techniczny",
@@ -83,7 +83,7 @@ export default function ZarzadzanieNajmemPage() {
               </Reveal>
               <Reveal delay={180}>
                 <p className="mt-5 md:mt-8 text-[16px] md:text-[19px] leading-[1.55] text-ink-700 text-pretty">
-                  Kompleksowa usługa zarządzania najmem — od przygotowania mieszkania, przez dobór
+                  Kompleksowa usługa zarządzania najmem - od przygotowania mieszkania, przez dobór
                   najemcy, aż po pełną obsługę administracyjną i techniczną.
                 </p>
               </Reveal>
@@ -111,7 +111,7 @@ export default function ZarzadzanieNajmemPage() {
                   <p>
                     Oferujemy kompleksową usługę zarządzania najmem, która pozwala inwestorom
                     czerpać zyski z nieruchomości bez konieczności angażowania czasu i energii.
-                    Zajmujemy się wszystkim — od przygotowania mieszkania, przez dobór odpowiedniego
+                    Zajmujemy się wszystkim - od przygotowania mieszkania, przez dobór odpowiedniego
                     najemcy, aż po pełną obsługę administracyjną: umowy, rozliczenia, media i
                     okresowe kontrole.
                   </p>
@@ -121,7 +121,7 @@ export default function ZarzadzanieNajmemPage() {
                     inwestorzy z zagranicy, którzy mogą zarabiać w Polsce bez fizycznej obecności.
                   </p>
                   <p className="font-display text-[1.4rem] md:text-[1.55rem] text-ink-950 leading-[1.25] tracking-tight">
-                    Zainwestuj — resztą zajmiemy się my.
+                    Zainwestuj - resztą zajmiemy się my.
                   </p>
                 </div>
               </Reveal>
@@ -180,7 +180,7 @@ export default function ZarzadzanieNajmemPage() {
                 <p className="mt-5 md:mt-7 text-[16px] md:text-[18px] leading-[1.65] text-ink-200 text-pretty">
                   Najemcy korzystający z naszych usług mogą liczyć na komfortowy i bezproblemowy
                   wynajem. W razie potrzeby szybko reagujemy na usterki i organizujemy niezbędne
-                  naprawy oraz przeglądy techniczne — najem jest bezpieczny, przejrzysty i wygodny.
+                  naprawy oraz przeglądy techniczne - najem jest bezpieczny, przejrzysty i wygodny.
                 </p>
               </Reveal>
             </div>

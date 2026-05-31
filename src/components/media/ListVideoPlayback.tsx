@@ -61,11 +61,11 @@ export function ListVideoPlaybackProvider({
   orderedSlugs: readonly string[];
   mobileMode: ListVideoMobileMode;
   mobileRootRef?: RefObject<HTMLElement | null> | null;
-  /** Gdy false — `activeSlug` = null i nic nie gra (np. sekcja poza viewportem). */
+  /** Gdy false - `activeSlug` = null i nic nie gra (np. sekcja poza viewportem). */
   enabled?: boolean;
   /**
    * Desktop: gdy true, karta zaczyna grać dopiero po hoverze (brak fallbacku
-   * do pierwszej). Dobre dla sekcji typu „Inne oferty" — żeby film nie
+   * do pierwszej). Dobre dla sekcji typu „Inne oferty" - żeby film nie
    * leciał automatycznie, gdy użytkownik do sekcji nie doszedł albo stoi obok.
    */
   desktopRequireHover?: boolean;

@@ -4,7 +4,7 @@ import { Logo } from "./Logo";
 import { NewsletterForm } from "./NewsletterForm";
 
 // Compliance / RODO (Grupa Fibra Sp. z o.o., NIP 6423147630).
-// gorodo.pl generuje dokumenty dynamicznie z NIP-u — auto-aktualizacja przy
+// gorodo.pl generuje dokumenty dynamicznie z NIP-u - auto-aktualizacja przy
 // zmianach prawnych. Każdy link otwiera się w nowej karcie (external service).
 const GORODO_LINKS = [
   {
@@ -112,13 +112,13 @@ export function Footer() {
               href="https://www.gorodo.pl/certyfikat.php?nip=6423147630"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Certyfikat wdrożenia RODO — GoRODO.pl"
-              title="Certyfikat wdrożenia RODO — GoRODO.pl"
+              aria-label="Certyfikat wdrożenia RODO - GoRODO.pl"
+              title="Certyfikat wdrożenia RODO - GoRODO.pl"
               className="shrink-0 transition-transform duration-300 hover:scale-[1.06]"
             >
               <Image
                 src="/gorodo_badge.webp"
-                alt="Certyfikat wdrożenia RODO — GoRODO.pl"
+                alt="Certyfikat wdrożenia RODO - GoRODO.pl"
                 width={48}
                 height={62}
                 className="h-12 w-auto drop-shadow-[0_4px_10px_rgba(0,90,148,0.4)]"

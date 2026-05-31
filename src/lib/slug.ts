@@ -7,7 +7,7 @@
  * - Tytuł obcinany do ~60 znaków (nie łamiąc słów, jeśli to możliwe).
  * - Galactica ID dopinane bez zmiany wielkości liter (przykład: `FIB-DS-4127`).
  *
- * Slug generowany raz, przy tworzeniu oferty — NIE zmieniamy go przy aktualizacji
+ * Slug generowany raz, przy tworzeniu oferty - NIE zmieniamy go przy aktualizacji
  * tytułu, żeby nie łamać istniejących linków i SEO.
  */
 
@@ -54,7 +54,7 @@ export function slugify(input: string): string {
 /**
  * Buduje slug URL oferty: `{slug-tytułu}-{galactica_offer_id}`.
  * Galactica ID zostaje w oryginalnej wielkości liter (np. `FIB-DS-4127`).
- * Gdy tytuł jest pusty — slug to sam ID (w lowercase, żeby URL wyglądał neutralnie).
+ * Gdy tytuł jest pusty - slug to sam ID (w lowercase, żeby URL wyglądał neutralnie).
  */
 export function makeOfferSlug(
   title: string | null | undefined,

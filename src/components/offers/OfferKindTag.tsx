@@ -24,7 +24,7 @@ type KindTone = {
 };
 
 /**
- * Ikony kategorii — outline w stylu Lucide / Phosphor: 24px viewBox, stroke 1.6, round joints.
+ * Ikony kategorii - outline w stylu Lucide / Phosphor: 24px viewBox, stroke 1.6, round joints.
  * Czytelne nawet w mikro-rozmiarze (12–14 px), spójne wagą linii z resztą interfejsu.
  */
 const ICON_PROPS = {
@@ -38,7 +38,7 @@ const ICON_PROPS = {
   strokeLinejoin: "round" as const,
 };
 
-/** Dom — klasyczny, szczyt + drzwi. */
+/** Dom - klasyczny, szczyt + drzwi. */
 const HouseIcon = () => (
   <svg {...ICON_PROPS} aria-hidden>
     <path d="M3 11l9-7 9 7" />
@@ -47,7 +47,7 @@ const HouseIcon = () => (
   </svg>
 );
 
-/** Mieszkanie / blok — wieżowiec z miarowo rozłożonymi oknami. */
+/** Mieszkanie / blok - wieżowiec z miarowo rozłożonymi oknami. */
 const ApartmentIcon = () => (
   <svg {...ICON_PROPS} aria-hidden>
     <rect x="5" y="3" width="14" height="18" rx="1.2" />
@@ -56,7 +56,7 @@ const ApartmentIcon = () => (
   </svg>
 );
 
-/** Penthouse — apartament na szczycie z tarasem. */
+/** Penthouse - apartament na szczycie z tarasem. */
 const PenthouseIcon = () => (
   <svg {...ICON_PROPS} aria-hidden>
     <path d="M3 21h18" />
@@ -66,7 +66,7 @@ const PenthouseIcon = () => (
   </svg>
 );
 
-/** Działka — fragment terenu (mapa / kontur z drzewem). */
+/** Działka - fragment terenu (mapa / kontur z drzewem). */
 const LotIcon = () => (
   <svg {...ICON_PROPS} aria-hidden>
     <path d="M3 19l4-3 5 2 4-4 5 3v3H3z" />
@@ -74,7 +74,7 @@ const LotIcon = () => (
   </svg>
 );
 
-/** Lokal użytkowy — markiza + witryna sklepowa. */
+/** Lokal użytkowy - markiza + witryna sklepowa. */
 const ShopIcon = () => (
   <svg {...ICON_PROPS} aria-hidden>
     <path d="M3 9l1.5-4h15L21 9" />
@@ -125,7 +125,7 @@ const KIND_TONES: Record<OfferKind, KindTone> = {
 const FALLBACK: KindTone = KIND_TONES.apartament;
 
 /**
- * Mały „chip" typu oferty — jednym spojrzeniem rozróżnia dom / mieszkanie / działkę.
+ * Mały „chip" typu oferty - jednym spojrzeniem rozróżnia dom / mieszkanie / działkę.
  * Kolor + ikona zapewniają kontrast nad tytułami i nad listing-tagiem (Zakup / Wynajem).
  */
 export function OfferKindTag({ kind, kindLabel, variant = "media-dark", className = "" }: Props) {
@@ -171,7 +171,7 @@ export function OfferKindTag({ kind, kindLabel, variant = "media-dark", classNam
   }
 
   if (variant === "page-hero") {
-    // Mocno widoczny chip nad tytułem strony oferty — większy, semibold, z ikoną i kropką.
+    // Mocno widoczny chip nad tytułem strony oferty - większy, semibold, z ikoną i kropką.
     // Używany u góry artykułu, żeby od pierwszej sekundy było wiadomo: dom / mieszkanie / działka.
     return (
       <span
@@ -189,7 +189,7 @@ export function OfferKindTag({ kind, kindLabel, variant = "media-dark", classNam
   }
 
   if (variant === "chip-strong") {
-    // Wyrazisty chip z ikoną nad ciemnym kadrem wideo — wysoki kontrast i czytelna typografia,
+    // Wyrazisty chip z ikoną nad ciemnym kadrem wideo - wysoki kontrast i czytelna typografia,
     // żeby na karcie 2x2 mobile od razu było widać kategorię (mieszkanie / dom / działka).
     return (
       <span
@@ -206,7 +206,7 @@ export function OfferKindTag({ kind, kindLabel, variant = "media-dark", classNam
   }
 
   if (variant === "icon-only") {
-    // Mała ikonka obok napisu pod filmem — bez chipa, bez tła. Jeden subtelny akcent kategorii.
+    // Mała ikonka obok napisu pod filmem - bez chipa, bez tła. Jeden subtelny akcent kategorii.
     return (
       <span
         className={["inline-flex shrink-0 items-center justify-center", className].join(" ")}
@@ -218,7 +218,7 @@ export function OfferKindTag({ kind, kindLabel, variant = "media-dark", classNam
     );
   }
 
-  // media-dark — nad ciemnym kadrem wideo
+  // media-dark - nad ciemnym kadrem wideo
   return (
     <span
       className={[

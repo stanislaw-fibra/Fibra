@@ -19,18 +19,18 @@ import {
 /**
  * Filozofia paska filtrów:
  *
- *  - Pełny pasek NIE jest sticky — scrolluje się wraz z treścią, jak każdy
+ *  - Pełny pasek NIE jest sticky - scrolluje się wraz z treścią, jak każdy
  *    zwykły element. Dzięki temu „osadzony jest na stałe" w miejscu, w którym
  *    user się z nim spotkał pierwszy raz.
  *  - Dopiero gdy pełny pasek wyjedzie poza viewport (a konkretnie: gdy jego
  *    dolna krawędź przejedzie pod górnym Navem), pojawia się mini-toolbar
  *    przyklejony fixed pod navem. Kontrolowane przez IntersectionObserver na
  *    sentinelu umieszczonym tuż pod pełnym paskiem.
- *  - Scroll w górę wycofuje mini gdy sentinel wróci w widok — nie ma
+ *  - Scroll w górę wycofuje mini gdy sentinel wróci w widok - nie ma
  *    „połowicznej" regresji; wracasz do naturalnego, scroll-owalnego paska.
  */
 
-const NAV_OFFSET = 72; // px — wysokość górnego Nav'a
+const NAV_OFFSET = 72; // px - wysokość górnego Nav'a
 
 type Props = {
   offers: Offer[];
@@ -96,9 +96,9 @@ export function FiltersBar({
     if (filters.query?.trim()) setMobileSearchOpen(true);
   }, [filters.query]);
 
-  // Sentinel umieszczony tuż pod pełnym paskiem — gdy wyjedzie z widoku
+  // Sentinel umieszczony tuż pod pełnym paskiem - gdy wyjedzie z widoku
   // (przechodzi pod górny Nav), aktywujemy fixed mini-toolbar. Gdy wraca,
-  // chowamy mini. Intersection-Observer to najtańszy sposób — zero scroll
+  // chowamy mini. Intersection-Observer to najtańszy sposób - zero scroll
   // listenera.
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [showMini, setShowMini] = useState(false);
@@ -382,11 +382,11 @@ export function FiltersBar({
 
   return (
     <>
-      {/* PEŁNY PASEK — osadzony na stałe (zwykły block, NIE sticky).
+      {/* PEŁNY PASEK - osadzony na stałe (zwykły block, NIE sticky).
           Scrolluje się razem z treścią. Kiedy wyjedzie z widoku, dopiero
           wtedy pojawi się mini-toolbar (patrz niżej). */}
       <div className="relative border-b border-ink-200/80 bg-paper">
-        {/* Subtelny pasek postępu — feedback o aktualizacji. */}
+        {/* Subtelny pasek postępu - feedback o aktualizacji. */}
         <div
           aria-hidden
           className={[
@@ -399,7 +399,7 @@ export function FiltersBar({
           <style>{`@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }`}</style>
         </div>
 
-        {/* DESKTOP full bar — flex-wrap klasycznie. */}
+        {/* DESKTOP full bar - flex-wrap klasycznie. */}
         <div className="hidden lg:block">
           <div className="container-xl py-3.5 flex items-start justify-between gap-3">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-2 min-w-0">
@@ -421,7 +421,7 @@ export function FiltersBar({
           </div>
         </div>
 
-        {/* MOBILE full bar — dwa rzędy:
+        {/* MOBILE full bar - dwa rzędy:
             (1) PRZEŁĄCZNIK WIDOKU na pełną szerokość (dwie równe połówki,
                 nic się nie ucina nawet na 320 px),
             (2) pozioma, przewijalna lista pigułek filtrów i sortowania
@@ -493,11 +493,11 @@ export function FiltersBar({
           </div>
         </div>
 
-        {/* Sentinel — znika z widoku → uruchamiamy mini-toolbar. */}
+        {/* Sentinel - znika z widoku → uruchamiamy mini-toolbar. */}
         <div ref={sentinelRef} aria-hidden className="h-px" />
       </div>
 
-      {/* MINI-TOOLBAR (mobile) — pojawia się fixed gdy pełny pasek wyszedł
+      {/* MINI-TOOLBAR (mobile) - pojawia się fixed gdy pełny pasek wyszedł
           z horyzontu. Transition-opacity + translate daje subtelne,
           naturalne wejście. */}
       <div
@@ -555,7 +555,7 @@ export function FiltersBar({
 
 /**
  * Lupka + input wyszukiwarki tekstowej. Lokalny state, push do globalnych
- * filtrów dopiero po debounce — żeby URL/router nie aktualizował się przy
+ * filtrów dopiero po debounce - żeby URL/router nie aktualizował się przy
  * każdej literze (płynne UX, pojedynczy re-render listy ofert).
  */
 function SearchInput({
@@ -847,7 +847,7 @@ function ViewToggleIcons({
 /**
  * Pełnoszerokościowa wersja przełącznika do mobilnego pełnego paska: dwie
  * równe połówki (grid-cols-2). Dzięki temu nic się nie ucina nawet na 320 px
- * — przyciski rosną/zwężają się razem z dostępną szerokością.
+ * - przyciski rosną/zwężają się razem z dostępną szerokością.
  */
 function ViewToggleWide({
   view,

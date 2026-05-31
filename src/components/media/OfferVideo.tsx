@@ -166,7 +166,7 @@ export function OfferVideo({
           revealVideo ? "opacity-100" : "opacity-0",
         ].join(" ")}
       >
-        {/* Na stronie oferty pokazujemy natywne controls — play/pause, seek, głośność,
+        {/* Na stronie oferty pokazujemy natywne controls - play/pause, seek, głośność,
             fullscreen (na mobile krytyczne, bo natywny fullscreen iPhone'owy działa
             tylko z kontrolkami HTML5 video). Autoplay muted loop działa jak dotąd,
             ale user może przejąć kontrolę w każdej chwili. */}

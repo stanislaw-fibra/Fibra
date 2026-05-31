@@ -44,7 +44,7 @@ function sanitizeStreamId(raw: string | null | undefined): string | null {
 /**
  * Wykrywa błąd typu „kolumna nie istnieje” (PostgREST PGRST204 / „column ... does not exist”
  * / „could not find the X column of agents in the schema cache”). Klient prosił, żeby panel
- * działał z migracją lub bez — gdy nowych kolumn jeszcze nie ma, akcja musi się wycofać do
+ * działał z migracją lub bez - gdy nowych kolumn jeszcze nie ma, akcja musi się wycofać do
  * legacy schematu (`bio` + `name` + `is_active`) zamiast wywalać się błędem 500.
  */
 function isMissingAgentColumnError(msg: string | null | undefined): {
@@ -71,7 +71,7 @@ function isMissingAgentColumnError(msg: string | null | undefined): {
  * Aktualizuje opis (bio_long lub fallback do bio), rolę i widoczność członka zespołu.
  *
  * Jeżeli kolumny `bio_long` / `team_role` / `team_order` / `is_team_visible` jeszcze nie istnieją
- * w bazie (migracja nieuruchomiona), zapisujemy minimalny patch z polem `bio` — dzięki temu
+ * w bazie (migracja nieuruchomiona), zapisujemy minimalny patch z polem `bio` - dzięki temu
  * panel działa zaraz po deployu, a po dodaniu kolumn włącza się pełna funkcjonalność.
  */
 export async function updateTeamMemberAction(formData: FormData) {
@@ -108,7 +108,7 @@ export async function updateTeamMemberAction(formData: FormData) {
       revalidatePath("/o-fibrze");
       redirect(
         `/panel/zespol?saved=${id}&warn=${encodeURIComponent(
-          "Zapisano tylko opis. Pełne ustawienia (rola, kolejność, widoczność, film) wymagają migracji bazy — brakujące kolumny: " +
+          "Zapisano tylko opis. Pełne ustawienia (rola, kolejność, widoczność, film) wymagają migracji bazy - brakujące kolumny: " +
             [...missing.missing].join(", "),
         )}`,
       );
@@ -147,7 +147,7 @@ export async function clearTeamMemberVideoAction(formData: FormData) {
 
 /**
  * Tworzy w `agents` brakującego znanego członka zespołu (Bartosz / Justyna / Arek)
- * z domyślnymi treściami z `team-defaults`. Idempotentne — gdy rekord o danym
+ * z domyślnymi treściami z `team-defaults`. Idempotentne - gdy rekord o danym
  * imieniu istnieje, redirect prowadzi prosto na jego edycję.
  *
  * Schema-resilient: jeżeli nowe kolumny (`bio_long`, `team_role`, …) jeszcze nie istnieją,
@@ -166,7 +166,7 @@ export async function addKnownTeamMemberAction(formData: FormData) {
 
   const admin = createSupabaseAdmin();
 
-  // Idempotencja: jeśli ktoś już istnieje pod tym imieniem, nie duplikujemy — przekierowujemy.
+  // Idempotencja: jeśli ktoś już istnieje pod tym imieniem, nie duplikujemy - przekierowujemy.
   const { data: existing } = await admin
     .from("agents")
     .select("id")
@@ -180,7 +180,7 @@ export async function addKnownTeamMemberAction(formData: FormData) {
   // Próba 1: pełny payload z nowymi kolumnami.
   const fullPayload: Record<string, unknown> = {
     name,
-    bio: defaults.bio, // dublujemy też do legacy `bio` — będzie czytelne nawet bez migracji
+    bio: defaults.bio, // dublujemy też do legacy `bio` - będzie czytelne nawet bez migracji
     bio_long: defaults.bio,
     team_role: defaults.role,
     team_order: defaults.order,
@@ -222,10 +222,10 @@ export async function addKnownTeamMemberAction(formData: FormData) {
 }
 
 /**
- * Wywoływane z klienta (po wgraniu do Cloudflare Stream) — wpisuje świeże ID do agents
+ * Wywoływane z klienta (po wgraniu do Cloudflare Stream) - wpisuje świeże ID do agents
  * i AUTOMATYCZNIE włącza widoczność na publicznej stronie /o-fibrze.
  *
- * Klient prosił, żeby po wgraniu filmu nie trzeba było ręcznie klikać toggle „Pokaż" —
+ * Klient prosił, żeby po wgraniu filmu nie trzeba było ręcznie klikać toggle „Pokaż" -
  * upload filmu jednoznacznie sygnalizuje „chcę żeby to było widoczne", więc atomicznie
  * ustawiamy `is_team_visible = true`. Klient zwracał uwagę, że bez tego film był wgrany,
  * ale na /o-fibrze nadal pokazywało się tylko zdjęcie.

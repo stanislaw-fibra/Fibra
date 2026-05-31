@@ -36,7 +36,7 @@ const SWIPE_PX = 56;
 /**
  * Provider pokazujący wspólny lightbox dla wszystkich miniaturek galerii na stronie oferty
  * (mini-strip pod hero + pełna siatka w sekcji #galeria). Dzięki jednemu źródłu stanu
- * kliknięcie miniaturki otwiera pełny podgląd natychmiast — bez przewijania do sekcji galerii.
+ * kliknięcie miniaturki otwiera pełny podgląd natychmiast - bez przewijania do sekcji galerii.
  *
  * Obrazy są serwowane przez `next/image` (AVIF/WebP + responsywność), a sąsiedzi
  * (open−1, open+1) są preloadowani w tle, żeby strzałki/swipe działały natychmiast.
@@ -52,11 +52,11 @@ export function GalleryLightboxProvider({
 }) {
   const [open, setOpen] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
-  // Bump na zmianę orientacji urządzenia — wymusza przeliczenie wymiarów obrazu
+  // Bump na zmianę orientacji urządzenia - wymusza przeliczenie wymiarów obrazu
   // (next/image trzyma proporcje + max-h, ale po obrocie telefonu chcemy mieć
   // pewność, że layout się zaktualizuje natychmiast, a nie czeka na resize).
   const [orientationKey, setOrientationKey] = useState(0);
-  // Czy lightbox aktualnie jest w trybie „mobile landscape fullscreen" — to wpływa na
+  // Czy lightbox aktualnie jest w trybie „mobile landscape fullscreen" - to wpływa na
   // padding, max-h obrazu oraz wielkość typografii. Klient prosił wielokrotnie, żeby po
   // obróceniu telefonu w poziom zdjęcia rozpychały się na cały ekran.
   const [isMobileLandscape, setIsMobileLandscape] = useState(false);
@@ -65,7 +65,7 @@ export function GalleryLightboxProvider({
   const touchStartX = useRef<number | null>(null);
   const thumbsRef = useRef<HTMLDivElement>(null);
 
-  // Track which images already finished loading — pozwala pokazać spinner tylko
+  // Track which images already finished loading - pozwala pokazać spinner tylko
   // dla tych, które user otworzył pierwszy raz. Kolejne wejścia w to samo
   // zdjęcie są natychmiastowe (HTTP cache + browser image cache).
   const [loadedSet, setLoadedSet] = useState<Set<number>>(() => new Set());
@@ -131,7 +131,7 @@ export function GalleryLightboxProvider({
   }, [open]);
 
   // Integracja z historią przeglądarki: swipe-back / przycisk Wstecz na mobile zamyka
-  // lightbox zamiast nawigować do poprzedniej strony. Klient prosił to wprost — wcześniej
+  // lightbox zamiast nawigować do poprzedniej strony. Klient prosił to wprost - wcześniej
   // user zawsze tracił kontekst oferty po geście „back".
   useModalHistoryClose(open !== null, close);
 
@@ -150,18 +150,18 @@ export function GalleryLightboxProvider({
     };
   }, [open]);
 
-  // Auto-fullscreen przy obrocie telefonu w poziom — klient prosił wielokrotnie:
+  // Auto-fullscreen przy obrocie telefonu w poziom - klient prosił wielokrotnie:
   // „W wersji mobile zdjęcia w galerii oferty mogłyby mieć możliwość po przestawieniu
   //  telefonu w poziom powiększenie na cały ekran".
   //
   // Effect 1: nasłuchuje orientation, ustawia tylko `isMobileLandscape` state.
-  // Effect 2: reaguje na przejście portrait→landscape — otwiera lightbox.
+  // Effect 2: reaguje na przejście portrait→landscape - otwiera lightbox.
   //
   // Świadomie NIE zamykamy automatycznie przy powrocie do portretu: tracking „kto otworzył"
   // przez ref ma race condition'y w Strict Mode + przy serii resize'ów w trakcie jednej
   // rotacji. Pragmatyczna decyzja: w landscape lightbox staje się fullscreen (większy obraz),
   // w portrait wraca do normalnego layoutu okna lightboxa. User klika X (lub tap w tło),
-  // żeby wyjść — zachowanie znane z każdej innej galerii.
+  // żeby wyjść - zachowanie znane z każdej innej galerii.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(orientation: landscape) and (max-height: 600px)");
@@ -183,7 +183,7 @@ export function GalleryLightboxProvider({
   useEffect(() => {
     if (images.length === 0) return;
     if (!isMobileLandscape) return;
-    // Otwieramy galerię tylko gdy jest zamknięta — nie ruszamy nic, jeśli user
+    // Otwieramy galerię tylko gdy jest zamknięta - nie ruszamy nic, jeśli user
     // już patrzy na konkretne zdjęcie (np. otworzył przez klik w miniaturę).
     setOpen((prev) => (prev === null ? 0 : prev));
   }, [isMobileLandscape, images.length]);
@@ -240,7 +240,7 @@ export function GalleryLightboxProvider({
             role="presentation"
             className={[
               "fixed inset-0 z-[200] flex items-center justify-center",
-              // Mobile-landscape: zero padding, czyste fullscreen — klient prosił o pełnoekranowy
+              // Mobile-landscape: zero padding, czyste fullscreen - klient prosił o pełnoekranowy
               // tryb po obrocie telefonu w poziom. Reszta urządzeń: normalny padding.
               isMobileLandscape ? "p-0" : "p-4 sm:p-8 md:p-12",
             ].join(" ")}
@@ -266,9 +266,9 @@ export function GalleryLightboxProvider({
               aria-label={`Powiększona galeria: ${title}`}
               className={[
                 "pointer-events-none relative z-10 flex flex-col items-center",
-                // Mobile landscape: używamy `100svh` (small viewport — gwarantowanie widoczny obszar
+                // Mobile landscape: używamy `100svh` (small viewport - gwarantowanie widoczny obszar
                 // bez Safari URL bara / Chrome bottom bara). Wcześniej `100dvh` powodował, że obraz
-                // sięgał POD wysuwany Safari UI — góra zdjęcia była przykryta zakładkami i niedostępna.
+                // sięgał POD wysuwany Safari UI - góra zdjęcia była przykryta zakładkami i niedostępna.
                 isMobileLandscape
                   ? "h-[100svh] w-screen max-w-none"
                   : "max-h-[min(92dvh,920px)] w-full max-w-[min(1240px,calc(100vw-2rem))]",
@@ -406,7 +406,7 @@ export function GalleryLightboxProvider({
                           className={[
                             isMobileLandscape
                               // Landscape mobile: obraz wypełnia widoczny obszar przez `object-cover`.
-                              // `100svh` zamiast `100dvh` — Safari URL bar / Chrome bottom bar nie
+                              // `100svh` zamiast `100dvh` - Safari URL bar / Chrome bottom bar nie
                               // przykrywają już górnej części zdjęcia (klient: „u góry pokazują się
                               // zakładki Safari, częściowo ucięte zdjęcia"). Premium UX: obraz
                               // dominuje ekran, ale zostaje w widocznej, dotykalnej strefie.

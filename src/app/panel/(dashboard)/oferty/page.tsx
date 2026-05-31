@@ -97,7 +97,7 @@ export default async function PanelOffersPage({ searchParams }: Props) {
   const source = sp.source ?? "all";
   const q = (sp.q ?? "").trim();
 
-  // Scope: admin widzi wszystko, agent — tylko swoje (offers.agent_id = user_meta.agent_id).
+  // Scope: admin widzi wszystko, agent - tylko swoje (offers.agent_id = user_meta.agent_id).
   const scope = await requirePanelScope();
 
   const admin = createSupabaseAdmin();

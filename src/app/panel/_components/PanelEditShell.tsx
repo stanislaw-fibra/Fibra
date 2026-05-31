@@ -8,11 +8,11 @@ type ToastKind = "saved" | "uploaded" | "videoSaved" | "error" | null;
 type Props = {
   /** ID formularza (atrybut `form="..."` na przycisku w sticky bar). */
   formId: string;
-  /** Tytuł oferty pokazany w pasku górnym — żeby od razu było wiadomo, co się edytuje. */
+  /** Tytuł oferty pokazany w pasku górnym - żeby od razu było wiadomo, co się edytuje. */
   title: string;
   /** Sub-tekst (np. ID Galactica) pomocny technicznie. */
   subtitle?: string;
-  /** Treść strony — sekcje formularza, zdjęcia, rzuty, video. */
+  /** Treść strony - sekcje formularza, zdjęcia, rzuty, video. */
   children: React.ReactNode;
 };
 
@@ -29,7 +29,7 @@ type Props = {
  * 3. **Duży toast** po zapisie, znikający dopiero po kliknięciu „OK" lub po 6 sekundach.
  *    Toast jest karmiony query-paramem `?saved=1` / `?uploaded=1` / `?videoSaved=1`, który ustawia
  *    server action po sukcesie.
- * 4. **Tracking dirty state** — po zmianie dowolnego pola pasek z czerwoną kropką sygnalizuje
+ * 4. **Tracking dirty state** - po zmianie dowolnego pola pasek z czerwoną kropką sygnalizuje
  *    „Masz niezapisane zmiany". Ostrzeżenie `beforeunload` chroni przed wyjściem bez zapisu.
  */
 export function PanelEditShell({ formId, title, subtitle, children }: Props) {
@@ -69,7 +69,7 @@ export function PanelEditShell({ formId, title, subtitle, children }: Props) {
     };
   }, [searchParams, router]);
 
-  // Dirty tracking — bind do submitu i zmiany dowolnego pola w formularzu z `formId`.
+  // Dirty tracking - bind do submitu i zmiany dowolnego pola w formularzu z `formId`.
   useEffect(() => {
     const form = document.getElementById(formId) as HTMLFormElement | null;
     if (!form) return;
@@ -87,7 +87,7 @@ export function PanelEditShell({ formId, title, subtitle, children }: Props) {
     };
   }, [formId]);
 
-  // beforeunload — ostrzeżenie przed zamknięciem karty z niezapisanymi zmianami.
+  // beforeunload - ostrzeżenie przed zamknięciem karty z niezapisanymi zmianami.
   useEffect(() => {
     if (!dirty) return;
     const handler = (e: BeforeUnloadEvent) => {
@@ -103,7 +103,7 @@ export function PanelEditShell({ formId, title, subtitle, children }: Props) {
 
   return (
     <div className="relative pb-32 md:pb-24">
-      {/* TOP STICKY BAR — pokazuje co edytujesz + duży primary „Zapisz zmiany". */}
+      {/* TOP STICKY BAR - pokazuje co edytujesz + duży primary „Zapisz zmiany". */}
       <div className="sticky top-0 z-30 -mx-5 mb-8 border-b border-white/10 bg-ink-900/95 backdrop-blur-xl px-5 py-3 md:-mx-10 md:px-10 lg:-mx-12 lg:px-12">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
@@ -170,12 +170,12 @@ export function PanelEditShell({ formId, title, subtitle, children }: Props) {
 
       {children}
 
-      {/* BOTTOM STICKY BAR — duplikuje przycisk u dołu na mobile / dłuższych formularzach. */}
+      {/* BOTTOM STICKY BAR - duplikuje przycisk u dołu na mobile / dłuższych formularzach. */}
       <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-white/10 bg-ink-950/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom,0px)] md:left-[240px]">
         <div className="px-5 md:px-10 lg:px-12 py-3 flex items-center justify-between gap-3">
           <p className="text-[12px] text-ink-300 hidden sm:block">
             {dirty && !submitting
-              ? "Masz niezapisane zmiany — kliknij Zapisz, żeby utrwalić."
+              ? "Masz niezapisane zmiany - kliknij Zapisz, żeby utrwalić."
               : submitting
                 ? "Zapisywanie…"
                 : "Wszystkie zmiany zapisane."}

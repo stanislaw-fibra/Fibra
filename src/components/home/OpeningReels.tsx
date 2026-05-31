@@ -18,7 +18,7 @@ export function OpeningReels({ offers }: { offers: Offer[] }) {
   return (
     // Hero zaprojektowane tak, by na pierwszym ekranie (zarówno desktop, jak i mobile)
     // user widział jednocześnie nagłówek, sekcję „Aktualne oferty" oraz cały blok kafli
-    // z podpisami — bez konieczności scrollowania. Dlatego nagłówek i odstępy są
+    // z podpisami - bez konieczności scrollowania. Dlatego nagłówek i odstępy są
     // świadomie skompaktowane (mniejszy clamp na mobile, krótsze paddingi vertical).
     <section className="relative min-h-[100svh] flex flex-col bg-ink-950 text-ink-100 overflow-hidden">
       <div className="absolute inset-0 grad-radial-brand opacity-70 pointer-events-none" />
@@ -62,7 +62,7 @@ export function OpeningReels({ offers }: { offers: Offer[] }) {
         <OpeningReelsGrid offers={offers} />
       </div>
 
-      {/* CTA pod kaflami — kompaktowy „pasek" zamiast osobnej dużej sekcji,
+      {/* CTA pod kaflami - kompaktowy „pasek" zamiast osobnej dużej sekcji,
           dzięki temu zarówno mobile, jak i desktop trzymają całość w pierwszym
           ekranie. Na mobile pojedynczy przycisk pełnoszerokościowy. */}
       <div className="container-xl relative shrink-0 pb-4 md:pb-10">

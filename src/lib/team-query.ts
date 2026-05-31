@@ -13,10 +13,10 @@ export type TeamMember = {
   role: string;
   /** Pełny opis (wieloparagrafowy). */
   bio: string;
-  /** Numer kontaktowy (tylko karty członków zespołu — założyciel ma własny CTA). */
+  /** Numer kontaktowy (tylko karty członków zespołu - założyciel ma własny CTA). */
   phone?: string;
   email?: string;
-  /** URL zdjęcia portretowego — używane jako fallback gdy nie ma video. */
+  /** URL zdjęcia portretowego - używane jako fallback gdy nie ma video. */
   photoUrl?: string;
   /** Cloudflare Stream ID krótkiego, pionowego filmu autoprezentacji. */
   cloudflareVideoId?: string;
@@ -81,7 +81,7 @@ function isMissingTeamColumnError(msg: string): boolean {
 
 function normalize(row: AgentRow, opts?: { applyDefaults?: boolean }): TeamMember {
   // Domyślne treści (rola + biografia + widoczność) dla 3 osób z zespołu, kiedy w bazie nic
-  // jeszcze nie ma. Dzięki temu panel /panel/zespol nie pokazuje pustego pola — admin od razu
+  // jeszcze nie ma. Dzięki temu panel /panel/zespol nie pokazuje pustego pola - admin od razu
   // widzi treść do edycji, a po pierwszym zapisie pełna prawda jedzie do Supabase.
   const fallback = opts?.applyDefaults ? teamDefaultsFor(row.name) : undefined;
 
@@ -91,13 +91,13 @@ function normalize(row: AgentRow, opts?: { applyDefaults?: boolean }): TeamMembe
   const dbBio = (row.bio_long?.trim() || row.bio?.trim() || "").trim();
   const bio = dbBio || fallback?.bio || "";
 
-  // Klasyfikacja "founder vs member" — bierze pod uwagę zarówno rolę z DB, jak i fallback
+  // Klasyfikacja "founder vs member" - bierze pod uwagę zarówno rolę z DB, jak i fallback
   // (dla Bartosza Nosiadka rola "Założyciel..." sklasyfikuje się jako founder nawet gdy w bazie pusto).
   const kind = classifyRole(role);
 
   const phone = (row.phone_mobile?.trim() || row.phone_office?.trim() || "").trim() || undefined;
 
-  // is_team_visible: jeśli kolumna istnieje i jest jednoznacznie ustawiona — używamy.
+  // is_team_visible: jeśli kolumna istnieje i jest jednoznacznie ustawiona - używamy.
   // Inaczej, dla znanych osób z fallbacka domyślnie pokazujemy (zgodnie z prośbą klienta:
   // "oni już są przecież zapisani"), a dla nieznanych zostawiamy false.
   const isVisible =
@@ -138,7 +138,7 @@ export async function getPublicTeamMembers(): Promise<TeamMember[]> {
       .order("team_order", { ascending: true });
 
     if (error) {
-      // Migracja jeszcze nie pojechała — fallback do pustej listy żeby strona miała hardcoded fallback.
+      // Migracja jeszcze nie pojechała - fallback do pustej listy żeby strona miała hardcoded fallback.
       if (isMissingTeamColumnError(error.message)) return [];
       console.warn("[team-query] public team:", error.message);
       return [];
@@ -166,7 +166,7 @@ export async function checkTeamSchemaReady(): Promise<{ ready: boolean; missing:
   const candidates = ["bio_long", "team_role", "team_order", "is_team_visible", "cloudflare_video_id"];
   const missing = candidates.filter((c) => m.includes(c));
   if (missing.length > 0) return { ready: false, missing };
-  // Inny błąd (np. RLS lub sieć) — traktujemy jako gotowy, żeby nie spamować banera.
+  // Inny błąd (np. RLS lub sieć) - traktujemy jako gotowy, żeby nie spamować banera.
   return { ready: true, missing: [] };
 }
 
@@ -188,7 +188,7 @@ export async function getPublicAgentBySlug(slug: string): Promise<TeamMember | n
       .eq("is_team_visible", true)
       .maybeSingle();
     if (error) {
-      // Brak slug w schemacie — migracja niezaaplikowana; potraktuj jak brak agenta.
+      // Brak slug w schemacie - migracja niezaaplikowana; potraktuj jak brak agenta.
       if (
         isMissingTeamColumnError(error.message) ||
         (error.message.toLowerCase().includes("does not exist") && error.message.toLowerCase().includes("slug"))

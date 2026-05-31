@@ -10,7 +10,7 @@ import { ListVideoPlaybackProvider } from "@/components/media/ListVideoPlayback"
  * Sekcja „Inne oferty, które mogą Cię zainteresować".
  *
  * Zasady odtwarzania:
- * - Gdy cała sekcja jest poza viewportem (0% widoczności) — NIC się nie odtwarza
+ * - Gdy cała sekcja jest poza viewportem (0% widoczności) - NIC się nie odtwarza
  *   i HLS nie konsumuje pasma. Film nie leci „w tle".
  * - Desktop: start tylko po hoverze na karcie (bez fallbacku do pierwszej).
  * - Mobile: najbliższa centrum karta gra, sąsiadująca jest primowana cicho

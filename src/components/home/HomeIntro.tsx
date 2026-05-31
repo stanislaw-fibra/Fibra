@@ -14,7 +14,7 @@ const FOUNDER_ROLE_FALLBACK = "Założyciel, Prezes Zarządu";
 type Props = {
   founderName?: string;
   founderRole?: string;
-  /** Cloudflare Stream ID autoprezentacji założyciela — gdy ustawione, zastępuje zdjęcie. */
+  /** Cloudflare Stream ID autoprezentacji założyciela - gdy ustawione, zastępuje zdjęcie. */
   founderVideoId?: string;
   founderPhotoUrl?: string;
 };
@@ -130,9 +130,9 @@ export function HomeIntro({
             </motion.div>
           </div>
 
-          {/* Założyciel — autoprezentacja wideo (Cloudflare Stream, ten sam film co
+          {/* Założyciel - autoprezentacja wideo (Cloudflare Stream, ten sam film co
               na /o-fibrze). Autoodtwarzanie wyciszone w pętli, klik = dźwięk.
-              Gdy brak wideo — fallback do statycznego portretu. */}
+              Gdy brak wideo - fallback do statycznego portretu. */}
           <motion.figure
             variants={fadeUp}
             className="lg:col-span-5 m-0 flex flex-col items-center lg:items-end"
@@ -167,7 +167,7 @@ export function HomeIntro({
                 </div>
               )}
 
-              {/* Podpis pod kadrem — editorialny, czysty; nie zasłania wideo. */}
+              {/* Podpis pod kadrem - editorialny, czysty; nie zasłania wideo. */}
               <figcaption className="mt-5 text-center lg:text-left">
                 <p className="font-display text-[20px] md:text-[22px] leading-tight text-ink-950">
                   {name}

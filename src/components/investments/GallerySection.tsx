@@ -16,7 +16,7 @@ export type GalleryCollection = {
   location: string;
   status: string;
   photos: GalleryPhoto[];
-  /** Liczba placeholderów do wyświetlenia gdy `photos` jest puste — żeby siatka miała sensowne proporcje. */
+  /** Liczba placeholderów do wyświetlenia gdy `photos` jest puste - żeby siatka miała sensowne proporcje. */
   placeholderCount?: number;
 };
 

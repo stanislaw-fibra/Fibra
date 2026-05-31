@@ -53,7 +53,7 @@ export interface MappedOffer {
 }
 
 // Mapowanie kategorii. "pokoje" traktujemy jako mieszkania (spec FIBRA_IMPORTER_CONTEXT sekcja 3).
-// "obiekty" nie ma dedykowanej wartości w enumie offer_category — traktujemy jako "lokale".
+// "obiekty" nie ma dedykowanej wartości w enumie offer_category - traktujemy jako "lokale".
 function mapCategory(tab: string): OfferCategory {
   const t = tab.toLowerCase().trim();
   switch (t) {
@@ -129,7 +129,7 @@ function parseParkingSpaces(v: string | null | undefined): number | null {
   return m ? parseInt(m[0], 10) : null;
 }
 
-// Grupa pól, które mają dedykowane kolumny — nie trafiają do raw_params
+// Grupa pól, które mają dedykowane kolumny - nie trafiają do raw_params
 const HANDLED_PARAM_NAMES = new Set([
   "advertisement_text",
   "opis",
@@ -186,7 +186,7 @@ export function mapOffer(raw: RawOffer): MappedOffer {
   const advertisement_text = toText(findParamRaw(params, "advertisement_text"));
   const agent_name = toText(findParamRaw(params, "agent_nazwisko"));
 
-  // Opis — KRYTYCZNE — patrz description-cleaner.ts
+  // Opis - KRYTYCZNE - patrz description-cleaner.ts
   const rawOpis = findParamRaw(params, "opis");
   const description = cleanDescription(rawOpis, agent_name);
 
@@ -239,7 +239,7 @@ export function mapOffer(raw: RawOffer): MappedOffer {
     raw_params["__location"] = raw.location;
   }
 
-  // title: użyj advertisement_text, a jeśli puste — fallback na pierwszą niepustą linię
+  // title: użyj advertisement_text, a jeśli puste - fallback na pierwszą niepustą linię
   // wyczyszczonego opisu (obcięta do 80 znaków).
   let title: string | null = advertisement_text;
   if (!title && description) {

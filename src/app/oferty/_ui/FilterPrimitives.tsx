@@ -40,7 +40,7 @@ function useIsMobile(): boolean {
  * - **Mobile (<640 px)**: bottom-sheet renderowany przez portal do `body`
  *   z własnym backdropem (z-[70]/z-[71]). Dzięki portalowi panel NIE jest
  *   uwięziony w żadnym stacking contextcie strony (sticky bar, kontenery z
- *   transform/filter/etc.) — jest zawsze on top, nawet nad odtwarzanym wideo.
+ *   transform/filter/etc.) - jest zawsze on top, nawet nad odtwarzanym wideo.
  *   Dodatkowo na mobile blokujemy scroll body, żeby gesty działały tylko
  *   na liście opcji.
  */
@@ -198,7 +198,7 @@ export function FilterPopover({
       </button>
 
       {/* Desktop dropdown (inline, absolute). Nie renderujemy gdy jesteśmy na mobile
-          — tam obsługuje to bottom-sheet przez portal. */}
+          - tam obsługuje to bottom-sheet przez portal. */}
       {open && !isMobile && (
         <div
           ref={panelRef}
@@ -277,7 +277,7 @@ function parseNumDraft(s: string): number | undefined {
 }
 
 /**
- * Para pól od-do — wartości w URL / filtrach aktualizujemy dopiero po **zakończeniu edycji**
+ * Para pól od-do - wartości w URL / filtrach aktualizujemy dopiero po **zakończeniu edycji**
  * (blur lub Enter), żeby nie odpalać `router.replace` i przeładowywać listy przy każdej cyfrze.
  */
 export function RangeInputs({

@@ -27,7 +27,7 @@ export async function upsertAgent(
     if (selErr) throw selErr;
 
     if (existing?.id) {
-      // Aktualizuj telefony / nazwę — mogły się zmienić w Galactice
+      // Aktualizuj telefony / nazwę - mogły się zmienić w Galactice
       const updates: Record<string, unknown> = {};
       if (name && name !== existing.name) updates.name = name;
       if (candidate.phone_office && candidate.phone_office !== existing.phone_office) {
@@ -62,7 +62,7 @@ export async function upsertAgent(
     return { id: inserted.id, created: true };
   }
 
-  // Brak emaila — spróbuj po nazwisku (fallback)
+  // Brak emaila - spróbuj po nazwisku (fallback)
   const { data: byName } = await supabase
     .from("agents")
     .select("id")

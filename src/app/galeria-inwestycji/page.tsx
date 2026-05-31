@@ -6,13 +6,13 @@ import { Reveal } from "@/components/ui/Reveal";
 import { GallerySection, type GalleryCollection } from "@/components/investments/GallerySection";
 
 export const metadata: Metadata = {
-  title: "Galeria inwestycji — Fibra Nieruchomości",
+  title: "Galeria inwestycji - Fibra Nieruchomości",
   description:
-    "Galeria zdjęć inwestycji Grupy Fibra — Osiedle Zamysłów (Etap II, Etap III) i inne realizacje na Śląsku.",
+    "Galeria zdjęć inwestycji Grupy Fibra - Osiedle Zamysłów (Etap II, Etap III) i inne realizacje na Śląsku.",
   alternates: { canonical: "/galeria-inwestycji" },
   openGraph: {
-    title: "Galeria inwestycji — Fibra Nieruchomości",
-    description: "Zobacz nasze inwestycje — od wizualizacji po gotowe budynki.",
+    title: "Galeria inwestycji - Fibra Nieruchomości",
+    description: "Zobacz nasze inwestycje - od wizualizacji po gotowe budynki.",
     url: "/galeria-inwestycji",
     type: "website",
     locale: "pl_PL",
@@ -20,12 +20,12 @@ export const metadata: Metadata = {
 };
 
 // TODO (Supabase): docelowo `getGalleryCollections()` z bucketa storage `investment-gallery`,
-// pogrupowane po `investment_slug`. Na razie układ z placeholderami — UI jest już gotowy
+// pogrupowane po `investment_slug`. Na razie układ z placeholderami - UI jest już gotowy
 // na ładowanie dynamicznych zdjęć (komponent GallerySection przyjmuje listę zdjęć).
 const COLLECTIONS: GalleryCollection[] = [
   {
     slug: "zamyslow-etap-iii",
-    title: "Osiedle Zamysłów — Etap III",
+    title: "Osiedle Zamysłów - Etap III",
     description:
       "Aktualnie realizowany etap inwestycji w Rybniku-Zamysłowie. Termin oddania: II/2026.",
     location: "Rybnik · Zamysłów",
@@ -35,9 +35,9 @@ const COLLECTIONS: GalleryCollection[] = [
   },
   {
     slug: "zamyslow-etap-ii",
-    title: "Osiedle Zamysłów — Etap II",
+    title: "Osiedle Zamysłów - Etap II",
     description:
-      "Ukończony etap inwestycji — gotowe lokale, zagospodarowanie terenu i część wspólna.",
+      "Ukończony etap inwestycji - gotowe lokale, zagospodarowanie terenu i część wspólna.",
     location: "Rybnik · Zamysłów",
     status: "Zrealizowane",
     photos: [],
@@ -76,13 +76,13 @@ export default function GaleriaInwestycjiPage() {
                   className="font-display text-ink-950 leading-[1.05] tracking-tight text-balance"
                   style={{ fontSize: "clamp(2rem, 5vw, 3.75rem)" }}
                 >
-                  Nasze projekty — od projektu do kluczy.
+                  Nasze projekty - od projektu do kluczy.
                 </h1>
               </Reveal>
               <Reveal delay={180}>
                 <p className="mt-5 md:mt-8 text-[16px] md:text-[19px] leading-[1.55] text-ink-700 text-pretty">
                   Zdjęcia z placu budowy, wizualizacje i gotowe lokale. Galeria jest na bieżąco
-                  uzupełniana — sprawdzaj postępy lub zapisz się na newsletter, żeby nie przegapić
+                  uzupełniana - sprawdzaj postępy lub zapisz się na newsletter, żeby nie przegapić
                   nowych ujęć.
                 </p>
               </Reveal>

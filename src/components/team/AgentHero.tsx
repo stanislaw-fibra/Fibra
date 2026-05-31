@@ -6,16 +6,16 @@ import type { TeamMember } from "@/lib/team-query";
 type Props = {
   agent: TeamMember;
   /**
-   * `full` — strona /agent/[slug], pełen hero z biografią
-   * `compact` — pasek u góry /oferty?agent=<slug>, krótka wersja
+   * `full` - strona /agent/[slug], pełen hero z biografią
+   * `compact` - pasek u góry /oferty?agent=<slug>, krótka wersja
    */
   variant?: "full" | "compact";
 };
 
 /**
- * Hero z auto-prezentacją agenta — używane na dwóch stronach:
- *   1. `/agent/[slug]` — pełna sylwetka (variant=full)
- *   2. `/oferty?agent=<slug>` — pasek u góry listy (variant=compact)
+ * Hero z auto-prezentacją agenta - używane na dwóch stronach:
+ *   1. `/agent/[slug]` - pełna sylwetka (variant=full)
+ *   2. `/oferty?agent=<slug>` - pasek u góry listy (variant=compact)
  */
 export function AgentHero({ agent, variant = "full" }: Props) {
   const isFounder = agent.kind === "founder";
@@ -84,7 +84,7 @@ export function AgentHero({ agent, variant = "full" }: Props) {
     );
   }
 
-  // FULL variant — strona /agent/[slug]
+  // FULL variant - strona /agent/[slug]
   return (
     <section className="relative bg-paper py-16 md:py-24 border-b border-ink-200/60">
       <div className="absolute inset-0 -z-10 grad-radial-brand opacity-30" />
@@ -134,7 +134,7 @@ export function AgentHero({ agent, variant = "full" }: Props) {
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                     <path d="M3 1.5h2.5l1 3-1.5 1c.5 1.5 1.5 2.5 3 3l1-1.5 3 1V11c0 .8-.7 1.5-1.5 1.5C5.5 12.5 1.5 8.5 1.5 3 1.5 2.2 2.2 1.5 3 1.5z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  Zadzwoń — {agent.phone}
+                  Zadzwoń - {agent.phone}
                 </a>
               ) : null}
               {agent.email ? (

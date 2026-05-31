@@ -16,7 +16,7 @@ async function isAuthorized(req: Request): Promise<boolean> {
     const fromCronHeader = req.headers.get("x-import-secret")?.trim() === secret;
 
     // Vercel Cron wysyła header `Authorization: Bearer {CRON_SECRET}` jeśli CRON_SECRET jest skonfigurowany,
-    // ale my używamy naszego IMPORT_SECRET — obsłuż też Vercel Cron przez user-agent jako fallback.
+    // ale my używamy naszego IMPORT_SECRET - obsłuż też Vercel Cron przez user-agent jako fallback.
     if (fromHeader || fromCronHeader) return true;
   }
 

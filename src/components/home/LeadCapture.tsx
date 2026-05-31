@@ -116,7 +116,7 @@ export function LeadCapture() {
                   </div>
                   <h3 className="font-display text-[34px] text-ink-950 mb-3">Dziękujemy.</h3>
                   <p className="text-[15px] text-ink-600 max-w-sm mx-auto">
-                    Oddzwonimy możliwie szybko — zwykle w ciągu kilku godzin w dni robocze.
+                    Oddzwonimy możliwie szybko - zwykle w ciągu kilku godzin w dni robocze.
                   </p>
                 </motion.div>
               ) : (

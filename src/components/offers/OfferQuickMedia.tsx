@@ -32,12 +32,12 @@ function youtubeVideoId(raw: string): string | null {
 
 type Props = {
   offerTitle: string;
-  /** Typ oferty — decyduje o etykiecie filmu („z nieruchomości" vs po prostu „Zobacz film"). */
+  /** Typ oferty - decyduje o etykiecie filmu („z nieruchomości" vs po prostu „Zobacz film"). */
   offerKind?: OfferKind;
   virtualTourUrl?: string;
   /** Z parametru Galactica / raw_params (priorytet nad heurystyką z galerii). */
   floorPlanImageUrl?: string;
-  /** PDF rzutu (panel/admin) — otwierany w nowej karcie. */
+  /** PDF rzutu (panel/admin) - otwierany w nowej karcie. */
   floorPlanPdfUrl?: string;
   floorPlanImages?: string[];
   floorPlanPdfs?: { url: string; label?: string }[];
@@ -107,7 +107,7 @@ export function OfferQuickMedia({
   const hasYoutube = Boolean(youtubeEmbed);
 
   // „Zobacz film z nieruchomości" działa dla domów i mieszkań. Dla gruntów
-  // (działek) i lokali to nadużycie — zostawiamy neutralne „Zobacz film".
+  // (działek) i lokali to nadużycie - zostawiamy neutralne „Zobacz film".
   const isResidence =
     offerKind === "dom" || offerKind === "apartament" || offerKind === "penthouse";
   const youtubeButtonLabel = isResidence ? "Zobacz film z nieruchomości" : "Zobacz film";
@@ -152,7 +152,7 @@ export function OfferQuickMedia({
     };
   }, [open, close]);
 
-  // Integracja z historią przeglądarki — gest „back" / przycisk Wstecz na mobile
+  // Integracja z historią przeglądarki - gest „back" / przycisk Wstecz na mobile
   // zamyka modal (spacer 3D, rzut, YouTube), zamiast nawigować do poprzedniej strony.
   // Klient zgłosił to wprost: po otwarciu spaceru i swipe-back tracił widok oferty.
   useModalHistoryClose(Boolean(open), close);
@@ -227,7 +227,7 @@ export function OfferQuickMedia({
                     {open === "tour" && virtualTourUrl ? (
                       <OfferMatterport
                         url={virtualTourUrl}
-                        title={`Spacer 3D — ${offerTitle}`}
+                        title={`Spacer 3D - ${offerTitle}`}
                         embedImmediately
                         layoutVariant="modal"
                       />
@@ -264,7 +264,7 @@ export function OfferQuickMedia({
                           {/* eslint-disable-next-line @next/next/no-img-element -- dowolny URL z galerii / CRM */}
                           <img
                             src={resolvedFloorUrl}
-                            alt={`Rzut 3D — ${offerTitle}`}
+                            alt={`Rzut 3D - ${offerTitle}`}
                             className="h-full w-full object-contain"
                             referrerPolicy="no-referrer"
                           />
@@ -368,7 +368,7 @@ export function OfferQuickMedia({
                         <div className="relative aspect-video w-full max-h-[min(76dvh,820px)]">
                           <iframe
                             src={`${youtubeEmbed}&autoplay=1`}
-                            title={`Film z nieruchomości — ${offerTitle}`}
+                            title={`Film z nieruchomości - ${offerTitle}`}
                             className="absolute inset-0 h-full w-full"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                             allowFullScreen
@@ -479,7 +479,7 @@ export function OfferQuickMedia({
             </span>
             <span
               className={[
-                // Prostokątna miniatura na każdym viewporcie — żeby było faktycznie widać kadr filmu (zarówno
+                // Prostokątna miniatura na każdym viewporcie - żeby było faktycznie widać kadr filmu (zarówno
                 // na mobile jak i desktop). Powiększona względem poprzedniej wersji, ale wciąż czytelna obok tekstu.
                 "relative inline-flex h-12 w-[72px] sm:h-12 sm:w-24 md:h-14 md:w-28 shrink-0 items-center justify-center overflow-hidden",
                 "rounded-[var(--radius-sm)]",

@@ -31,7 +31,7 @@ export default async function PanelDashboardLayout({ children }: { children: Rea
   const isAdmin = !agentId;
   const nav = isAdmin ? NAV_ADMIN : NAV_AGENT;
 
-  // Dla agenta — dociągnij jego imię/slug żeby pokazać w panelu.
+  // Dla agenta - dociągnij jego imię/slug żeby pokazać w panelu.
   let agentLabel: { name: string; slug?: string | null } | null = null;
   if (agentId) {
     const admin = createSupabaseAdmin();
@@ -48,7 +48,7 @@ export default async function PanelDashboardLayout({ children }: { children: Rea
             {isAdmin ? "Panel administratora" : "Panel agenta"}
           </p>
         </div>
-        {/* Agent — quick access do swojego publicznego profilu. */}
+        {/* Agent - quick access do swojego publicznego profilu. */}
         {agentLabel ? (
           <div className="px-4 pt-4 pb-2">
             <div className="rounded-[var(--radius-sm)] border border-emerald-400/25 bg-emerald-400/[0.08] px-3 py-2.5">

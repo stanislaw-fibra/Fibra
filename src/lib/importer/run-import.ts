@@ -52,10 +52,10 @@ export interface RunImportOptions {
   // Dry-run: parsuj XML, pokazuj ile zdjęć by się wgrało, ale NIC nie wysyłaj do Supabase.
   dryRun?: boolean;
   // Gałąź biznesowa, której dotyczy TEN konkretny plik wejściowy. Zapisywana do
-  // offers.source_branch (tylko przy INSERT — patrz offer-sync) i import_runs.source_branch.
+  // offers.source_branch (tylko przy INSERT - patrz offer-sync) i import_runs.source_branch.
   sourceBranch?: SourceBranch;
   // Przy eksporcie 'calosc' dezaktywuj oferty z TEJ SAMEJ gałęzi, których nie ma
-  // w pliku. Domyślnie WYŁĄCZONE — bez wyraźnej zgody nie ruszamy stanu is_active
+  // w pliku. Domyślnie WYŁĄCZONE - bez wyraźnej zgody nie ruszamy stanu is_active
   // (unikamy przypadkowego wyczyszczenia drugiej gałęzi, gdy nie wiemy jeszcze,
   // jak Galactica rozbije eksporty per branch).
   deactivateMissingInBranch?: boolean;
@@ -138,7 +138,7 @@ export async function runImport(opts: RunImportOptions = {}): Promise<ImportSumm
     parsed.header.zawartosc_pliku === "calosc" ? "full" : "diff";
 
   // 3. Zaloguj start w import_runs. Kolumna `source_branch` jest dołożona osobną
-  //    migracją — jeśli jeszcze nie jest wdrożona w tej instancji Supabase,
+  //    migracją - jeśli jeszcze nie jest wdrożona w tej instancji Supabase,
   //    upadamy na fallback bez tego pola zamiast wywalać import.
   try {
     const payload: Record<string, unknown> = {
@@ -245,7 +245,7 @@ export async function runImport(opts: RunImportOptions = {}): Promise<ImportSumm
 
   // 6. Eksport pełny → dezaktywuj brakujące, ALE tylko w obrębie tej samej gałęzi
   //    i TYLKO jeżeli wywołujący wyraźnie na to zgodził się (deactivateMissingInBranch).
-  //    Bez flagi nie ruszamy is_active — unikamy wyczyszczenia drugiej gałęzi,
+  //    Bez flagi nie ruszamy is_active - unikamy wyczyszczenia drugiej gałęzi,
   //    zanim będziemy mieli pewność, co dokładnie zawiera każdy eksport z Galactiki.
   if (summary.import_type === "full" && opts.deactivateMissingInBranch) {
     try {
@@ -349,7 +349,7 @@ function collectImages(mapped: MappedOffer, pool: Map<string, Buffer>): ImageInp
   const out: ImageInput[] = [];
   for (const img of mapped.image_filenames) {
     const buf = pool.get(img.filename);
-    if (!buf) continue; // brakujące pliki po prostu pomijamy — zostaną uzupełnione przy kolejnym ZIP-ie
+    if (!buf) continue; // brakujące pliki po prostu pomijamy - zostaną uzupełnione przy kolejnym ZIP-ie
     out.push({ order: img.order, filename: img.filename, buffer: buf });
   }
   return out;

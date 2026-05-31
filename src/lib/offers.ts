@@ -44,9 +44,9 @@ export interface Offer {
   statusOferty?: "wolna" | "w rozmowach" | "zarezerwowana";
   /** Z bazy: `sprzedaz` | `wynajem` */
   listingType?: "sprzedaz" | "wynajem";
-  /** URL obrazu rzutu / wizualizacji 3D układu — z `raw_params` (Galactica), gdy jest w imporcie. */
+  /** URL obrazu rzutu / wizualizacji 3D układu - z `raw_params` (Galactica), gdy jest w imporcie. */
   floorPlanImageUrl?: string;
-  /** PDF rzutu (panel/admin) — otwierany w nowej karcie. */
+  /** PDF rzutu (panel/admin) - otwierany w nowej karcie. */
   floorPlanPdfUrl?: string;
   /** Dodatkowe zdjęcia rzutu (np. parter + piętro). */
   floorPlanImages?: string[];
@@ -75,23 +75,23 @@ export interface Offer {
   virtualTourUrl?: string;
   /** Link do YouTube z Galactiki (param „wideo"). Fallback hero i landing page. */
   youtubeUrl?: string;
-  /** Flaga — true gdy oferta ma krótki, pionowy film (Cloudflare Stream). */
+  /** Flaga - true gdy oferta ma krótki, pionowy film (Cloudflare Stream). */
   hasShortVideo?: boolean;
-  /** Data ostatniej aktualizacji (ISO) — do sortowania w katalogu. */
+  /** Data ostatniej aktualizacji (ISO) - do sortowania w katalogu. */
   updatedAt?: string;
   /** Agent przypisany do oferty (z Galactiki / panelu). */
   agentName?: string;
   agentPhone?: string;
   agentPhoneOffice?: string;
   agentEmail?: string;
-  /** URL zdjęcia agenta (bucket `agent-photos` w Supabase). Gdy puste — pokazujemy inicjały. */
+  /** URL zdjęcia agenta (bucket `agent-photos` w Supabase). Gdy puste - pokazujemy inicjały. */
   agentPhotoUrl?: string;
-  /** Slug agenta — używany w publicznym URL `/agent/<slug>` i jako filter na `/oferty`. */
+  /** Slug agenta - używany w publicznym URL `/agent/<slug>` i jako filter na `/oferty`. */
   agentSlug?: string;
 }
 
 /**
- * Lista demonstracyjna pozostawiona PUSTA — wszystkie oferty są pobierane z Supabase
+ * Lista demonstracyjna pozostawiona PUSTA - wszystkie oferty są pobierane z Supabase
  * (`getAllOffers` / `getAllActiveOffers` / `getOfferBySlug` w `offers-query.ts`).
  * Eksport `OFFERS` zachowujemy dla zgodności typu, ale niczego nie wstrzykujemy do UI.
  */

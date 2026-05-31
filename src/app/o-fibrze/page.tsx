@@ -8,23 +8,23 @@ import { getPublicTeamMembers, type TeamMember } from "@/lib/team-query";
 export const revalidate = 60;
 
 export const metadata = {
-  title: "O Fibrze — Fibra Nieruchomości",
+  title: "O Fibrze - Fibra Nieruchomości",
   description:
-    "Fibra to deweloper, biuro nieruchomości i doradca finansowy w jednym. Działamy na Śląsku od 2006 roku — konkretnie, po ludzku, z pełną odpowiedzialnością.",
+    "Fibra to deweloper, biuro nieruchomości i doradca finansowy w jednym. Działamy na Śląsku od 2006 roku - konkretnie, po ludzku, z pełną odpowiedzialnością.",
   alternates: { canonical: "/o-fibrze" },
   openGraph: {
-    title: "O Fibrze — Fibra Nieruchomości",
+    title: "O Fibrze - Fibra Nieruchomości",
     description:
-      "Doświadczenie, któremu możesz zaufać. Działalność deweloperska, pośrednictwo w sprzedaży nieruchomości, finansowanie — od 2006 roku na Śląsku.",
+      "Doświadczenie, któremu możesz zaufać. Działalność deweloperska, pośrednictwo w sprzedaży nieruchomości, finansowanie - od 2006 roku na Śląsku.",
     url: "/o-fibrze",
     type: "website",
     locale: "pl_PL",
   },
   twitter: {
     card: "summary_large_image",
-    title: "O Fibrze — Fibra Nieruchomości",
+    title: "O Fibrze - Fibra Nieruchomości",
     description:
-      "Doświadczenie, któremu możesz zaufać. Działalność deweloperska, pośrednictwo w sprzedaży nieruchomości, finansowanie — od 2006 roku na Śląsku.",
+      "Doświadczenie, któremu możesz zaufać. Działalność deweloperska, pośrednictwo w sprzedaży nieruchomości, finansowanie - od 2006 roku na Śląsku.",
   },
 };
 
@@ -32,7 +32,7 @@ const AGENTS_BUCKET =
   "https://yrkvochsziertbvzbnol.supabase.co/storage/v1/object/public/agent-photos";
 
 /**
- * Fallback hardcoded — używany dopóki migracja `agents` z polami
+ * Fallback hardcoded - używany dopóki migracja `agents` z polami
  * `bio_long` / `team_role` / `team_order` / `is_team_visible` / `cloudflare_video_id`
  * nie zostanie uruchomiona w środowisku produkcyjnym i zespół nie zostanie wpisany
  * przez panel admina. Po wpięciu danych w bazie publiczna strona automatycznie
@@ -43,7 +43,7 @@ const FALLBACK_FOUNDER: TeamMember = {
   name: "Bartosz Nosiadek",
   role: "Założyciel, Prezes Zarządu",
   bio:
-    "Wierzę, że w nieruchomościach – bardziej niż w jakiejkolwiek innej branży – liczy się człowiek i przejrzyste zasady. Tworząc Fibrę przyjąłem prostą dewizę: interesy robi się z ludźmi, a nie na ludziach.\n\nDziś, po 20 latach na rynku, z dumą patrzę na osiedla, które wybudowaliśmy i setki rodzin, którym pomogliśmy znaleźć ich miejsce na ziemi. Jako praktyk i autor książki „Zarabianie uczciwych pieniędzy”, dbam o to, by każdy etap naszej współpracy – od budowy, przez finansowanie, aż po zarządzanie najmem – opierał się na fundamencie zaufania.\n\nFibra to nie tylko deweloper czy biuro nieruchomości. To zespół specjalistów, którzy biorą pełną odpowiedzialność za Twój komfort i bezpieczeństwo finansowe. Zapraszam Cię do poznania nas bliżej — chociażby przez pryzmat naszych wideo-prezentacji.",
+    "Wierzę, że w nieruchomościach – bardziej niż w jakiejkolwiek innej branży – liczy się człowiek i przejrzyste zasady. Tworząc Fibrę przyjąłem prostą dewizę: interesy robi się z ludźmi, a nie na ludziach.\n\nDziś, po 20 latach na rynku, z dumą patrzę na osiedla, które wybudowaliśmy i setki rodzin, którym pomogliśmy znaleźć ich miejsce na ziemi. Jako praktyk i autor książki „Zarabianie uczciwych pieniędzy”, dbam o to, by każdy etap naszej współpracy – od budowy, przez finansowanie, aż po zarządzanie najmem – opierał się na fundamencie zaufania.\n\nFibra to nie tylko deweloper czy biuro nieruchomości. To zespół specjalistów, którzy biorą pełną odpowiedzialność za Twój komfort i bezpieczeństwo finansowe. Zapraszam Cię do poznania nas bliżej - chociażby przez pryzmat naszych wideo-prezentacji.",
   photoUrl: `${AGENTS_BUCKET}/Bartosz%20Nosiadek.jpg`,
   kind: "founder",
   order: 0,
@@ -104,7 +104,7 @@ function formatPhoneHref(phone: string) {
 
 export default async function OFibrzePage() {
   // Najpierw próbujemy z bazy. Jeżeli baza pusta (migracja nie pojechała / admin nic nie wpisał),
-  // pokazujemy hardcoded fallback z PIM-em — żeby strona nigdy nie była pusta.
+  // pokazujemy hardcoded fallback z PIM-em - żeby strona nigdy nie była pusta.
   const dbMembers = await getPublicTeamMembers();
   const founder = dbMembers.find((m) => m.kind === "founder") ?? FALLBACK_FOUNDER;
   const team = dbMembers.filter((m) => m.kind === "member");
@@ -220,10 +220,10 @@ export default async function OFibrzePage() {
               </Reveal>
             </div>
 
-            {/* Wideo (lub portret) wycentrowane pionowo względem opisu — bez wyrównywania
+            {/* Wideo (lub portret) wycentrowane pionowo względem opisu - bez wyrównywania
                 do góry tekstu zostaje mniej pustej przestrzeni przy długich biogramach.
                 Max-width ograniczony, bo natywne 9:16 przy pełnej szerokości kolumny dawałoby
-                ~700-800 px wysokości — za dużo nawet dla bogatego biogramu założyciela. */}
+                ~700-800 px wysokości - za dużo nawet dla bogatego biogramu założyciela. */}
             <div className="mt-10 md:mt-14 grid gap-10 md:gap-14 lg:gap-16 lg:grid-cols-12 lg:items-center">
               <Reveal className="lg:col-span-5">
                 <div className="mx-auto max-w-[280px] md:max-w-[320px] lg:max-w-[360px] lg:mx-0">
@@ -283,7 +283,7 @@ export default async function OFibrzePage() {
             <div className="mt-12 md:mt-18 mx-auto max-w-6xl space-y-14 md:space-y-20">
               {teamMembers.map((member, i) => (
                 <Reveal key={member.id} delay={i * 100}>
-                  {/* Wideo w pełnym formacie pionowym (9:16) — żeby reels/shorts grał w naturalnym
+                  {/* Wideo w pełnym formacie pionowym (9:16) - żeby reels/shorts grał w naturalnym
                       kadrze bez czarnych pasków po bokach. Wideo zajmuje wąską kolumnę (5/12),
                       tekst po prawej (7/12) jest wyrównany do góry. Max-width na wideo ogranicza
                       jego wysokość, dzięki czemu tekst po prawej nie wygląda na chudy nawet

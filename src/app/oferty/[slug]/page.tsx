@@ -127,14 +127,14 @@ export default async function OfferPage({
                         )}
                       </div>
                     </OfferStreamHeroShell>
-                    {/* Mobile / tablet (<lg): galeria pod filmem — zaraz po nim, nim user dotrze
+                    {/* Mobile / tablet (<lg): galeria pod filmem - zaraz po nim, nim user dotrze
                         do parametrów. Na desktop galeria pojawia się w prawej kolumnie. */}
                     {gallery.length > 0 && (
                       <div className="lg:hidden mt-5">
                         <OfferMiniGallery images={gallery} label="Zdjęcia oferty" />
                       </div>
                     )}
-                    {/* Pod galerią (lub od razu pod filmem na desktopie) — zwarte „klocki" z głównymi parametrami. */}
+                    {/* Pod galerią (lub od razu pod filmem na desktopie) - zwarte „klocki" z głównymi parametrami. */}
                     <SpecStrip offer={offer} className="mt-5" />
                   </div>
                 ) : (
@@ -162,7 +162,7 @@ export default async function OfferPage({
                       {offer.district ? ` · ${offer.district}` : ""}
                     </span>
                   </div>
-                  {/* Tytuł skompresowany na ofertach z pionowym filmem — zostaje wtedy
+                  {/* Tytuł skompresowany na ofertach z pionowym filmem - zostaje wtedy
                       więcej miejsca na galerię w pierwszym viewportcie. Dla ofert bez filmu
                       tytuł zostaje pełnowymiarowy (większa hero-typografia). */}
                   <h1
@@ -175,7 +175,7 @@ export default async function OfferPage({
                     {offer.title}
                   </h1>
                   {/* Subtitle (np. „Centrum") chowamy gdy lokalizacja + kategoria są już w eyebrow nad tytułem
-                      (oferty z pionowym filmem). Bez filmu — zostaje pełny opis pod tytułem. */}
+                      (oferty z pionowym filmem). Bez filmu - zostaje pełny opis pod tytułem. */}
                   {offer.subtitle && !heroStreamId && (
                     <p className="mt-5 text-[17px] md:text-[18px] text-ink-600 max-w-2xl leading-relaxed">
                       {offer.subtitle}
@@ -197,7 +197,7 @@ export default async function OfferPage({
                   />
                 </Reveal>
 
-                {/* Galeria w prawej kolumnie — tylko desktop (lg+). Na mobile/tablet
+                {/* Galeria w prawej kolumnie - tylko desktop (lg+). Na mobile/tablet
                     galeria jest już renderowana zaraz pod filmem (lewa „kolumna"). */}
                 {heroStreamId && gallery.length > 0 ? (
                   <Reveal delay={100} className="mt-10 hidden lg:block">
@@ -482,7 +482,7 @@ function SpecCard({ label, value }: { label: string; value: string }) {
 
 /**
  * Zwarty „strip" z głównymi parametrami pod hero filmem.
- * Pokazuje 4–6 najważniejszych pozycji w jednej, niedużej karcie z linią siatki — żeby parametry
+ * Pokazuje 4–6 najważniejszych pozycji w jednej, niedużej karcie z linią siatki - żeby parametry
  * nie konkurowały wizualnie z galerią w prawej kolumnie, a zarazem były widoczne razem z filmem.
  */
 function SpecStrip({ offer, className = "" }: { offer: Offer; className?: string }) {

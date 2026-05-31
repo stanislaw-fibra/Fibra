@@ -52,7 +52,7 @@ type Props = {
   defaults?: Defaults;
   submitLabel: string;
   /**
-   * Stałe ID formularza — dzięki niemu sticky save bar (poza tym formularzem)
+   * Stałe ID formularza - dzięki niemu sticky save bar (poza tym formularzem)
    * może go submitować przez atrybut `form="offer-edit-form"` na swoim przycisku.
    */
   formId?: string;
@@ -220,12 +220,12 @@ export function OfferFormFields({ action, agents, defaults, submitLabel, formId,
           }
         />
 
-        {/* Banner ostrzegawczy: edycja w panelu jest tymczasowa — Galactica wygrywa przy synchronizacji. */}
+        {/* Banner ostrzegawczy: edycja w panelu jest tymczasowa - Galactica wygrywa przy synchronizacji. */}
         <div className="mt-3 rounded-[var(--radius-sm)] border border-amber-300/70 bg-amber-50 px-4 py-3 text-[13px] text-amber-900 leading-relaxed">
-          <p className="font-semibold">Ważne — Galactica nadrzędna nad zmianami w panelu</p>
+          <p className="font-semibold">Ważne - Galactica nadrzędna nad zmianami w panelu</p>
           <p className="mt-1">
             Edytuj opis tutaj jeśli chcesz coś szybko poprawić (np. literówkę). Pamiętaj jednak,
-            że <strong>przy następnej synchronizacji z Galactiki ten opis zostanie nadpisany</strong> —
+            że <strong>przy następnej synchronizacji z Galactiki ten opis zostanie nadpisany</strong> -
             jeśli zmiana ma być trwała, zrób ją po stronie Galactici.
           </p>
         </div>
@@ -278,7 +278,7 @@ export function OfferFormFields({ action, agents, defaults, submitLabel, formId,
         {inp("floor_plan_pdf_url", "Rzut (PDF URL)", { defaultValue: d.floor_plan_pdf_url })}
       </div>
 
-      {/* Stabilny anchor #youtube-url-field — używany przez przycisk „Edytuj link" w sekcji
+      {/* Stabilny anchor #youtube-url-field - używany przez przycisk „Edytuj link" w sekcji
           „Filmy do oferty" niżej na stronie. Klik przewija dokładnie tutaj i fokusuje pole. */}
       <div id="youtube-url-field" className="rounded-[var(--radius-md)] border border-brand-200/80 bg-brand-50/60 p-5 md:p-6 space-y-3 scroll-mt-24">
         <div className="flex items-start gap-3">
@@ -290,7 +290,7 @@ export function OfferFormFields({ action, agents, defaults, submitLabel, formId,
           <div className="min-w-0">
             <h3 className="text-[15px] font-semibold text-ink-950">Film z YouTube</h3>
             <p className="mt-1 text-[13px] text-ink-700 leading-relaxed max-w-[58ch]">
-              Wklej tutaj link do filmu na YouTube — po zapisaniu zostanie pokazany na stronie oferty
+              Wklej tutaj link do filmu na YouTube - po zapisaniu zostanie pokazany na stronie oferty
               w sekcji „Film prezentacyjny”. Akceptujemy link do filmu (`youtube.com/watch?v=…`),
               link skrócony (`youtu.be/…`) lub samo ID filmu.
             </p>

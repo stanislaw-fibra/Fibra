@@ -17,9 +17,10 @@ const LINKS: NavLink[] = [
   { href: "/dla-firm", label: "Dla firm" },
   { href: "/sprzedaj-z-fibra", label: "Sprzedaj z Fibrą" },
   {
-    href: "/przewodnik-inwestora",
-    label: "Inwestor",
+    href: "/zamyslow",
+    label: "Zamysłów",
     children: [
+      { href: "/zamyslow", label: "Osiedle Zamysłów" },
       { href: "/przewodnik-inwestora", label: "Przewodnik Inwestora" },
       { href: "/zarzadzanie-najmem", label: "Zarządzanie najmem" },
       { href: "/galeria-inwestycji", label: "Galeria inwestycji" },

@@ -45,7 +45,7 @@ function youtubeEmbedUrl(raw: string): string | null {
  * 3) Zdjęcie z galerii (4:3) + mini-galeria pod spodem.
  *
  * W trybie YouTube / zdjęciowym klik w miniaturę otwiera współdzielony lightbox
- * (GalleryLightboxProvider w page.tsx) — bez kotwicy i przewijania do sekcji #galeria.
+ * (GalleryLightboxProvider w page.tsx) - bez kotwicy i przewijania do sekcji #galeria.
  */
 export function OfferHeroMedia({ title, streamId, youtubeUrl, poster, gallery }: Props) {
   const embedUrl = useMemo(
