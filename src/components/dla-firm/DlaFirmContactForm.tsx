@@ -17,15 +17,115 @@ declare global {
   }
 }
 
-export function DlaFirmContactForm() {
+type Variant = "compact" | "full";
+
+/**
+ * Jeden komponent w dwóch wariantach:
+ *  - "compact" - wersja w hero (imię + telefon, jedna linia na desktop)
+ *  - "full"    - pełniejsza wersja w sekcji kontaktowej (imię, telefon, e-mail, wiadomość)
+ *
+ * Oba wysyłają lead na `/api/leads` z tagiem `source: b2b_page`.
+ */
+export function DlaFirmContactForm({
+  variant = "full",
+  formId = "b2b-form",
+  className = "",
+}: {
+  variant?: Variant;
+  formId?: string;
+  className?: string;
+}) {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  if (variant === "compact") {
+    return (
+      <form
+        id={formId}
+        className={`flex flex-col gap-3 ${className}`}
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (sending) return;
+          setError(null);
+          setSending(true);
+          try {
+            const fd = new FormData(e.currentTarget);
+            const full_name = String(fd.get("name") || "").trim();
+            const phone = String(fd.get("phone") || "").trim();
+
+            await submitLead({
+              source: "b2b_page",
+              full_name,
+              phone: phone || null,
+              message: null,
+              newsletter_consent: false,
+            });
+
+            if (typeof window !== "undefined") {
+              window.gtag?.("event", "b2b_form_submit", { source: "b2b_page", variant: "compact" });
+              window.fbq?.("track", "Lead", { source: "b2b_page" });
+            }
+            setSent(true);
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Nie udało się wysłać.");
+          } finally {
+            setSending(false);
+          }
+        }}
+      >
+        {sent ? (
+          <div className="rounded-xl bg-white/[0.06] border border-white/15 px-5 py-5 text-white">
+            <p className="text-[15px]">Dziękujemy. Oddzwonimy w ciągu dwóch godzin roboczych.</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-2.5">
+              <input
+                type="text"
+                name="name"
+                required
+                placeholder="Imię"
+                autoComplete="name"
+                className="min-h-[52px] rounded-full bg-white text-ink-900 placeholder:text-ink-400 px-5 text-[15px] outline-none focus:ring-2 focus:ring-accent-400"
+              />
+              <input
+                type="tel"
+                name="phone"
+                required
+                placeholder="Telefon"
+                autoComplete="tel"
+                className="min-h-[52px] rounded-full bg-white text-ink-900 placeholder:text-ink-400 px-5 text-[15px] outline-none focus:ring-2 focus:ring-accent-400"
+              />
+              <button
+                type="submit"
+                disabled={sending}
+                className={[
+                  "min-h-[52px] inline-flex items-center justify-center gap-2 rounded-full px-7 text-[15px] font-medium text-white transition-colors whitespace-nowrap",
+                  sending ? "bg-accent-500/70 cursor-wait" : "bg-accent-500 hover:bg-accent-400",
+                ].join(" ")}
+              >
+                {sending ? "Wysyłanie…" : "Oddzwońcie do mnie"}
+              </button>
+            </div>
+            {error ? <p className="text-[13px] text-red-300">{error}</p> : null}
+            <p className="text-[12.5px] text-white/55 leading-relaxed">
+              Albo zadzwoń teraz:{" "}
+              <a href="tel:+48510777200" className="text-white font-medium hover:text-accent-400 transition-colors">
+                510 777 200
+              </a>
+              . Odpowiadamy w ciągu dwóch godzin roboczych.
+            </p>
+          </>
+        )}
+      </form>
+    );
+  }
+
   return (
     <form
-      id="b2b-form"
-      className="bg-white text-ink-900 p-7 md:p-10 rounded-[var(--radius-lg)] shadow-[var(--shadow-cinematic)] ring-1 ring-ink-100/80"
+      id={formId}
+      className={`bg-white text-ink-900 p-7 md:p-9 rounded-[var(--radius-lg)] shadow-[var(--shadow-cinematic)] ring-1 ring-ink-100/80 ${className}`}
       onSubmit={async (e) => {
         e.preventDefault();
         if (sending) return;
@@ -39,8 +139,6 @@ export function DlaFirmContactForm() {
           const phone = String(fd.get("phone") || "").trim();
           const details = String(fd.get("message") || "").trim();
 
-          // Sklejamy nazwę firmy i treść zapytania w jeden message tag,
-          // żeby zachować spójność z istniejącym endpointem /api/leads.
           const messageParts: string[] = [];
           if (company) messageParts.push(`Firma: ${company}`);
           if (details) messageParts.push(details);
@@ -56,10 +154,7 @@ export function DlaFirmContactForm() {
           });
 
           if (typeof window !== "undefined") {
-            window.gtag?.("event", "b2b_form_submit", {
-              source: "b2b_page",
-              company: company || undefined,
-            });
+            window.gtag?.("event", "b2b_form_submit", { source: "b2b_page", variant: "full" });
             window.fbq?.("track", "Lead", { source: "b2b_page" });
           }
 
@@ -72,52 +167,45 @@ export function DlaFirmContactForm() {
       }}
     >
       {sent ? (
-        <div className="py-12 md:py-16 text-center">
-          <div className="inline-flex w-14 h-14 md:w-16 md:h-16 items-center justify-center rounded-full bg-brand-500 text-white mb-6">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <div className="py-12 md:py-14 text-center">
+          <div className="inline-flex w-14 h-14 items-center justify-center rounded-full bg-brand-500 text-white mb-5">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <h3 className="font-display text-[28px] md:text-[34px] text-ink-950 leading-tight mb-3">
+          <h3 className="font-display text-[26px] md:text-[30px] text-ink-950 leading-tight">
             Dziękujemy.
           </h3>
-          <p className="text-[15px] text-ink-600 max-w-md mx-auto leading-relaxed">
-            Zapytanie trafiło do naszego zespołu B2B. Odezwiemy się w ciągu 2 godzin
-            roboczych - najczęściej dużo szybciej.
-          </p>
-          <p className="mt-6 text-[13px] text-ink-500">
-            Pilna sprawa?{" "}
-            <a href="tel:+48510777200" className="font-medium text-brand-600 hover:text-brand-500">
-              510 777 200
-            </a>
+          <p className="mt-3 text-[15px] text-ink-600 max-w-sm mx-auto leading-relaxed">
+            Oddzwonimy w ciągu dwóch godzin roboczych.
           </p>
         </div>
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Imię i nazwisko" name="name" required placeholder="np. Anna Kowalska" autoComplete="name" />
-            <Field label="Firma" name="company" required placeholder="np. Przykładowa Sp. z o.o." autoComplete="organization" />
-            <Field label="E-mail służbowy" name="email" type="email" required placeholder="anna@firma.pl" autoComplete="email" />
+            <Field label="Imię" name="name" required placeholder="np. Anna" autoComplete="name" />
             <Field label="Telefon" name="phone" type="tel" required placeholder="+48 …" autoComplete="tel" />
+            <Field label="E-mail (opcjonalnie)" name="email" type="email" placeholder="anna@firma.pl" autoComplete="email" />
+            <Field label="Firma (opcjonalnie)" name="company" placeholder="Nazwa firmy" autoComplete="organization" />
           </div>
 
           <label className="block mt-4">
             <span className="text-[11.5px] font-medium uppercase tracking-[0.14em] text-ink-500">
-              Krótko: ile mieszkań, kiedy, w jakim mieście
+              Wiadomość (opcjonalnie)
             </span>
             <textarea
               name="message"
-              rows={4}
-              placeholder="np. 2 mieszkania w Rybniku dla inżynierów od 1 lipca, umowa na 12 miesięcy."
+              rows={3}
+              placeholder="Czego potrzebujesz? Ile osób, jakie miasto, kiedy."
               className="mt-2 w-full bg-ink-50 focus:bg-white border border-ink-200 focus:border-brand-500 rounded-[var(--radius-sm)] px-4 py-3 text-[14px] outline-none transition-colors resize-none"
             />
           </label>
 
           {error ? <p className="mt-4 text-[13px] text-red-600">{error}</p> : null}
 
-          <div className="mt-7 flex flex-wrap items-center gap-4 justify-between">
+          <div className="mt-6 flex flex-wrap items-center gap-4 justify-between">
             <p className="text-[11.5px] text-ink-400 max-w-md leading-relaxed">
-              Wysyłając wyrażasz zgodę na kontakt w sprawie zapytania zgodnie z{" "}
+              Wysyłając wyrażasz zgodę na kontakt zgodnie z{" "}
               <Link href="/polityka-prywatnosci" className="underline underline-offset-2 hover:text-ink-600">
                 polityką prywatności
               </Link>
@@ -137,11 +225,6 @@ export function DlaFirmContactForm() {
               </svg>
             </button>
           </div>
-
-          <p className="mt-6 text-[12.5px] text-ink-500 leading-relaxed">
-            Odpowiadamy w ciągu <strong className="text-ink-700">2 godzin roboczych</strong>.
-            W weekend - najpóźniej w poniedziałek rano.
-          </p>
         </>
       )}
     </form>
