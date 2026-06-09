@@ -642,8 +642,14 @@ export default function Kurs20LekcjiPage() {
                     przekazuję to, co wiem.
                   </p>
                   <p>
-                    Jeśli kiedyś zechcesz zainwestować razem z nami - super. Jeśli nie, zostaje Ci
-                    konkretna wiedza.
+                    Gram w otwarte karty - tym kierowałem się przez całą swoją karierę. Mój cel jest
+                    prosty: przekazać Ci wiedzę o inwestowaniu w nieruchomości, bo sam uważam je za
+                    dobrą inwestycję i sam się na tym znam.
+                  </p>
+                  <p>
+                    Mam nadzieję, że kiedy już tę wiedzę zdobędziesz i zechcesz kupić mieszkanie na
+                    wynajem, zrobisz to razem z nami - bo będziesz już wiedział, jak pracujemy i jakie
+                    mamy wartości.
                   </p>
                 </div>
               </Reveal>
