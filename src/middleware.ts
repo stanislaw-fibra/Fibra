@@ -1,8 +1,33 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { KURS_ACCESS_COOKIE, verifyAccessToken } from "@/lib/kurs-access";
 
 export async function middleware(request: NextRequest) {
-  if (!request.nextUrl.pathname.startsWith("/panel")) {
+  const { pathname } = request.nextUrl;
+
+  // ---- Bramka portalu kursu (/kurs) ----
+  // Uwaga: matcher celuje w "/kurs" i "/kurs/...", więc landing
+  // "/kurs-20-lekcji-inwestora" tu NIE trafia (inny prefiks).
+  if (pathname === "/kurs" || pathname.startsWith("/kurs/")) {
+    // Miniatury lekcji (/public/kurs/lekcje) muszą być publiczne - używamy ich
+    // m.in. na landing page (sekcja darmowej lekcji). Nie chowamy ich za bramką.
+    if (pathname.startsWith("/kurs/lekcje/")) {
+      return NextResponse.next();
+    }
+    if (pathname === "/kurs/login") {
+      return NextResponse.next();
+    }
+    const token = request.cookies.get(KURS_ACCESS_COOKIE)?.value;
+    if (await verifyAccessToken(token)) {
+      return NextResponse.next();
+    }
+    const redirect = new URL("/kurs/login", request.url);
+    redirect.searchParams.set("next", pathname);
+    return NextResponse.redirect(redirect);
+  }
+
+  // ---- Panel ----
+  if (!pathname.startsWith("/panel")) {
     return NextResponse.next();
   }
 
@@ -48,5 +73,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/panel/:path*"],
+  matcher: ["/panel/:path*", "/kurs", "/kurs/:path*"],
 };
