@@ -44,12 +44,6 @@ export const metadata: Metadata = {
   },
 };
 
-const TRUST = [
-  "20 lekcji wideo",
-  "ponad rok pracy nad materiałem",
-  "bestsellerowa książka w gratisie",
-];
-
 const PROBLEMS = [
   "Boisz się, że trafisz na najemcę, którego nie da się eksmitować?",
   "Nie wiesz, czy to dobry moment, czy właśnie pęka bańka?",
@@ -193,8 +187,8 @@ export default function Kurs20LekcjiPage() {
         <section className="relative pt-6 pb-20 md:pt-8 md:pb-28 overflow-hidden">
           <div className="absolute inset-0 grad-radial-hero opacity-70" aria-hidden />
           <div className="container-xl relative">
-            <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-12 lg:gap-16 lg:items-start">
-              <div className="lg:pt-6">
+            <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-12 lg:gap-16 lg:items-center">
+              <div>
                 <Reveal>
                   <p className="eyebrow inline-flex items-center gap-3 mb-7">
                     <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
@@ -217,10 +211,10 @@ export default function Kurs20LekcjiPage() {
                 </Reveal>
 
                 <Reveal delay={240}>
-                  <div className="mt-9 flex flex-col sm:flex-row gap-3">
+                  <div className="mt-9 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
                     <a
                       href={CHECKOUT_URL}
-                      className="inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 hover:bg-accent-400 text-white px-8 sm:px-10 py-4 text-[15px] md:text-[16px] font-medium transition-colors active:scale-[0.98]"
+                      className="inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 hover:bg-accent-400 text-white px-8 sm:px-10 py-4 text-[15px] md:text-[16px] font-medium shadow-[var(--shadow-card)] transition-colors active:scale-[0.98]"
                     >
                       Chcę kurs + książkę gratis
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
@@ -229,23 +223,27 @@ export default function Kurs20LekcjiPage() {
                     </a>
                     <a
                       href="#program"
-                      className="inline-flex items-center justify-center gap-2 rounded-full border border-ink-900/15 text-ink-900 hover:bg-ink-900 hover:text-white px-8 sm:px-10 py-4 text-[15px] md:text-[16px] font-medium transition-colors active:scale-[0.98]"
+                      className="group inline-flex items-center justify-center gap-1.5 text-[15px] md:text-[16px] font-medium text-ink-700 hover:text-ink-950 transition-colors"
                     >
                       Zobacz program
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden className="transition-transform group-hover:translate-y-0.5">
+                        <path d="M7 3v8M3 7l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
                     </a>
                   </div>
                 </Reveal>
-                <Reveal delay={300}>
-                  <p className="mt-4 text-[13.5px] text-ink-500">
-                    Dostęp od razu po zakupie · BLIK, Przelewy24, karta
-                  </p>
-                </Reveal>
 
-                <Reveal delay={360}>
-                  <ul className="mt-6 flex flex-wrap gap-x-3 gap-y-2 text-[13px] text-ink-600">
-                    {TRUST.map((t, i) => (
-                      <li key={i} className="inline-flex items-center gap-3">
-                        {i > 0 && <span className="text-ink-300" aria-hidden>·</span>}
+                <Reveal delay={320}>
+                  <ul className="mt-8 flex flex-col sm:flex-row flex-wrap gap-x-6 gap-y-2.5 text-[14px] text-ink-600">
+                    {[
+                      "Dostęp od razu po zakupie",
+                      "20 lekcji wideo, ponad 3 h",
+                      "BLIK, Przelewy24, karta",
+                    ].map((t, i) => (
+                      <li key={i} className="inline-flex items-center gap-2">
+                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" className="shrink-0 text-brand-500" aria-hidden>
+                          <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
                         <span>{t}</span>
                       </li>
                     ))}
