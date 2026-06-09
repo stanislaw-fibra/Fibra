@@ -9,9 +9,11 @@ export async function middleware(request: NextRequest) {
   // Uwaga: matcher celuje w "/kurs" i "/kurs/...", więc landing
   // "/kurs-20-lekcji-inwestora" tu NIE trafia (inny prefiks).
   if (pathname === "/kurs" || pathname.startsWith("/kurs/")) {
-    // Miniatury lekcji (/public/kurs/lekcje) muszą być publiczne - używamy ich
-    // m.in. na landing page (sekcja darmowej lekcji). Nie chowamy ich za bramką.
-    if (pathname.startsWith("/kurs/lekcje/")) {
+    // Statyczne pliki z /public/kurs (miniatury lekcji, okładki, np. .jpg/.webp)
+    // muszą być publiczne - używamy ich na landing page (hero, darmowa lekcja).
+    // Trasy portalu nie mają kropki w ostatnim segmencie, więc rozpoznajemy
+    // asset po rozszerzeniu i nie chowamy go za bramką.
+    if (/\.[a-z0-9]+$/i.test(pathname)) {
       return NextResponse.next();
     }
     if (pathname === "/kurs/login") {

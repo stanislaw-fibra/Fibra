@@ -27,6 +27,7 @@ export function HeroMedia({ videoId, price, priceRegular }: Props) {
         <StreamVideo
           id={videoId}
           title="Bartosz Nosiadek o kursie „20 Lekcji Inwestora”"
+          poster="/kurs/Bartosz_Nosiadek_Miniatura.webp"
           showCaption={false}
           onPlay={() => setPlaying(true)}
         />
