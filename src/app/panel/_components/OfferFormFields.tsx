@@ -32,7 +32,6 @@ type Defaults = Partial<{
   virtual_tour_url: string;
   floor_plan_image_url: string;
   floor_plan_pdf_url: string;
-  youtube_url: string;
   is_active: boolean;
   is_exclusive: boolean;
   is_price_negotiable: boolean;
@@ -276,40 +275,6 @@ export function OfferFormFields({ action, agents, defaults, submitLabel, formId,
         {inp("virtual_tour_url", "Link wirtualnej wizyty", { defaultValue: d.virtual_tour_url })}
         {inp("floor_plan_image_url", "Rzut (zdjęcie URL)", { defaultValue: d.floor_plan_image_url })}
         {inp("floor_plan_pdf_url", "Rzut (PDF URL)", { defaultValue: d.floor_plan_pdf_url })}
-      </div>
-
-      {/* Stabilny anchor #youtube-url-field - używany przez przycisk „Edytuj link" w sekcji
-          „Filmy do oferty" niżej na stronie. Klik przewija dokładnie tutaj i fokusuje pole. */}
-      <div id="youtube-url-field" className="rounded-[var(--radius-md)] border border-brand-200/80 bg-brand-50/60 p-5 md:p-6 space-y-3 scroll-mt-24">
-        <div className="flex items-start gap-3">
-          <span aria-hidden className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500/10 text-brand-700">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-              <path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8ZM10 15V9l5.2 3L10 15Z" />
-            </svg>
-          </span>
-          <div className="min-w-0">
-            <h3 className="text-[15px] font-semibold text-ink-950">Film z YouTube</h3>
-            <p className="mt-1 text-[13px] text-ink-700 leading-relaxed max-w-[58ch]">
-              Wklej tutaj link do filmu na YouTube - po zapisaniu zostanie pokazany na stronie oferty
-              w sekcji „Film prezentacyjny”. Akceptujemy link do filmu (`youtube.com/watch?v=…`),
-              link skrócony (`youtu.be/…`) lub samo ID filmu.
-            </p>
-          </div>
-        </div>
-        <label className="block">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-700">Link do YouTube</span>
-          <input
-            id="youtube_url"
-            name="youtube_url"
-            type="text"
-            autoComplete="off"
-            spellCheck={false}
-            defaultValue={d.youtube_url ?? ""}
-            placeholder="https://www.youtube.com/watch?v=…"
-            className="mt-2 w-full rounded-[var(--radius-sm)] border border-ink-300/90 bg-paper px-4 py-3 text-[14px] text-ink-900 outline-none transition-colors focus:border-brand-500 hover:border-ink-400 font-mono"
-          />
-        </label>
-        <p className="text-[12px] text-ink-600">Pole puste = brak filmu YouTube. Możesz w każdej chwili wkleić nowy link i zapisać.</p>
       </div>
 
       <label className="block max-w-md">

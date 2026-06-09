@@ -87,6 +87,8 @@ export async function upsertOffer(
     agent_email: mapped.agent_email,
     agent_phone_office: mapped.agent_phone_office,
     agent_phone_mobile: mapped.agent_phone_mobile,
+    // youtube_url celowo NIE jest tutaj - obsługujemy go osobno (reconciliacja niżej),
+    // żeby ręczna zmiana w panelu nie była ślepo nadpisywana przy każdym sync.
     raw_params: mapped.raw_params,
     is_active: true,
   };
@@ -96,13 +98,25 @@ export async function upsertOffer(
   // - source_branch backfill-ujemy tylko jeśli był pusty/unknown.
   const { data: existing, error: selErr } = await supabase
     .from("offers")
-    .select("id, slug, source_branch")
+    .select("id, slug, source_branch, youtube_url, youtube_url_galactica")
     .eq("galactica_offer_id", mapped.galactica_offer_id)
     .maybeSingle();
   if (selErr) throw selErr;
 
   if (existing?.id) {
     const patch: Record<string, unknown> = { ...row };
+
+    // Reconciliacja YouTube: Galactica wygrywa tylko gdy realnie zmieniła wartość względem
+    // ostatnio widzianej (youtube_url_galactica). Gdy Galactica bez zmian - nie ruszamy
+    // youtube_url, żeby zachować ewentualną ręczną zmianę z panelu.
+    const incomingYt = mapped.youtube_url; // string | null (wyciągnięte z Galactiki)
+    const baselineYt = (existing.youtube_url_galactica as string | null) ?? null;
+    if (incomingYt !== baselineYt) {
+      patch.youtube_url = incomingYt;
+      patch.youtube_url_galactica = incomingYt;
+    }
+    // else: zostaw youtube_url i youtube_url_galactica nietknięte (UPDATE ich nie obejmuje).
+
     if (!existing.slug || existing.slug.trim().length === 0) {
       patch.slug = await resolveInsertableSlug(
         supabase,
@@ -128,7 +142,15 @@ export async function upsertOffer(
   );
   const { data: inserted, error } = await supabase
     .from("offers")
-    .insert({ ...row, slug, source_branch: (sourceBranch ?? "unknown").trim() || "unknown" })
+    .insert({
+      ...row,
+      slug,
+      source_branch: (sourceBranch ?? "unknown").trim() || "unknown",
+      // Nowa oferta: wartość efektywna = wartość z Galactiki, a punkt odniesienia ustawiamy
+      // na tę samą wartość (brak ręcznej zmiany na starcie).
+      youtube_url: mapped.youtube_url,
+      youtube_url_galactica: mapped.youtube_url,
+    })
     .select("id")
     .single();
   if (error) throw error;

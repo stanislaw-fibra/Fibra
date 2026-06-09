@@ -15,11 +15,38 @@ import bookCta from "../../../public/kurs/ksiazka_cta.png";
    DO UZUPEŁNIENIA przed publikacją:
    - HERO_VIDEO_ID: tymczasowa autoprezentacja (Cloudflare Stream) - Bartek
      podmieni na docelowy film.
+   - CHECKOUT_URL: produkt 21500 w Imkerze (czysta historia cen). Identyczny
+     ID jest też w webhooku: src/app/api/imker/webhook/route.ts
+     (COURSE_PRODUCT_ID).
    Cena, opinie, value stack, zdjęcia, wideo o książce, link do koszyka są realne.
    ------------------------------------------------------------------------- */
-const CHECKOUT_URL = "https://bartosznosiadek.salescrm.pl/cart/add_product/21494";
-const PRICE = "127 zł";
-const PRICE_REGULAR = "176,90 zł";
+const CHECKOUT_URL = "https://bartosznosiadek.salescrm.pl/cart/add_product/21500";
+/** Stała cena kursu (nie promocja - nie przekreślamy). */
+const PRICE = "177 zł";
+
+/**
+ * Bonus czasowy: do 15 lipca do kursu dorzucamy pakiet książki o wartości
+ * 297 zł. Po tej dacie oferta się zmienia - żeby zdjąć bonus, wystarczy
+ * ustawić `active: false` (cała komunikacja bonusu zniknie z hero, sekcji
+ * bonusu i cennika; zostaje sam kurs za 177 zł). Datę/wartości zmieniasz tu.
+ */
+const BONUS = {
+  active: true,
+  /** Wartość pakietu książki podawana jako prezent (nie dawna cena kursu). */
+  value: "297 zł",
+  /** Do kiedy obowiązuje bonus. */
+  deadline: "15 lipca",
+  /** Wartość przy zakupie osobno: 177 zł (kurs) + 297 zł (pakiet). */
+  priceSeparate: "474 zł",
+  /** Co wchodzi w pakiet książki (wartość 297 zł). */
+  items: [
+    "Drukowana książka „Zarabianie Uczciwych Pieniędzy”",
+    "E-book",
+    "Audiobook (CD + MP3)",
+    "Szkolenie VOD 2,5 h",
+    "Darmowa wysyłka",
+  ],
+};
 const BOOK_VIDEO_ID = "PZxnHJVVP7A";
 const HERO_VIDEO_ID = "e86aa1bc1b857b5a77e027911534648e";
 
@@ -161,7 +188,9 @@ const FAQ = [
   },
   {
     q: "Co dostaję w bonusie i jak odebrać materiały dla zapisanych?",
-    a: "Do kursu dorzucam swój bestseller „Zarabianie Uczciwych Pieniędzy” (49,90 zł) gratis. Zapisując się do newslettera przy zakupie, dostajesz ode mnie dodatkowo audiobook oraz streszczenie rysunkowe książki.",
+    a: BONUS.active
+      ? `Do ${BONUS.deadline} do kursu dorzucam pakiet książki „Zarabianie Uczciwych Pieniędzy” o wartości ${BONUS.value} gratis - drukowana książka, e-book, audiobook (CD + MP3), szkolenie VOD 2,5 h i darmowa wysyłka. Zapisując się do newslettera przy zakupie, dostajesz ode mnie dodatkowo streszczenie rysunkowe książki.`
+      : "Zapisując się do newslettera przy zakupie, dostajesz ode mnie streszczenie rysunkowe książki „Zarabianie Uczciwych Pieniędzy” - wyślę Ci je na maila.",
   },
   {
     q: "Czy to nie jest „szybkie wzbogacenie się”?",
@@ -216,7 +245,7 @@ export default function Kurs20LekcjiPage() {
                       href={CHECKOUT_URL}
                       className="inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 hover:bg-accent-400 text-white px-8 sm:px-10 py-4 text-[15px] md:text-[16px] font-medium shadow-[var(--shadow-card)] transition-colors active:scale-[0.98]"
                     >
-                      Chcę kurs + książkę gratis
+                      Chcę kurs + pakiet książki gratis
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                         <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
@@ -234,20 +263,9 @@ export default function Kurs20LekcjiPage() {
                 </Reveal>
 
                 <Reveal delay={320}>
-                  <ul className="mt-8 flex flex-col sm:flex-row flex-wrap gap-x-6 gap-y-2.5 text-[14px] text-ink-600">
-                    {[
-                      "Dostęp od razu po zakupie",
-                      "20 lekcji wideo, ponad 3 h",
-                      "BLIK, Przelewy24, karta",
-                    ].map((t, i) => (
-                      <li key={i} className="inline-flex items-center gap-2">
-                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" className="shrink-0 text-brand-500" aria-hidden>
-                          <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <span>{t}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <p className="mt-7 text-[14px] text-ink-600">
+                    Dostęp od razu po zakupie · BLIK, Przelewy24, karta
+                  </p>
                 </Reveal>
               </div>
 
@@ -255,7 +273,10 @@ export default function Kurs20LekcjiPage() {
                 <HeroMedia
                   videoId={HERO_VIDEO_ID}
                   price={PRICE}
-                  priceRegular={PRICE_REGULAR}
+                  bonusActive={BONUS.active}
+                  bonusValue={BONUS.value}
+                  bonusDeadline={BONUS.deadline}
+                  priceSeparate={BONUS.priceSeparate}
                 />
               </Reveal>
             </div>
@@ -590,7 +611,49 @@ export default function Kurs20LekcjiPage() {
           </div>
         </section>
 
-        {/* ============ 6. BONUS ============ */}
+        {/* ============ 5b. DLACZEGO TAK TANIO ============ */}
+        <section className="relative py-20 md:py-28 bg-paper-warm border-y border-ink-200/60">
+          <div className="container-xl">
+            <div className="mx-auto max-w-3xl">
+              <Reveal>
+                <p className="eyebrow inline-flex items-center gap-3 mb-6">
+                  <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
+                  Dlaczego tak tanio
+                </p>
+              </Reveal>
+              <Reveal delay={80}>
+                <h2
+                  className="font-display text-ink-950 tracking-tight leading-[1.05] text-balance"
+                  style={{ fontSize: "clamp(1.75rem, 4vw, 3rem)" }}
+                >
+                  Oddaję ten kurs za {PRICE} i powiem wprost dlaczego.
+                </h2>
+              </Reveal>
+              <Reveal delay={160}>
+                <div className="mt-7 space-y-4 text-[16px] md:text-[18px] text-ink-700 leading-[1.75] text-pretty">
+                  <p>
+                    Kursy o inwestowaniu w nieruchomości potrafią kosztować setki, a nawet tysiące
+                    złotych. Ja nie żyję ze sprzedaży kursów. Żyję z mieszkań, które buduję i którymi
+                    zarządzam.
+                  </p>
+                  <p>
+                    Zależy mi, żebyś najpierw zobaczył, jak pracuję i jak myślę o inwestowaniu. Nie ma
+                    tu haczyka ani upsellu - nie sprzedaję potem kolejnych szkoleń. Po prostu
+                    przekazuję to, co wiem.
+                  </p>
+                  <p>
+                    Jeśli kiedyś zechcesz zainwestować razem z nami - super. Jeśli nie, zostaje Ci
+                    konkretna wiedza.
+                  </p>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        {/* ============ 6. BONUS (pakiet książki, do BONUS.deadline) ============ */}
+        {/* Cała sekcja znika, gdy BONUS.active = false (po terminie bonusu). */}
+        {BONUS.active && (
         <section id="bonus" className="relative py-20 md:py-32 bg-ink-950 text-ink-100 overflow-hidden scroll-mt-24">
           <div className="absolute inset-0 grad-radial-brand opacity-50" aria-hidden />
           <div className="absolute inset-0 grain grain-on-dark" aria-hidden />
@@ -605,7 +668,7 @@ export default function Kurs20LekcjiPage() {
                     className="w-full h-auto drop-shadow-2xl"
                   />
                   <div className="absolute -bottom-4 -left-2 sm:-left-5 rotate-[-3deg] rounded-full bg-accent-500 text-white px-5 py-2 text-[13px] font-semibold shadow-lg">
-                    Wartość 49,90 zł - dostajesz gratis
+                    Wartość {BONUS.value} - w prezencie
                   </div>
                 </div>
               </Reveal>
@@ -616,7 +679,7 @@ export default function Kurs20LekcjiPage() {
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-accent-400" aria-hidden>
                       <path d="M20 12v8H4v-8M2 7h20v5H2zM12 22V7M12 7H8.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h3.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    Bonus dołączony do kursu
+                    Bonus do {BONUS.deadline}
                   </p>
                 </Reveal>
                 <Reveal delay={80}>
@@ -624,25 +687,40 @@ export default function Kurs20LekcjiPage() {
                     className="font-display text-white tracking-tight leading-[1.05] text-balance"
                     style={{ fontSize: "clamp(1.75rem, 4vw, 3rem)" }}
                   >
-                    Do kursu dorzucam swój bestseller „Zarabianie Uczciwych Pieniędzy”.
+                    Do {BONUS.deadline} dorzucam pakiet książki o wartości {BONUS.value}.
                   </h2>
                 </Reveal>
                 <Reveal delay={160}>
                   <p className="mt-7 text-[16px] md:text-[18px] text-ink-200 leading-[1.75] text-pretty max-w-2xl">
-                    Cena okładkowa <span className="text-white font-medium">49,90 zł</span> - Ty
-                    dostajesz ją ode mnie gratis. To papierowa książka, którą wysyłam pocztą na Twój
-                    adres, a koszt wysyłki biorę na siebie. Szczera, oparta na wartościach lektura o
-                    wychodzeniu z długów i porządkowaniu finansów.
+                    Do kursu dokładam cały pakiet wokół mojego bestsellera „Zarabianie Uczciwych
+                    Pieniędzy” - <span className="text-white font-medium">wartość {BONUS.value}</span>,
+                    Ty dostajesz go ode mnie w prezencie. Szczera, oparta na wartościach lektura o
+                    wychodzeniu z długów i porządkowaniu finansów, w kilku formatach naraz.
                   </p>
                 </Reveal>
 
                 <Reveal delay={220}>
+                  <ul className="mt-8 grid sm:grid-cols-2 gap-x-8 gap-y-3">
+                    {BONUS.items.map((it, i) => (
+                      <li key={i} className="flex items-start gap-3 text-[15.5px] md:text-[16px] text-ink-100 leading-snug">
+                        <span className="mt-0.5 shrink-0 text-accent-400" aria-hidden>
+                          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                            <path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
+                        {it}
+                      </li>
+                    ))}
+                  </ul>
+                </Reveal>
+
+                <Reveal delay={280}>
                   <div className="mt-8 rounded-2xl border border-white/12 bg-white/[0.05] backdrop-blur-md p-6 md:p-7">
                     <p className="eyebrow eyebrow-on-dark mb-3">Dla zapisanych do newslettera</p>
                     <p className="text-[15.5px] md:text-[16px] text-ink-200 leading-[1.75]">
-                      Zapisując się do newslettera przy zakupie, dostajesz ode mnie dodatkowo{" "}
-                      <span className="text-white font-medium">audiobook</span> oraz{" "}
-                      <span className="text-white font-medium">streszczenie rysunkowe</span> książki.
+                      Zapisując się do newslettera, dostajesz ode mnie dodatkowo{" "}
+                      <span className="text-white font-medium">streszczenie rysunkowe</span> książki -
+                      wyślę Ci je na maila.
                     </p>
                   </div>
                 </Reveal>
@@ -679,6 +757,7 @@ export default function Kurs20LekcjiPage() {
             </div>
           </div>
         </section>
+        )}
 
         {/* ============ 7. CO DOSTAJESZ + CENA ============ */}
         <section id="zamow" className="relative py-20 md:py-28 scroll-mt-24">
@@ -718,38 +797,25 @@ export default function Kurs20LekcjiPage() {
                     </span>
                   </li>
 
-                  <li className="flex items-center justify-between gap-4 px-6 md:px-8 py-5">
-                    <span className="flex items-start gap-3 text-[15px] md:text-[16px] text-ink-800 leading-snug">
-                      <span className="mt-0.5 text-brand-600" aria-hidden>
-                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                          <path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                  {BONUS.active && (
+                    <li className="flex items-center justify-between gap-4 px-6 md:px-8 py-5">
+                      <span className="flex items-start gap-3 text-[15px] md:text-[16px] text-ink-800 leading-snug">
+                        <span className="mt-0.5 text-brand-600" aria-hidden>
+                          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                            <path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
+                        <span>
+                          Pakiet książki „Zarabianie Uczciwych Pieniędzy”
+                          <span className="block text-[13px] text-ink-500">{BONUS.items.join(" · ")}</span>
+                        </span>
                       </span>
-                      <span>
-                        Książka „Zarabianie Uczciwych Pieniędzy”
-                        <span className="block text-[13px] text-ink-500">papierowa, wysyłam pocztą - wysyłka gratis</span>
+                      <span className="shrink-0 inline-flex flex-col items-end">
+                        <span className="text-[13px] text-ink-400 line-through tabular-nums">{BONUS.value}</span>
+                        <span className="text-[13px] font-semibold text-brand-700 uppercase tracking-wide">Gratis</span>
                       </span>
-                    </span>
-                    <span className="shrink-0 inline-flex flex-col items-end">
-                      <span className="text-[13px] text-ink-400 line-through tabular-nums">49,90 zł</span>
-                      <span className="text-[13px] font-semibold text-brand-700 uppercase tracking-wide">Gratis</span>
-                    </span>
-                  </li>
-
-                  <li className="flex items-center justify-between gap-4 px-6 md:px-8 py-5">
-                    <span className="flex items-start gap-3 text-[15px] md:text-[16px] text-ink-800 leading-snug">
-                      <span className="mt-0.5 text-brand-600" aria-hidden>
-                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                          <path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </span>
-                      <span>
-                        Audiobook książki
-                        <span className="block text-[13px] text-ink-500">przy zapisie do newslettera</span>
-                      </span>
-                    </span>
-                    <span className="shrink-0 text-[13px] font-semibold text-brand-700 uppercase tracking-wide">Gratis</span>
-                  </li>
+                    </li>
+                  )}
 
                   <li className="flex items-center justify-between gap-4 px-6 md:px-8 py-5">
                     <span className="flex items-start gap-3 text-[15px] md:text-[16px] text-ink-800 leading-snug">
@@ -773,18 +839,21 @@ export default function Kurs20LekcjiPage() {
                     <p className="mt-2 font-display text-ink-950 leading-none tracking-tight" style={{ fontSize: "clamp(2.8rem, 8vw, 3.8rem)" }}>
                       {PRICE}
                     </p>
-                    <p className="mt-3 mx-auto max-w-md text-[13.5px] text-ink-600 leading-[1.6]">
-                      Książka „Zarabianie Uczciwych Pieniędzy” (49,90 zł) w pakiecie gratis. Osobno:{" "}
-                      <span className="line-through tabular-nums">{PRICE_REGULAR}</span>.
-                    </p>
+                    {BONUS.active && (
+                      <p className="mt-3 mx-auto max-w-md text-[13.5px] text-ink-600 leading-[1.6]">
+                        Pakiet książki o wartości{" "}
+                        <span className="text-ink-900 font-medium tabular-nums">{BONUS.value}</span> w
+                        prezencie, do {BONUS.deadline}. Przy zakupie osobno:{" "}
+                        <span className="tabular-nums">{BONUS.priceSeparate}</span>.
+                      </p>
+                    )}
                     <p className="mt-2 text-[14px] text-ink-600">Jedna płatność, dostęp na stałe.</p>
                   </div>
 
                   <ul className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2.5 text-[13.5px] text-ink-700">
                     {[
                       "Dostęp na stałe",
-                      "Książka gratis",
-                      "Wysyłka gratis",
+                      ...(BONUS.active ? ["Pakiet książki gratis", "Wysyłka gratis"] : []),
                     ].map((b) => (
                       <li key={b} className="inline-flex items-center gap-2">
                         <span className="text-brand-600" aria-hidden>
@@ -958,15 +1027,22 @@ export default function Kurs20LekcjiPage() {
             </Reveal>
             <Reveal delay={80}>
               <h2 className="font-display text-ink-950 tracking-tight leading-[1.05]" style={{ fontSize: "clamp(1.9rem, 4.5vw, 3.25rem)" }}>
-                20 lekcji wideo, książka w gratisie i 30 dni gwarancji.
+                {BONUS.active
+                  ? "20 lekcji wideo, pakiet książki w prezencie i 30 dni gwarancji."
+                  : "20 lekcji wideo i 30 dni gwarancji."}
               </h2>
             </Reveal>
             <Reveal delay={160}>
               <p className="mt-7 text-[16px] md:text-[18px] text-ink-700 leading-[1.75] text-pretty">
-                Dostajesz cały kurs „20 Lekcji Inwestora”, a do tego ode mnie bestseller „Zarabianie
-                Uczciwych Pieniędzy” (49,90 zł) w gratisie. Dla zapisanych do newslettera - audiobook
-                i streszczenie rysunkowe. Dostęp od razu po zakupie. Jeśli kurs Ci nie pomoże, masz
-                30 dni na zwrot.
+                Dostajesz cały kurs „20 Lekcji Inwestora”.{" "}
+                {BONUS.active && (
+                  <>
+                    Do {BONUS.deadline} dorzucam pakiet książki „Zarabianie Uczciwych Pieniędzy” o
+                    wartości {BONUS.value} w prezencie. Zapisz się do newslettera, a wyślę Ci też
+                    streszczenie rysunkowe.{" "}
+                  </>
+                )}
+                Dostęp od razu po zakupie. Jeśli kurs Ci nie pomoże, masz 30 dni na zwrot.
               </p>
             </Reveal>
             <Reveal delay={240}>
@@ -975,7 +1051,7 @@ export default function Kurs20LekcjiPage() {
                   href={CHECKOUT_URL}
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 hover:bg-accent-400 text-white px-10 sm:px-14 py-5 text-[17px] md:text-[18px] font-medium transition-colors active:scale-[0.98]"
                 >
-                  Chcę kurs + książkę gratis
+                  {BONUS.active ? "Chcę kurs + pakiet książki gratis" : "Chcę dostęp do kursu"}
                   <svg width="16" height="16" viewBox="0 0 14 14" fill="none" aria-hidden>
                     <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>

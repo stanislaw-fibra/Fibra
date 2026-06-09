@@ -268,7 +268,7 @@ function streamThumb(streamId: string, h = 1200) {
   return `https://videodelivery.net/${streamId}/thumbnails/thumbnail.jpg?time=0s&height=${h}`;
 }
 
-function pickYoutubeUrl(raw: Record<string, unknown> | null | undefined): string | undefined {
+export function pickYoutubeUrl(raw: Record<string, unknown> | null | undefined): string | undefined {
   if (!raw) return undefined;
   const candidates = [raw.wideo, raw.video, raw.film, raw.youtube];
   for (const c of candidates) {
@@ -277,14 +277,16 @@ function pickYoutubeUrl(raw: Record<string, unknown> | null | undefined): string
   return undefined;
 }
 
-/** Preferujemy edytowalną kolumnę `youtube_url`. Fallback - link z importu Galactiki w `raw_params`. */
-function resolveYoutubeUrl(
-  explicit: string | null | undefined,
-  raw: Record<string, unknown> | null | undefined,
-): string | undefined {
+/**
+ * Czyta efektywny link YouTube z kolumny `offers.youtube_url`. To jedyne źródło prawdy do
+ * wyświetlania: import (reconciliacja w offer-sync) i ręczna edycja w panelu zapisują tu już
+ * gotową wartość. Świadome wyczyszczenie (null/puste) oznacza „brak filmu" - dlatego NIE ma
+ * tu już fallbacku do `raw_params` (inaczej usunięty film wracałby z importowego linku).
+ * Migracja 20260609 backfilluje kolumnę z raw_params, więc stare oferty nic nie tracą.
+ */
+export function resolveYoutubeUrl(explicit: string | null | undefined): string | undefined {
   const e = explicit?.trim();
-  if (e && e.length > 0) return e;
-  return pickYoutubeUrl(raw);
+  return e && e.length > 0 ? e : undefined;
 }
 
 function normalizeRawUrl(value: unknown): string | undefined {
@@ -508,7 +510,7 @@ export function mapOfferRow(row: OfferRow): Offer {
     agentEmail: row.agent_email?.trim() || undefined,
     agentPhotoUrl: normalizeAgentHeadshotUrl(firstRel(row.agents)?.photo_url?.trim()) || undefined,
     agentSlug: firstRel(row.agents)?.slug?.trim() || undefined,
-    youtubeUrl: resolveYoutubeUrl(row.youtube_url ?? null, row.raw_params),
+    youtubeUrl: resolveYoutubeUrl(row.youtube_url ?? null),
     hasShortVideo: Boolean(shortId),
     updatedAt: row.updated_at ?? undefined,
   };

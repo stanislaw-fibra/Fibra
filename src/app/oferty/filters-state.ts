@@ -246,6 +246,17 @@ function normalize(s: string | undefined | null): string {
     .replace(/ł/g, "l");
 }
 
+/**
+ * Klucz agenta używany w filtrze „agent prowadzący": slug (gdy agent ma profil publiczny)
+ * albo znormalizowane nazwisko. Dzięki temu w filtrze pojawiają się WSZYSCY agenci, którzy
+ * mają oferty - nie tylko ci ze slugiem (wcześniej widać było jedynie Arka i Justynę).
+ */
+export function agentMatchKey(o: Pick<Offer, "agentSlug" | "agentName">): string {
+  const slug = o.agentSlug?.trim().toLowerCase();
+  if (slug) return slug;
+  return normalize(o.agentName).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
 function offerSearchHaystack(o: Offer): string {
   return [
     o.title,
@@ -330,7 +341,7 @@ export function applyFilters(offers: Offer[], f: Filters): Offer[] {
     }
 
     if (f.agentSlug) {
-      if ((o.agentSlug ?? "").toLowerCase() !== f.agentSlug) return false;
+      if (agentMatchKey(o) !== f.agentSlug) return false;
     }
 
     return true;

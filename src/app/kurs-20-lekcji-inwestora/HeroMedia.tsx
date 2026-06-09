@@ -8,13 +8,27 @@ import bookCta from "../../../public/kurs/ksiazka_cta.png";
 type Props = {
   videoId: string;
   price: string;
-  priceRegular: string;
+  /** Czy aktywny jest bonus (pakiet książki gratis). Steruje całą komunikacją. */
+  bonusActive: boolean;
+  /** Wartość pakietu książki jako prezent, np. "297 zł". */
+  bonusValue: string;
+  /** Do kiedy bonus, np. "15 lipca". */
+  bonusDeadline: string;
+  /** Wartość przy zakupie osobno (kurs + pakiet), np. "474 zł". */
+  priceSeparate: string;
 };
 
 /** Hero: pionowe wideo 9:16 (zgodne ze źródłem - bez czarnych pasów, pełne
     kontrolki) plus plakietki ceny i książki. Plakietki znikają po starcie
     odtwarzania, żeby nie zasłaniać sterowania filmem. */
-export function HeroMedia({ videoId, price, priceRegular }: Props) {
+export function HeroMedia({
+  videoId,
+  price,
+  bonusActive,
+  bonusValue,
+  bonusDeadline,
+  priceSeparate,
+}: Props) {
   const [playing, setPlaying] = useState(false);
 
   const chipState = playing
@@ -33,37 +47,41 @@ export function HeroMedia({ videoId, price, priceRegular }: Props) {
         />
       </div>
 
-      {/* Cena: bohaterem jest kurs, książka to bonus */}
+      {/* Cena: bohaterem jest kurs, pakiet książki to bonus */}
       <div
         className={`absolute -top-4 -right-2 sm:-right-4 rounded-2xl bg-white px-5 py-3.5 shadow-[var(--shadow-card)] border border-ink-200/60 transition-opacity duration-200 ${chipState}`}
       >
         <p className="text-[11px] uppercase tracking-[0.12em] text-ink-500">
-          Kurs + książka gratis
+          {bonusActive ? "Kurs + pakiet książki gratis" : "Kurs 20 Lekcji Inwestora"}
         </p>
         <p className="mt-1">
           <span className="font-display text-ink-950 text-[1.9rem] leading-none tabular-nums">
             {price}
           </span>
         </p>
-        <p className="mt-0.5 text-[11px] text-ink-500 tabular-nums">
-          osobno <span className="line-through">{priceRegular}</span>
-        </p>
+        {bonusActive && (
+          <p className="mt-0.5 text-[11px] text-ink-500 tabular-nums">
+            osobno {priceSeparate}
+          </p>
+        )}
       </div>
 
-      {/* Książka gratis - z miniaturą okładki */}
-      <div
-        className={`absolute -bottom-4 -left-2 sm:-left-5 rotate-[-3deg] flex items-center gap-3 rounded-2xl bg-brand-700 text-white pl-3 pr-5 py-3 shadow-lg max-w-[15rem] transition-opacity duration-200 ${chipState}`}
-      >
-        <Image
-          src={bookCta}
-          alt=""
-          className="h-12 w-auto shrink-0 drop-shadow"
-          sizes="48px"
-        />
-        <p className="text-[13px] sm:text-[14px] font-medium leading-tight">
-          Książka „Zarabianie Uczciwych Pieniędzy” w gratisie
-        </p>
-      </div>
+      {/* Bonus: pakiet książki o wartości X w prezencie, do daty */}
+      {bonusActive && (
+        <div
+          className={`absolute -bottom-4 -left-2 sm:-left-5 rotate-[-3deg] flex items-center gap-3 rounded-2xl bg-brand-700 text-white pl-3 pr-5 py-3 shadow-lg max-w-[16rem] transition-opacity duration-200 ${chipState}`}
+        >
+          <Image
+            src={bookCta}
+            alt=""
+            className="h-12 w-auto shrink-0 drop-shadow"
+            sizes="48px"
+          />
+          <p className="text-[13px] sm:text-[14px] font-medium leading-tight">
+            Pakiet książki o wartości {bonusValue} w prezencie, do {bonusDeadline}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

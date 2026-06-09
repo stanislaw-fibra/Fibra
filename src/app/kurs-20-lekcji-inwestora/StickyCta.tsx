@@ -30,7 +30,7 @@ export function StickyCta({ checkoutUrl, price }: Props) {
             <p className="font-display text-white text-[1.05rem] sm:text-[1.25rem] leading-tight tracking-tight truncate">
               20 Lekcji Inwestora{" "}
               <span className="text-ink-300 text-[0.85rem] sm:text-[0.95rem]">
-                + książka gratis
+                + pakiet książki gratis
               </span>
             </p>
             <p className="text-ink-300 text-[12px] hidden sm:block">

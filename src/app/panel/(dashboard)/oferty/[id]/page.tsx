@@ -8,6 +8,7 @@ import { OfferFloorPlanUploadForm } from "@/app/panel/_components/OfferFloorPlan
 import { OfferImageUploadForm } from "@/app/panel/_components/OfferImageUploadForm";
 import { PanelEditShell } from "@/app/panel/_components/PanelEditShell";
 import { cloudflareStreamIframeUrl } from "@/lib/cloudflare-stream";
+import { resolveYoutubeUrl } from "@/lib/offers-query";
 import { requireOfferOwnership } from "@/lib/panel-access";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
@@ -49,6 +50,7 @@ type OfferRecord = {
   floor_plan_image_url: string | null;
   floor_plan_pdf_url: string | null;
   youtube_url: string | null;
+  raw_params: Record<string, unknown> | null;
   is_active: boolean;
   is_exclusive: boolean | null;
   is_price_negotiable: boolean | null;
@@ -144,6 +146,10 @@ export default async function PanelOfferEditPage({ params }: Props) {
     ? cloudflareStreamIframeUrl(mediaRow.cloudflare_video_short_id)
     : null;
 
+  // Ten sam link YouTube, który widać na publicznej stronie oferty - efektywna wartość
+  // z kolumny `youtube_url` (import po reconciliacji albo ręczna zmiana w panelu).
+  const resolvedYoutubeUrl = resolveYoutubeUrl(row.youtube_url) ?? null;
+
   const displayTitle =
     row.title?.trim() || row.advertisement_text?.trim() || "Bez tytułu";
 
@@ -192,7 +198,6 @@ export default async function PanelOfferEditPage({ params }: Props) {
               virtual_tour_url: row.virtual_tour_url ?? "",
               floor_plan_image_url: row.floor_plan_image_url ?? "",
               floor_plan_pdf_url: row.floor_plan_pdf_url ?? "",
-              youtube_url: row.youtube_url ?? "",
               is_active: row.is_active,
               is_exclusive: !!row.is_exclusive,
               is_price_negotiable: !!row.is_price_negotiable,
@@ -260,7 +265,7 @@ export default async function PanelOfferEditPage({ params }: Props) {
           offerId={row.id}
           shortVideoId={mediaRow?.cloudflare_video_short_id ?? null}
           shortPreviewSrc={shortIframeSrc}
-          youtubeUrl={row.youtube_url ?? null}
+          youtubeUrl={resolvedYoutubeUrl}
         />
       </PanelEditShell>
     </div>

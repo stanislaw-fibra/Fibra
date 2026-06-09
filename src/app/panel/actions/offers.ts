@@ -238,7 +238,6 @@ export async function createOfferAction(formData: FormData) {
     virtual_tour_url: strOrNull(formData.get("virtual_tour_url")),
     floor_plan_image_url: normalizeHttpUrlFromForm(formData.get("floor_plan_image_url")),
     floor_plan_pdf_url: normalizeHttpUrlFromForm(formData.get("floor_plan_pdf_url")),
-    youtube_url: normalizeYoutubeUrlFromForm(formData.get("youtube_url")),
     is_active,
     is_exclusive: boolFromCheckbox(formData.get("is_exclusive")),
     is_price_negotiable: boolFromCheckbox(formData.get("is_price_negotiable")),
@@ -327,7 +326,6 @@ export async function updateOfferAction(formData: FormData) {
     virtual_tour_url: strOrNull(formData.get("virtual_tour_url")),
     floor_plan_image_url: normalizeHttpUrlFromForm(formData.get("floor_plan_image_url")),
     floor_plan_pdf_url: normalizeHttpUrlFromForm(formData.get("floor_plan_pdf_url")),
-    youtube_url: normalizeYoutubeUrlFromForm(formData.get("youtube_url")),
     is_active,
     is_exclusive: boolFromCheckbox(formData.get("is_exclusive")),
     is_price_negotiable: boolFromCheckbox(formData.get("is_price_negotiable")),
@@ -746,4 +744,83 @@ export async function attachStreamVideoSlotAction(
   await revalidateOfferPublicPath(admin, offerId);
   revalidatePath("/");
   return { ok: true };
+}
+
+/**
+ * Usuwa film z jednego slotu (krótki / długi). Gdy po usunięciu nie zostaje żaden film,
+ * kasujemy cały wiersz `offer_media`. Używane przez przycisk „Usuń film" w panelu.
+ */
+export async function detachStreamVideoSlotAction(
+  offerId: string,
+  slot: "short" | "long",
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireOfferAccess(offerId);
+  const admin = createSupabaseAdmin();
+
+  const { data: existing } = await admin
+    .from("offer_media")
+    .select("cloudflare_video_short_id, cloudflare_video_long_id")
+    .eq("offer_id", offerId)
+    .maybeSingle();
+
+  if (!existing) return { ok: true };
+
+  const short = slot === "short" ? null : (existing.cloudflare_video_short_id?.trim() ?? null);
+  const long = slot === "long" ? null : (existing.cloudflare_video_long_id?.trim() ?? null);
+
+  if (!short && !long) {
+    const { error } = await admin.from("offer_media").delete().eq("offer_id", offerId);
+    if (error) return { ok: false, error: error.message };
+  } else {
+    const { error } = await admin
+      .from("offer_media")
+      .update({ cloudflare_video_short_id: short, cloudflare_video_long_id: long })
+      .eq("offer_id", offerId);
+    if (error) return { ok: false, error: error.message };
+  }
+
+  revalidatePath(`/panel/oferty/${offerId}`);
+  revalidatePath("/panel/oferty");
+  revalidatePath("/oferty");
+  await revalidateOfferPublicPath(admin, offerId);
+  revalidatePath("/");
+  return { ok: true };
+}
+
+/**
+ * Zapisuje (lub czyści) link do filmu YouTube w kolumnie `offers.youtube_url`.
+ * Pusty `rawValue` = wyczyszczenie (null). Link normalizujemy do kanonicznego `watch?v=…`;
+ * gdy nie da się rozpoznać - zwracamy błąd zamiast zapisywać śmieci.
+ *
+ * UWAGA: Galactica jest źródłem prawdy dla YouTube - import nadpisuje tę kolumnę przy
+ * każdej synchronizacji. Ręczna zmiana/wyczyszczenie działa od razu, ale jest tymczasowa:
+ * kolejny eksport z Galactiki przywróci wartość z Galactiki (albo ją wyczyści).
+ */
+export async function setOfferYoutubeAction(
+  offerId: string,
+  rawValue: string,
+): Promise<{ ok: true; value: string | null } | { ok: false; error: string }> {
+  await requireOfferAccess(offerId);
+  const admin = createSupabaseAdmin();
+
+  const trimmed = rawValue.trim();
+  let value: string | null = null;
+  if (trimmed.length > 0) {
+    value = normalizeYoutubeUrlFromForm(trimmed);
+    if (value === null) {
+      return {
+        ok: false,
+        error: "Nie rozpoznano linku YouTube. Wklej pełny link (youtube.com / youtu.be) albo samo ID filmu.",
+      };
+    }
+  }
+
+  const { error } = await admin.from("offers").update({ youtube_url: value }).eq("id", offerId);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`/panel/oferty/${offerId}`);
+  revalidatePath("/oferty");
+  await revalidateOfferPublicPath(admin, offerId);
+  revalidatePath("/");
+  return { ok: true, value };
 }

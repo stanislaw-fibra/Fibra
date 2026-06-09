@@ -11,9 +11,12 @@ type Search = {
   listing?: string;
   active?: string;
   source?: string;
+  agent?: string;
   q?: string;
   error?: string;
 };
+
+type AgentOption = { id: string; name: string };
 
 type OfferRow = {
   id: string;
@@ -95,12 +98,21 @@ export default async function PanelOffersPage({ searchParams }: Props) {
   const listing = sp.listing ?? "all";
   const active = sp.active ?? "all";
   const source = sp.source ?? "all";
+  const agent = sp.agent ?? "all";
   const q = (sp.q ?? "").trim();
 
   // Scope: admin widzi wszystko, agent - tylko swoje (offers.agent_id = user_meta.agent_id).
   const scope = await requirePanelScope();
+  const isAdmin = scope.kind === "admin";
 
   const admin = createSupabaseAdmin();
+
+  // Lista agentów do filtra - tylko dla admina (agent widzi wyłącznie swoje oferty, więc
+  // filtrowanie po agencie nie ma dla niego sensu).
+  const agentOptions: AgentOption[] = isAdmin
+    ? (((await admin.from("agents").select("id, name").order("name", { ascending: true })).data ?? []) as AgentOption[])
+    : [];
+
   let query = admin
     .from("offers")
     .select(
@@ -118,6 +130,11 @@ export default async function PanelOffersPage({ searchParams }: Props) {
   if (active === "false") query = query.eq("is_active", false);
   if (source === "manual") query = query.ilike("galactica_offer_id", "MANUAL-%");
   if (source === "galactica") query = query.not("galactica_offer_id", "ilike", "MANUAL-%");
+  // Filtr po agencie - tylko admin. "none" = oferty bez przypisanego agenta.
+  if (isAdmin && agent !== "all") {
+    if (agent === "none") query = query.is("agent_id", null);
+    else query = query.eq("agent_id", agent);
+  }
 
   if (q.length) {
     const pat = `%${escapeIlike(q)}%`;
@@ -194,6 +211,20 @@ export default async function PanelOffersPage({ searchParams }: Props) {
               <option value="galactica">Galactica / import</option>
             </select>
           </label>
+          {isAdmin && (
+            <label className="block">
+              <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500">Agent</span>
+              <select name="agent" defaultValue={agent} className={selectDark}>
+                <option value="all">Wszyscy</option>
+                <option value="none">Bez agenta</option>
+                {agentOptions.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
         <label className="block max-w-xl">
           <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500">Szukaj (tytuł, reklama, miasto)</span>

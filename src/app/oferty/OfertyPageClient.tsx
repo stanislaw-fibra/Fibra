@@ -6,7 +6,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { VideoCard } from "@/components/home/VideoCard";
 import { ListVideoPlaybackProvider } from "@/components/media/ListVideoPlayback";
 import { OfferGalleryCard } from "@/components/offers/OfferGalleryCard";
-import { activeFilterCount, applyFilters, useFilters, DEFAULT_FILTERS } from "./filters-state";
+import { activeFilterCount, agentMatchKey, applyFilters, useFilters, DEFAULT_FILTERS } from "./filters-state";
 import { FiltersBar } from "./_ui/FiltersBar";
 import { FiltersDrawer } from "./_ui/FiltersDrawer";
 import { ActiveFilterChips } from "./_ui/ActiveFilterChips";
@@ -54,17 +54,20 @@ export function OfertyPageClient({ allOffers }: Props) {
       .map(([c]) => c);
   }, [allOffers]);
 
-  // Lista agentów do filtra - tylko ci, którzy mają slug (publiczny profil)
-  // i przynajmniej jedną ofertę. Sortowanie: malejąco po liczbie ofert.
+  // Lista agentów do filtra: WSZYSCY agenci, którzy mają przypisaną ofertę -
+  // niezależnie od tego, czy mają publiczny profil (slug). Klucz dopasowania to
+  // slug albo znormalizowane nazwisko (agentMatchKey), żeby pokrywał się z logiką
+  // filtrowania w applyFilters. Sortowanie: malejąco po liczbie ofert.
   const agents = useMemo(() => {
     const map = new Map<string, { slug: string; name: string; count: number }>();
     for (const o of allOffers) {
-      const slug = o.agentSlug?.trim();
       const name = o.agentName?.trim();
-      if (!slug || !name) continue;
-      const prev = map.get(slug);
+      if (!name) continue;
+      const key = agentMatchKey(o);
+      if (!key) continue;
+      const prev = map.get(key);
       if (prev) prev.count += 1;
-      else map.set(slug, { slug, name, count: 1 });
+      else map.set(key, { slug: key, name, count: 1 });
     }
     return [...map.values()]
       .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "pl"))

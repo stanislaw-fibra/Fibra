@@ -3,7 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Upload } from "tus-js-client";
-import { attachStreamVideoSlotAction, upsertOfferMediaAction } from "@/app/panel/actions/offers";
+import {
+  attachStreamVideoSlotAction,
+  detachStreamVideoSlotAction,
+  setOfferYoutubeAction,
+  upsertOfferMediaAction,
+} from "@/app/panel/actions/offers";
 
 const MAX_FILE_BYTES = 500 * 1024 * 1024;
 const BASIC_UPLOAD_MAX_BYTES = 200 * 1024 * 1024;
@@ -58,10 +63,35 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
   const [displayPct, setDisplayPct] = useState(0);
   const [forceReplace, setForceReplace] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const [errorKind, setErrorKind] = useState<"size" | "fail" | null>(null);
 
   const hasVideo = Boolean(videoId?.trim());
   const showDropzone = !hasVideo || forceReplace;
+
+  const removeVideo = useCallback(async () => {
+    if (
+      !window.confirm(
+        "Usunąć krótki film z tej oferty? Oferta zniknie ze strony głównej i z widoku „z filmami”.",
+      )
+    ) {
+      return;
+    }
+    setRemoving(true);
+    setErrorKind(null);
+    const res = await detachStreamVideoSlotAction(offerId, "short");
+    setRemoving(false);
+    if (!res.ok) {
+      console.error("[film delete]", res.error);
+      setErrorKind("fail");
+      setPhase("error");
+      return;
+    }
+    setForceReplace(false);
+    setPhase("idle");
+    setDisplayPct(0);
+    router.refresh();
+  }, [offerId, router]);
 
   const runUpload = useCallback(
     async (file: File) => {
@@ -205,7 +235,9 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
     <div className="rounded-[var(--radius-md)] border border-white/10 bg-ink-900/35 p-5 sm:p-6 flex flex-col min-h-[260px]">
       <h3 className="text-[16px] font-semibold text-white leading-snug">Krótki, pionowy film</h3>
       <p className="mt-2 text-[13px] text-ink-300 leading-relaxed">
-        Materiał wyświetlany na karcie oferty - strona główna, katalog. <strong className="text-white">Bez filmu oferta nie pojawi się na stronie.</strong>
+        Materiał wyświetlany na karcie oferty na stronie głównej i w widoku „z filmami”.{" "}
+        <strong className="text-white">Bez filmu oferta nie pojawi się na stronie głównej ani w widoku z filmami</strong>{" "}
+        - jeśli ma zdjęcia, nadal będzie widoczna w katalogu (widok zdjęciowy).
       </p>
 
       {!showDropzone ? (
@@ -219,18 +251,29 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
               Film jest zapisany. Podgląd w panelu nie jest dostępny - możesz sprawdzić odtwarzanie na publicznej stronie oferty.
             </p>
           )}
-          <button
-            type="button"
-            onClick={() => {
-              setForceReplace(true);
-              setPhase("idle");
-              setErrorKind(null);
-              setDisplayPct(0);
-            }}
-            className="self-start rounded-full border border-white/25 bg-white/10 hover:bg-white/15 text-[13px] font-semibold text-white px-5 py-2.5 transition-colors"
-          >
-            Zmień film
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={removing}
+              onClick={() => {
+                setForceReplace(true);
+                setPhase("idle");
+                setErrorKind(null);
+                setDisplayPct(0);
+              }}
+              className="self-start rounded-full border border-white/25 bg-white/10 hover:bg-white/15 disabled:opacity-50 text-[13px] font-semibold text-white px-5 py-2.5 transition-colors"
+            >
+              Zmień film
+            </button>
+            <button
+              type="button"
+              disabled={removing}
+              onClick={removeVideo}
+              className="self-start rounded-full border border-accent-400/40 text-accent-300 hover:bg-accent-400/10 disabled:opacity-50 text-[13px] font-semibold px-5 py-2.5 transition-colors"
+            >
+              {removing ? "Usuwanie…" : "Usuń film"}
+            </button>
+          </div>
         </div>
       ) : (
         <>
@@ -308,6 +351,110 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
   );
 }
 
+/**
+ * Edytor linku do dłuższego filmu YouTube - mieszka obok krótkiego filmu, żeby oba materiały
+ * były w jednym miejscu (klient gubił się, gdy pole było osobno w „Danych oferty").
+ * Zapisuje natychmiast przez `setOfferYoutubeAction` - bez wspólnego „Zapisz" z resztą formularza.
+ */
+function YoutubeSlot({ offerId, initialUrl }: { offerId: string; initialUrl: string | null }) {
+  const router = useRouter();
+  const [value, setValue] = useState(initialUrl ?? "");
+  const [savedUrl, setSavedUrl] = useState<string | null>(initialUrl);
+  const [phase, setPhase] = useState<"idle" | "saving" | "done" | "error">("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  const dirty = value.trim() !== (savedUrl ?? "");
+
+  const save = useCallback(
+    async (raw: string) => {
+      setPhase("saving");
+      setError(null);
+      const res = await setOfferYoutubeAction(offerId, raw);
+      if (!res.ok) {
+        setError(res.error);
+        setPhase("error");
+        return;
+      }
+      setSavedUrl(res.value);
+      setValue(res.value ?? "");
+      setPhase("done");
+      router.refresh();
+      window.setTimeout(() => setPhase("idle"), 3000);
+    },
+    [offerId, router],
+  );
+
+  return (
+    <div className="rounded-[var(--radius-md)] border border-emerald-300/25 bg-emerald-400/5 p-5 sm:p-6 flex flex-col min-h-[260px]">
+      <h3 className="text-[16px] font-semibold text-white leading-snug">Dłuższy film z YouTube</h3>
+      <p className="mt-2 text-[13px] text-ink-200 leading-relaxed">
+        Pełna prezentacja nieruchomości z YouTube. Po zapisaniu film pojawia się w sekcji
+        „Film prezentacyjny” na stronie oferty.
+      </p>
+
+      <label className="mt-4 block">
+        <span className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-emerald-200">Link do YouTube</span>
+        <input
+          type="text"
+          autoComplete="off"
+          spellCheck={false}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="https://www.youtube.com/watch?v=…"
+          className="mt-2 w-full rounded-[var(--radius-sm)] border border-white/15 bg-ink-900/80 px-3 py-2.5 text-[13px] text-white font-mono outline-none transition-colors focus:border-emerald-400 hover:border-white/25"
+        />
+      </label>
+      <p className="mt-2 text-[12px] text-ink-300">
+        Akceptujemy pełny link (`youtube.com/watch?v=…`), skrócony (`youtu.be/…`) lub samo ID filmu.
+        Wyczyść pole i zapisz, żeby usunąć film YouTube.
+      </p>
+      <p className="mt-1 text-[12px] text-amber-300/90">
+        Uwaga: film YouTube pochodzi z Galactiki. Ręczna zmiana działa od razu i trzyma się
+        dopóty, dopóki Galactica nie zmieni lub nie usunie tego filmu - wtedy wartość z Galactiki
+        ją nadpisze.
+      </p>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          disabled={!dirty || phase === "saving"}
+          onClick={() => save(value)}
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:hover:bg-emerald-500 text-white text-[13px] font-semibold px-5 py-2.5 transition-colors shadow-[0_8px_20px_-10px_rgba(16,185,129,0.55)]"
+        >
+          {phase === "saving" ? "Zapisywanie…" : "Zapisz link"}
+        </button>
+        {savedUrl ? (
+          <button
+            type="button"
+            disabled={phase === "saving"}
+            onClick={() => save("")}
+            className="rounded-full border border-accent-400/40 text-accent-300 hover:bg-accent-400/10 disabled:opacity-50 text-[13px] font-semibold px-4 py-2.5 transition-colors"
+          >
+            Usuń link
+          </button>
+        ) : null}
+        {phase === "done" ? (
+          <span className="text-[12.5px] font-semibold text-emerald-300">Zapisano.</span>
+        ) : null}
+      </div>
+
+      {error ? <p className="mt-3 text-[13px] text-accent-300 leading-snug">{error}</p> : null}
+
+      {savedUrl ? (
+        <div className="mt-4 aspect-video w-full overflow-hidden rounded-lg bg-black border border-white/10">
+          <iframe
+            src={youtubeEmbedUrl(savedUrl)}
+            title="Podgląd YouTube"
+            className="h-full w-full"
+            allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 type SectionProps = {
   offerId: string;
   shortVideoId: string | null;
@@ -328,7 +475,7 @@ export function OfferFilmSection({
       <h2 className="font-display text-[1.45rem] md:text-[1.6rem] text-white leading-tight">Filmy do oferty</h2>
       <p className="mt-3 text-[14px] text-ink-200 max-w-[60ch] leading-relaxed">
         Krótki film (Cloudflare) gra na karcie oferty. Dłuższą prezentację dodajesz przez link
-        do YouTube w sekcji powyżej - nic więcej nie musisz robić.
+        do YouTube w polu obok - nic więcej nie musisz robić.
       </p>
 
       <div className="mt-8 grid gap-5 lg:grid-cols-2">
@@ -338,66 +485,7 @@ export function OfferFilmSection({
           previewSrc={shortPreviewSrc}
         />
 
-        <div className="rounded-[var(--radius-md)] border border-emerald-300/25 bg-emerald-400/5 p-5 sm:p-6 flex flex-col min-h-[260px]">
-          <h3 className="text-[16px] font-semibold text-white leading-snug">Dłuższy film z YouTube</h3>
-          <p className="mt-2 text-[13px] text-ink-200 leading-relaxed">
-            Pełna prezentacja nieruchomości z YouTube. Edytujesz w sekcji „Dane oferty” → „Film z YouTube”.
-            Po zapisaniu film pojawia się w sekcji „Film prezentacyjny” na stronie oferty.
-          </p>
-
-          <div className="mt-4 rounded-lg border border-white/10 bg-ink-950/50 p-4">
-            <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-300">Aktualny link</p>
-            {youtubeUrl ? (
-              <a
-                href={youtubeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 break-all text-[13px] text-emerald-300 hover:text-emerald-200 underline underline-offset-2"
-              >
-                {youtubeUrl}
-              </a>
-            ) : (
-              <p className="mt-2 text-[13px] text-ink-300">Brak linku.</p>
-            )}
-          </div>
-
-          {/* Przycisk-kotwica - przewija stronę do pola „Link do YouTube" w sekcji „Dane oferty"
-              i fokusuje input. Tekst zmienia się dynamicznie: gdy linku nie ma - „Dodaj link",
-              gdy jest - „Zmień link". Nie używamy <a href="#…"> żeby zostać w tym samym scrollu
-              i wymusić focus po przewinięciu. */}
-          <button
-            type="button"
-            onClick={() => {
-              const target = document.getElementById("youtube_url");
-              const wrapper = document.getElementById("youtube-url-field");
-              (wrapper ?? target)?.scrollIntoView({ behavior: "smooth", block: "start" });
-              window.setTimeout(() => target?.focus({ preventScroll: true }), 480);
-            }}
-            className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white text-[13.5px] font-semibold px-5 py-3 transition-colors self-start shadow-[0_8px_20px_-10px_rgba(16,185,129,0.55)]"
-            aria-label={youtubeUrl ? "Zmień link do filmu na YouTube" : "Dodaj link do filmu na YouTube"}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-              {youtubeUrl ? (
-                <path d="M9.5 2.5l2 2-7 7H2.5v-2l7-7z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              ) : (
-                <path d="M7 3v8M3 7h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              )}
-            </svg>
-            {youtubeUrl ? "Zmień link" : "Dodaj link YouTube"}
-          </button>
-
-          {youtubeUrl ? (
-            <div className="mt-4 aspect-video w-full overflow-hidden rounded-lg bg-black border border-white/10">
-              <iframe
-                src={youtubeEmbedUrl(youtubeUrl)}
-                title="Podgląd YouTube"
-                className="h-full w-full"
-                allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          ) : null}
-        </div>
+        <YoutubeSlot offerId={offerId} initialUrl={youtubeUrl} />
       </div>
 
       <div className="mt-10 pt-6 border-t border-white/10">

@@ -22,7 +22,7 @@ export default function KursPage() {
 
       <div className="relative z-10">
         <CoursePortal lessons={LESSONS}>
-          {/* ====== NEWSLETTER: audiobook + streszczenie za zapis ====== */}
+          {/* ====== NEWSLETTER: streszczenie rysunkowe za zapis ====== */}
           <section className="mt-14 overflow-hidden rounded-2xl border border-white/8 bg-white/[0.02]">
             <div className="grid items-center gap-8 p-6 sm:p-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-12 lg:p-10">
               {/* Okładka książki */}
@@ -42,12 +42,11 @@ export default function KursPage() {
                   Dodatek dla zapisanych
                 </p>
                 <h2 className="mt-3 font-display text-[1.8rem] leading-[1.05] sm:text-[2.2rem]">
-                  Chcesz książkę także w wersji audio?
+                  Chcesz streszczenie rysunkowe książki?
                 </h2>
                 <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-ink-300">
-                  Jeśli chcesz dostać książkę „Zarabianie Uczciwych Pieniędzy" w
-                  formie audiobooka oraz jej streszczenie rysunkowe, zapisz się
-                  do newslettera. Wyślę Ci je prosto na maila.
+                  Zapisz się do newslettera, a wyślę Ci streszczenie rysunkowe
+                  książki „Zarabianie Uczciwych Pieniędzy" prosto na maila.
                 </p>
 
                 <div className="mt-7 max-w-xl">

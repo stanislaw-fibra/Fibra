@@ -1,3 +1,4 @@
+import { pickYoutubeUrl } from "@/lib/offers-query";
 import { cleanDescription } from "./description-cleaner";
 import type { RawOffer, RawParam } from "./xml-parser";
 
@@ -48,6 +49,8 @@ export interface MappedOffer {
   agent_email: string | null;
   agent_phone_office: string | null;
   agent_phone_mobile: string | null;
+  /** Link YouTube z Galactiki (klucze wideo/video/film/youtube). Null = Galactica go nie ma. */
+  youtube_url: string | null;
   raw_params: Record<string, unknown>;
   image_filenames: { order: number; filename: string }[];
 }
@@ -293,6 +296,9 @@ export function mapOffer(raw: RawOffer): MappedOffer {
     agent_email: toText(findParamRaw(params, "agent_email")),
     agent_phone_office: toText(findParamRaw(params, "agent_tel_biuro")),
     agent_phone_mobile: toText(findParamRaw(params, "agent_tel_kom")),
+    // Galactica = źródło prawdy: link YouTube wyciągamy tym samym czytnikiem co publiczna
+    // strona (pickYoutubeUrl), żeby zapisać go wprost do kolumny `youtube_url` w offer-sync.
+    youtube_url: pickYoutubeUrl(raw_params) ?? null,
     raw_params,
     image_filenames,
   };

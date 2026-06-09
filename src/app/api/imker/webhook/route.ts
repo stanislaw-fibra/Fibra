@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /** Produkt kursu "20 Lekcji Inwestora" w SalesCRM/Imker. */
-const COURSE_PRODUCT_ID = 21494;
+const COURSE_PRODUCT_ID = 21500;
 
 /** Nagłówek z podpisem HMAC od Imkera (silnik Shoplo). */
 const HMAC_HEADER = "shoplo-hmac-sha256";
