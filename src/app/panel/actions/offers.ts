@@ -163,12 +163,55 @@ export async function toggleOfferActiveAction(formData: FormData) {
   await requireOfferAccess(id);
   const is_active = activeRaw === "true";
   const admin = createSupabaseAdmin();
-  const { error } = await admin.from("offers").update({ is_active }).eq("id", id);
+  // Ukrycie = is_active false + hidden_by_admin true (import nie przywróci).
+  // Pokazanie = is_active true + zdjęcie flagi (oferta wraca do normalnego obiegu).
+  const { error } = await admin.from("offers").update({ is_active, hidden_by_admin: !is_active }).eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/panel/oferty");
   revalidatePath("/oferty");
   await revalidateOfferPublicPath(admin, id);
   revalidatePath("/");
+}
+
+// Masowe wygaszanie / przywracanie ofert z listy w panelu.
+//
+// `hidden=true`  → wygaś zaznaczone (is_active=false + hidden_by_admin=true). Import ich nie
+//                  przywróci - to jedyny sposób, by sprzedane / z drugiego oddziału oferty
+//                  zniknęły na stałe (Galactica nie ma pola usunięcia ani markera oddziału).
+// `hidden=false` → przywróć (is_active=true + hidden_by_admin=false).
+//
+// Agent może ruszać tylko swoje oferty (filtr po agent_id). Admin - wszystkie zaznaczone.
+export async function setOffersVisibilityAction(formData: FormData) {
+  const ids = formData
+    .getAll("ids")
+    .map((v) => String(v).trim())
+    .filter((v) => v.length > 0);
+  const hidden = strOrNull(formData.get("hidden")) === "true";
+  const returnTo = strOrNull(formData.get("returnTo")) ?? "/panel/oferty";
+  const safeReturn = returnTo.startsWith("/panel/oferty") ? returnTo : "/panel/oferty";
+
+  if (ids.length === 0) {
+    redirect(safeReturn);
+  }
+
+  const user = await requireSessionUser();
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const rawAgentId = meta.agent_id;
+  const agentId = typeof rawAgentId === "string" && rawAgentId.trim() ? rawAgentId.trim() : null;
+
+  const admin = createSupabaseAdmin();
+  let q = admin
+    .from("offers")
+    .update({ is_active: !hidden, hidden_by_admin: hidden })
+    .in("id", ids);
+  if (agentId) q = q.eq("agent_id", agentId); // ⬅ agent: tylko własne oferty
+  const { error } = await q;
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/panel/oferty");
+  revalidatePath("/oferty");
+  revalidatePath("/");
+  redirect(safeReturn);
 }
 
 export async function createOfferAction(formData: FormData) {
@@ -596,6 +639,79 @@ export async function deleteOfferFloorPlanImageAction(formData: FormData) {
     .limit(1);
   const nextUrl = rest?.[0]?.url?.trim() || null;
   await admin.from("offers").update({ floor_plan_image_url: nextUrl }).eq("id", offerId);
+  revalidatePath(`/panel/oferty/${offerId}`);
+  await revalidateOfferPublicPath(admin, offerId);
+  redirect(`/panel/oferty/${offerId}?saved=1`);
+}
+
+/**
+ * Oznacza istniejące zdjęcie z galerii (offer_images) jako RZUT, bez ponownego uploadu.
+ *
+ * Po co: Galactica NIE eksportuje markera rzutu (zielony podwójny kwadrat to flaga
+ * wyświetlania w ich panelu, której nie ma w XML OfertyNet). Żeby Roman nie musiał
+ * pobierać i wgrywać pliku ponownie, pozwalamy kliknąć „Oznacz jako rzut" wprost na
+ * zdjęciu z galerii - kopiujemy tylko referencję (URL), plik zostaje w buckecie
+ * offer-images.
+ *
+ * storage_path = null celowo: rzut wskazuje na zdjęcie z bucketu offer-images, więc
+ * usunięcie rzutu (deleteOfferFloorPlanImageAction) nie skasuje oryginału - parser
+ * ścieżki działa tylko dla bucketu offer-floorplans i dla obcego URL zwróci null.
+ */
+export async function markGalleryImageAsFloorPlanAction(formData: FormData) {
+  const offerId = strOrNull(formData.get("offer_id"));
+  if (!offerId) return;
+  await requireOfferAccess(offerId);
+  const admin = createSupabaseAdmin();
+  const imageId = strOrNull(formData.get("image_id"));
+  if (!offerId || !imageId) {
+    redirect(`/panel/oferty/${offerId ?? ""}?error=${encodeURIComponent("Brak zdjęcia do oznaczenia.")}`);
+  }
+
+  const { data: img } = await admin
+    .from("offer_images")
+    .select("image_url")
+    .eq("id", imageId)
+    .eq("offer_id", offerId)
+    .maybeSingle();
+  const imageUrl = img?.image_url?.trim();
+  if (!imageUrl) {
+    redirect(`/panel/oferty/${offerId}?error=${encodeURIComponent("Nie znaleziono zdjęcia w galerii.")}`);
+  }
+
+  // Nie duplikuj, jeśli to zdjęcie już jest rzutem.
+  const { data: dup } = await admin
+    .from("offer_floorplans")
+    .select("id")
+    .eq("offer_id", offerId)
+    .eq("kind", "image")
+    .eq("url", imageUrl)
+    .maybeSingle();
+  if (dup?.id) {
+    redirect(`/panel/oferty/${offerId}?saved=1`);
+  }
+
+  const { count } = await admin
+    .from("offer_floorplans")
+    .select("id", { count: "exact", head: true })
+    .eq("offer_id", offerId)
+    .eq("kind", "image");
+  const order_index = count ?? 0;
+
+  const { error: insErr } = await admin.from("offer_floorplans").insert({
+    offer_id: offerId,
+    kind: "image",
+    label: "Rzut z galerii",
+    url: imageUrl,
+    storage_path: null,
+    order_index,
+  });
+  if (insErr) redirect(`/panel/oferty/${offerId}?error=${encodeURIComponent(insErr.message)}`);
+
+  const { data: off } = await admin.from("offers").select("floor_plan_image_url").eq("id", offerId).maybeSingle();
+  if (!off?.floor_plan_image_url) {
+    await admin.from("offers").update({ floor_plan_image_url: imageUrl }).eq("id", offerId);
+  }
+
   revalidatePath(`/panel/oferty/${offerId}`);
   await revalidateOfferPublicPath(admin, offerId);
   redirect(`/panel/oferty/${offerId}?saved=1`);

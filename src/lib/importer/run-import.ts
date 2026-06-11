@@ -8,6 +8,7 @@ import { parseGalacticaXml, type ParsedXml } from "./xml-parser";
 import { mapOffer, type MappedOffer } from "./field-mapper";
 import { upsertAgent } from "./agent-sync";
 import {
+  deactivateMissingFromFullExport,
   deactivateMissingOffers,
   deactivateOffer,
   upsertOffer,
@@ -29,6 +30,9 @@ export interface ImportSummary {
   errors: Array<{ offer_id?: string; step: string; message: string }>;
   duration_ms: number;
   message?: string;
+  // Informacyjna notka z reconciliacji pełnego eksportu (ile wygaszono / czy pominięto
+  // i dlaczego). NIE jest błędem - nie wpływa na status.
+  reconcileNote?: string;
 }
 
 // Gałąź biznesowa Fibry, z której pochodzi dany eksport XML-owy.
@@ -59,6 +63,11 @@ export interface RunImportOptions {
   // (unikamy przypadkowego wyczyszczenia drugiej gałęzi, gdy nie wiemy jeszcze,
   // jak Galactica rozbije eksporty per branch).
   deactivateMissingInBranch?: boolean;
+  // Reconciliacja pełnego eksportu ('calosc'): wyłącz wszystkie aktywne oferty z importu,
+  // których nie ma w pliku (z progami bezpieczeństwa - patrz deactivateMissingFromFullExport).
+  // Tę ścieżkę włącza normalny import z FTP (cron / panel). Skrypty branchowe jej NIE używają
+  // (one pracują w trybie pojedynczej gałęzi przez deactivateMissingInBranch).
+  reconcileFullExport?: boolean;
 }
 
 export async function runImport(opts: RunImportOptions = {}): Promise<ImportSummary> {
@@ -247,7 +256,27 @@ export async function runImport(opts: RunImportOptions = {}): Promise<ImportSumm
   //    i TYLKO jeżeli wywołujący wyraźnie na to zgodził się (deactivateMissingInBranch).
   //    Bez flagi nie ruszamy is_active - unikamy wyczyszczenia drugiej gałęzi,
   //    zanim będziemy mieli pewność, co dokładnie zawiera każdy eksport z Galactiki.
-  if (summary.import_type === "full" && opts.deactivateMissingInBranch) {
+  if (summary.import_type === "full" && opts.reconcileFullExport) {
+    // Normalny import z FTP (cron / panel): pełny 'calosc' to kompletna prawda dla całego
+    // feedu (oba oddziały razem), więc wygaszamy oferty, których w pliku nie ma. Z progami
+    // bezpieczeństwa, żeby uszkodzony / częściowy plik nie wyczyścił bazy.
+    try {
+      const presentIds = parsed.offers.map((o) => o.id);
+      const recon = await deactivateMissingFromFullExport(supabase, presentIds);
+      if (recon.skipped) {
+        summary.reconcileNote =
+          `Reconcile pominięty: ${recon.reason ?? "nieznany powód"}`;
+      } else {
+        summary.offers_deleted += recon.deactivated;
+        summary.reconcileNote =
+          `Reconcile: wygaszono ${recon.deactivated} z ${recon.candidates} aktywnych ` +
+          `(pełny eksport: ${parsed.offers.length} ofert).`;
+      }
+    } catch (e) {
+      summary.errors.push({ step: "full_reconcile", message: errMsg(e) });
+    }
+  } else if (summary.import_type === "full" && opts.deactivateMissingInBranch) {
+    // Tryb branchowy (skrypty lokalne): dezaktywacja ograniczona do jednej gałęzi.
     try {
       const presentIds = parsed.offers.map((o) => o.id);
       const deactivated = await deactivateMissingOffers(supabase, presentIds, sourceBranch);
@@ -362,6 +391,7 @@ function buildLog(s: ImportSummary): string {
   lines.push(`offers: +${s.offers_created} / ~${s.offers_updated} / -${s.offers_deleted} / skipped ${s.offers_skipped}`);
   lines.push(`agents created: ${s.agents_created}`);
   lines.push(`images: +${s.images_imported} / -${s.images_deleted}`);
+  if (s.reconcileNote) lines.push(s.reconcileNote);
   lines.push(`duration: ${s.duration_ms} ms`);
   if (s.errors.length > 0) {
     lines.push(`errors: ${s.errors.length}`);

@@ -113,7 +113,11 @@ export default async function PanelDashboardLayout({ children }: { children: Rea
             </form>
           </div>
         </header>
-        <main className="flex-1 p-5 md:p-10 lg:p-12 overflow-x-auto">{children}</main>
+        {/* UWAGA: świadomie BEZ `overflow-x-auto` tutaj. Taki overflow na rodzicu tworzy
+            kontekst przewijania i ŁAMIE `position: sticky` górnego paska „Zapisz zmiany"
+            w edycji oferty (pasek uciekał przy scrollu). Szerokie elementy (tabela ofert)
+            mają własny wrapper `overflow-x-auto`, więc tu nie jest potrzebny. */}
+        <main className="flex-1 p-5 md:p-10 lg:p-12">{children}</main>
       </div>
     </div>
   );

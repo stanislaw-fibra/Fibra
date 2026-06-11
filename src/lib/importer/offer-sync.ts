@@ -98,13 +98,21 @@ export async function upsertOffer(
   // - source_branch backfill-ujemy tylko jeśli był pusty/unknown.
   const { data: existing, error: selErr } = await supabase
     .from("offers")
-    .select("id, slug, source_branch, youtube_url, youtube_url_galactica")
+    .select("id, slug, source_branch, youtube_url, youtube_url_galactica, hidden_by_admin")
     .eq("galactica_offer_id", mapped.galactica_offer_id)
     .maybeSingle();
   if (selErr) throw selErr;
 
   if (existing?.id) {
     const patch: Record<string, unknown> = { ...row };
+
+    // Oferta ręcznie wygaszona w panelu (hidden_by_admin) NIE może wrócić przez import.
+    // Galactica nie ma pola usunięcia ani markera oddziału, więc to jedyny sposób, by
+    // sprzedana / należąca do drugiego oddziału oferta zniknęła na stałe. Pozostałe pola
+    // (cena, opis itd.) dalej aktualizujemy - nie ruszamy tylko is_active.
+    if (existing.hidden_by_admin === true) {
+      delete patch.is_active;
+    }
 
     // Reconciliacja YouTube: Galactica wygrywa tylko gdy realnie zmieniła wartość względem
     // ostatnio widzianej (youtube_url_galactica). Gdy Galactica bez zmian - nie ruszamy
@@ -189,6 +197,100 @@ export async function deactivateOffer(
     .eq("is_active", true);
   if (error) throw error;
   return (count ?? 0) > 0;
+}
+
+export interface FullExportReconcileResult {
+  deactivated: number;
+  skipped: boolean;
+  reason?: string;
+  candidates: number;
+  wouldDeactivate: number;
+}
+
+// Plik 'calosc' z mniejszą liczbą ofert traktujemy jako podejrzany/niekompletny.
+const FULL_EXPORT_MIN_OFFERS = 20;
+// Jeśli pełny eksport chciałby wygasić większy odsetek aktywnych ofert niż ten próg,
+// wstrzymujemy się - to najpewniej uszkodzony / częściowy 'calosc', nie realny stan.
+const FULL_EXPORT_MAX_DEACTIVATE_RATIO = 0.4;
+
+/**
+ * Reconciliacja po PEŁNYM eksporcie ('calosc'): wyłącza (is_active=false) wszystkie
+ * aktywne oferty z importu, których NIE ma w pliku. To naprawia narastanie nieaktualnych
+ * ofert (sprzedane / wycofane), których diff nigdy nie usuwa.
+ *
+ * Świadomie NIE filtrujemy po source_branch - feed z Galactiki to jeden strumień (oba
+ * oddziały razem), więc 'calosc' jest pełną prawdą dla wszystkich importowanych ofert.
+ *
+ * Pomijamy:
+ * - MANUAL-* (oferty ręczne, nie z Galactiki),
+ * - hidden_by_admin (ręcznie wygaszone - i tak są nieaktywne, nie ruszamy).
+ *
+ * Dwa progi bezpieczeństwa chronią przed wyczyszczeniem bazy przez niekompletny plik:
+ * - plik z < FULL_EXPORT_MIN_OFFERS ofert → pomijamy,
+ * - plik chcący wygasić > FULL_EXPORT_MAX_DEACTIVATE_RATIO aktywnych → pomijamy.
+ */
+export async function deactivateMissingFromFullExport(
+  supabase: SupabaseClient,
+  presentIds: string[],
+): Promise<FullExportReconcileResult> {
+  const present = new Set(presentIds.filter((id) => id && !id.startsWith("MANUAL-")));
+
+  const { data: all, error: selErr } = await supabase
+    .from("offers")
+    .select("id, galactica_offer_id")
+    .eq("is_active", true)
+    .eq("hidden_by_admin", false)
+    .not("galactica_offer_id", "like", "MANUAL-%");
+  if (selErr) throw selErr;
+
+  const candidates = all ?? [];
+  const toDeactivate = candidates
+    .filter((o) => !present.has(o.galactica_offer_id))
+    .map((o) => o.id);
+
+  const result: FullExportReconcileResult = {
+    deactivated: 0,
+    skipped: false,
+    candidates: candidates.length,
+    wouldDeactivate: toDeactivate.length,
+  };
+
+  if (present.size < FULL_EXPORT_MIN_OFFERS) {
+    result.skipped = true;
+    result.reason =
+      `Pełny eksport ma tylko ${present.size} ofert (próg ${FULL_EXPORT_MIN_OFFERS}). ` +
+      `Wstrzymano dezaktywację, by nie wygasić bazy przez niekompletny plik.`;
+    return result;
+  }
+
+  if (
+    candidates.length > 0 &&
+    toDeactivate.length / candidates.length > FULL_EXPORT_MAX_DEACTIVATE_RATIO
+  ) {
+    result.skipped = true;
+    const pct = Math.round((toDeactivate.length / candidates.length) * 100);
+    result.reason =
+      `Pełny eksport chce wygasić ${toDeactivate.length}/${candidates.length} ofert ` +
+      `(${pct}%, próg ${Math.round(FULL_EXPORT_MAX_DEACTIVATE_RATIO * 100)}%). ` +
+      `Wstrzymano - prawdopodobnie niekompletny eksport.`;
+    return result;
+  }
+
+  if (toDeactivate.length === 0) return result;
+
+  const BATCH = 200;
+  let deactivated = 0;
+  for (let i = 0; i < toDeactivate.length; i += BATCH) {
+    const batch = toDeactivate.slice(i, i + BATCH);
+    const { error, count } = await supabase
+      .from("offers")
+      .update({ is_active: false }, { count: "exact" })
+      .in("id", batch);
+    if (error) throw error;
+    deactivated += count ?? batch.length;
+  }
+  result.deactivated = deactivated;
+  return result;
 }
 
 // Dezaktywuj oferty z podanej gałęzi (sourceBranch), których galactica_offer_id nie ma

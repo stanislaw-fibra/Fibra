@@ -264,6 +264,49 @@ async function attachAgentPhotoUrlIfMissing(offer: Offer): Promise<Offer> {
   return { ...offer, agentPhotoUrl: url };
 }
 
+/**
+ * Dociąga `cloudflare_video_id` autoprezentacji agenta (kolumna `agents.cloudflare_video_id`)
+ * dla pojedynczej oferty (strona szczegółów). Embed `agents(...)` w głównym selekcie celowo
+ * tego nie pobiera (lista/katalog tego nie potrzebują), więc robimy lekki dociąg po `slug`
+ * lub - gdy brak slug - po dokładnej nazwie. Brak kolumny / błąd → po prostu zostaje bez wideo.
+ */
+async function attachAgentVideoId(offer: Offer): Promise<Offer> {
+  if (offer.agentVideoId?.trim()) return offer;
+  const slug = offer.agentSlug?.trim();
+  const name = offer.agentName?.trim();
+  if (!slug && !name) return offer;
+
+  const supabase = getSupabaseAnon();
+  if (!supabase) return offer;
+
+  try {
+    let videoId: string | null = null;
+    if (slug) {
+      const { data, error } = await supabase
+        .from("agents")
+        .select("cloudflare_video_id")
+        .eq("slug", slug)
+        .maybeSingle();
+      if (error) return offer; // np. brak kolumny - cicho rezygnujemy z wideo
+      videoId = (data?.cloudflare_video_id as string | null) ?? null;
+    }
+    if (!videoId && name) {
+      const { data, error } = await supabase
+        .from("agents")
+        .select("cloudflare_video_id")
+        .eq("name", name)
+        .maybeSingle();
+      if (error) return offer;
+      videoId = (data?.cloudflare_video_id as string | null) ?? null;
+    }
+    const id = videoId?.trim();
+    if (!id) return offer;
+    return { ...offer, agentVideoId: id };
+  } catch {
+    return offer;
+  }
+}
+
 function streamThumb(streamId: string, h = 1200) {
   return `https://videodelivery.net/${streamId}/thumbnails/thumbnail.jpg?time=0s&height=${h}`;
 }
@@ -814,7 +857,10 @@ export async function getOfferBySlug(slug: string): Promise<Offer | undefined> {
     if (!row) {
       row = await fetchOfferRow({ galactica_offer_id: slug });
     }
-    if (row) return attachAgentPhotoUrlIfMissing(mapOfferRow(row));
+    if (row) {
+      const withPhoto = await attachAgentPhotoUrlIfMissing(mapOfferRow(row));
+      return attachAgentVideoId(withPhoto);
+    }
   } catch (e) {
     console.warn("[offers-query] getOfferBySlug:", e);
   }

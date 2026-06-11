@@ -34,7 +34,10 @@ async function handle(req: Request) {
     const url = new URL(req.url);
     const skipImages = url.searchParams.get("skipImages") === "1";
     const force = url.searchParams.get("force") === "1";
-    const summary = await runImport({ skipImages, force });
+    // Pełny eksport 'calosc' ma reconciliować bazę (wygasić oferty, których już nie ma).
+    // Można wyłączyć przez ?reconcile=0 (np. gdy podejrzewamy uszkodzony plik).
+    const reconcileFullExport = url.searchParams.get("reconcile") !== "0";
+    const summary = await runImport({ skipImages, force, reconcileFullExport });
     const status =
       summary.status === "failed" ? 500 : summary.status === "partial" ? 207 : 200;
     return NextResponse.json(summary, { status });

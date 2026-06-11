@@ -51,15 +51,14 @@ export function Footer() {
           <div className="md:col-span-3">
             <p className="eyebrow eyebrow-on-dark mb-5">Nawigacja</p>
             <ul className="flex flex-col gap-3 text-[15px]">
+              {/* UWAGA: podstrony „Zamysłów" (przewodnik-inwestora, zarzadzanie-najmem,
+                  galeria-inwestycji, prospekt-informacyjny) są celowo ukryte z nawigacji
+                  i schowane za bramką z hasłem, dopóki projekt jest w przygotowaniu. */}
               {[
                 ["/", "Strona główna"],
                 ["/oferty", "Oferty"],
                 ["/sprzedaj-z-fibra", "Sprzedaj z Fibrą"],
                 ["/o-fibrze", "O Fibrze"],
-                ["/przewodnik-inwestora", "Przewodnik Inwestora"],
-                ["/zarzadzanie-najmem", "Zarządzanie najmem"],
-                ["/galeria-inwestycji", "Galeria inwestycji"],
-                ["/prospekt-informacyjny", "Prospekt informacyjny"],
                 ["/kontakt", "Kontakt"],
               ].map(([h, l]) => (
                 <li key={h}>

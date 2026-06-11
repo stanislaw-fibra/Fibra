@@ -10,7 +10,7 @@ import { OfferGallery } from "@/components/offers/OfferGallery";
 import { OfferStickyCta } from "@/components/offers/OfferStickyCta";
 import { OfferAgentMini } from "@/components/offers/OfferAgentMini";
 import { OfferContactForm } from "@/components/offers/OfferContactForm";
-import { AgentAvatar } from "@/components/offers/AgentAvatar";
+import { OfferAgentPresentation } from "@/components/offers/OfferAgentPresentation";
 import { OfferDescription } from "@/components/offers/OfferDescription";
 import { OfferDetailParams } from "@/components/offers/OfferDetailParams";
 import { RelatedOffersWithPlayback } from "@/components/offers/RelatedOffersWithPlayback";
@@ -273,15 +273,20 @@ export default async function OfferPage({
                 const telHref = `tel:+48${phone.replace(/\D/g, "")}`;
                 return (
                   <div className="mt-6 flex items-center gap-4 md:gap-5">
-                    <AgentAvatar
+                    <OfferAgentPresentation
+                      videoId={offer.agentVideoId}
                       photoUrl={offer.agentPhotoUrl}
                       name={offer.agentName}
-                      size="md"
                     />
                     <div className="min-w-0 flex flex-col gap-1">
                       {offer.agentName && (
                         <span className="text-[11px] uppercase tracking-[0.16em] text-ink-500">
                           {offer.agentName}
+                        </span>
+                      )}
+                      {offer.agentVideoId && (
+                        <span className="text-[12px] font-medium text-brand-600">
+                          Kliknij zdjęcie, aby zobaczyć autoprezentację
                         </span>
                       )}
                       <a
@@ -400,32 +405,80 @@ export default async function OfferPage({
             className="pointer-events-none absolute -top-24 left-0"
           />
           <div className="container-xl">
-            <Reveal className="mb-10 md:mb-12 max-w-2xl">
-              <p className="eyebrow flex items-center gap-3 mb-5">
-                <span className="inline-block w-8 h-px bg-brand-500" />
-                Kontakt w sprawie oferty
-              </p>
-              <h2 className="font-display fluid-h2 text-ink-950 max-w-[22ch]">
-                {offer.agentName
-                  ? `Porozmawiaj z ${firstNameInstrumental(offer.agentName)} o tej nieruchomości.`
-                  : "Porozmawiajmy o tej nieruchomości."}
-              </h2>
-              <p className="mt-5 text-[15.5px] leading-[1.7] text-ink-600">
-                Zostaw namiary, a oddzwonimy. Możesz od razu zaznaczyć, czy chcesz umówić
-                prezentację, otrzymać komplet materiałów, czy po prostu dopytać o szczegóły.
-              </p>
-            </Reveal>
-            <Reveal delay={120} className="max-w-3xl">
-              <OfferContactForm
-                offerId={offer.id}
-                galacticaOfferId={offer.refNumber}
-                offerTitle={offer.title}
-                refNumber={offer.refNumber}
-                agentName={offer.agentName}
-                agentEmail={offer.agentEmail}
-                agentPhone={offer.agentPhone || offer.agentPhoneOffice}
-              />
-            </Reveal>
+            {/* Gdy agent ma autoprezentację wideo - układ 2-kolumnowy: nagłówek + formularz
+                po lewej, duży kafelek wideo po prawej (wypełnia puste miejsce na desktopie).
+                Kolejność w DOM: nagłówek → kafelek → formularz, więc na mobile kafelek ląduje
+                naturalnie między nagłówkiem a formularzem i jest łatwy do kliknięcia. */}
+            {offer.agentVideoId ? (
+              <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
+                <Reveal className="lg:col-span-7 lg:row-start-1">
+                  <p className="eyebrow flex items-center gap-3 mb-5">
+                    <span className="inline-block w-8 h-px bg-brand-500" />
+                    Kontakt w sprawie oferty
+                  </p>
+                  <h2 className="font-display fluid-h2 text-ink-950 max-w-[22ch]">
+                    {offer.agentName
+                      ? `Porozmawiaj z ${firstNameInstrumental(offer.agentName)} o tej nieruchomości.`
+                      : "Porozmawiajmy o tej nieruchomości."}
+                  </h2>
+                  <p className="mt-5 text-[15.5px] leading-[1.7] text-ink-600">
+                    Zostaw namiary, a oddzwonimy. Możesz od razu zaznaczyć, czy chcesz umówić
+                    prezentację, otrzymać komplet materiałów, czy po prostu dopytać o szczegóły.
+                  </p>
+                </Reveal>
+                <Reveal
+                  delay={80}
+                  className="mx-auto w-full max-w-[320px] lg:col-span-5 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:max-w-none lg:self-center"
+                >
+                  <OfferAgentPresentation
+                    variant="card"
+                    videoId={offer.agentVideoId}
+                    photoUrl={offer.agentPhotoUrl}
+                    name={offer.agentName}
+                  />
+                </Reveal>
+                <Reveal delay={120} className="lg:col-span-7 lg:row-start-2">
+                  <OfferContactForm
+                    offerId={offer.id}
+                    galacticaOfferId={offer.refNumber}
+                    offerTitle={offer.title}
+                    refNumber={offer.refNumber}
+                    agentName={offer.agentName}
+                    agentEmail={offer.agentEmail}
+                    agentPhone={offer.agentPhone || offer.agentPhoneOffice}
+                  />
+                </Reveal>
+              </div>
+            ) : (
+              <>
+                <Reveal className="mb-10 md:mb-12 max-w-2xl">
+                  <p className="eyebrow flex items-center gap-3 mb-5">
+                    <span className="inline-block w-8 h-px bg-brand-500" />
+                    Kontakt w sprawie oferty
+                  </p>
+                  <h2 className="font-display fluid-h2 text-ink-950 max-w-[22ch]">
+                    {offer.agentName
+                      ? `Porozmawiaj z ${firstNameInstrumental(offer.agentName)} o tej nieruchomości.`
+                      : "Porozmawiajmy o tej nieruchomości."}
+                  </h2>
+                  <p className="mt-5 text-[15.5px] leading-[1.7] text-ink-600">
+                    Zostaw namiary, a oddzwonimy. Możesz od razu zaznaczyć, czy chcesz umówić
+                    prezentację, otrzymać komplet materiałów, czy po prostu dopytać o szczegóły.
+                  </p>
+                </Reveal>
+                <Reveal delay={120} className="max-w-3xl">
+                  <OfferContactForm
+                    offerId={offer.id}
+                    galacticaOfferId={offer.refNumber}
+                    offerTitle={offer.title}
+                    refNumber={offer.refNumber}
+                    agentName={offer.agentName}
+                    agentEmail={offer.agentEmail}
+                    agentPhone={offer.agentPhone || offer.agentPhoneOffice}
+                  />
+                </Reveal>
+              </>
+            )}
           </div>
         </section>
 

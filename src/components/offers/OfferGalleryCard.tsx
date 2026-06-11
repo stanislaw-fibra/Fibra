@@ -64,7 +64,7 @@ export function OfferGalleryCard({ offer, priority = false }: Props) {
           priority={priority}
           quality={72}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink-950/55 via-ink-950/0 to-ink-950/5" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink-950/65 via-ink-950/5 to-ink-950/5" />
 
         <div className="pointer-events-none absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
           <OfferTypeListingChip
@@ -84,12 +84,12 @@ export function OfferGalleryCard({ offer, priority = false }: Props) {
         </div>
 
         <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-3 text-white">
-          <span className="text-[11.5px] font-semibold uppercase tracking-[0.16em] text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)] line-clamp-1">
+          <span className="min-w-0 text-[11.5px] font-semibold uppercase tracking-[0.16em] text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)] line-clamp-1">
             {metaLine(offer)}
           </span>
-          <span className="font-display text-[15px] md:text-[16px] leading-none text-white tabular-nums drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
+          <span className="inline-flex shrink-0 items-baseline gap-1 rounded-full bg-ink-950/80 px-3 py-1.5 font-display text-[16px] md:text-[17.5px] font-semibold leading-none text-white tabular-nums shadow-[0_6px_18px_-8px_rgba(0,0,0,0.7)] ring-1 ring-white/10 backdrop-blur-md">
             {price}
-            <span className="text-white/85 text-[11.5px] font-normal">{priceSuffix}</span>
+            <span className="text-[11px] font-normal text-white/85">{priceSuffix}</span>
           </span>
         </div>
       </div>

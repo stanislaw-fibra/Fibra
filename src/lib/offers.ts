@@ -88,6 +88,9 @@ export interface Offer {
   agentPhotoUrl?: string;
   /** Slug agenta - używany w publicznym URL `/agent/<slug>` i jako filter na `/oferty`. */
   agentSlug?: string;
+  /** Cloudflare Stream ID autoprezentacji agenta (kolumna `agents.cloudflare_video_id`).
+   *  Gdy ustawione - na stronie oferty awatar agenta dostaje przycisk Play → popup z filmem. */
+  agentVideoId?: string;
 }
 
 /**

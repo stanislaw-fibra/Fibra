@@ -13,6 +13,25 @@ const ease = [0.22, 1, 0.36, 1] as const;
 
 type ModalKind = "tour" | "floor" | "floor-choice" | "youtube";
 
+/**
+ * ID modelu Matterport z URL playera.
+ * Obsługuje zarówno `https://my.matterport.com/show/?m=XXXX`, jak i własną
+ * domenę white-label klienta `https://spacer3d.fibranieruchomosci.pl/show/?m=XXXX`
+ * (to proxy Matterporta - ID modelu wciąż siedzi w parametrze `?m=`).
+ */
+function matterportModelId(raw: string): string | null {
+  try {
+    const u = new URL(raw);
+    const isMatterport = /(^|\.)matterport\.com$/i.test(u.hostname);
+    const looksLikePlayer = isMatterport || /\/show\b/i.test(u.pathname);
+    if (!looksLikePlayer) return null;
+    const m = u.searchParams.get("m");
+    return m && m.trim() ? m.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
 function youtubeVideoId(raw: string): string | null {
   try {
     const u = new URL(raw);
@@ -99,6 +118,17 @@ export function OfferQuickMedia({
     if (!id) return null;
     return `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
   }, [youtubeUrlProp]);
+
+  // Miniatura spaceru z publicznego endpointu Matterport - jak miniaturka YouTube,
+  // żeby kafelek pokazywał realny podgląd przestrzeni, a nie tylko ikonę.
+  const matterportThumb = useMemo(() => {
+    const raw = virtualTourUrl?.trim();
+    if (!raw) return null;
+    const id = matterportModelId(raw);
+    if (!id) return null;
+    // `?width` znacząco zmniejsza wagę miniatury (~38 KB zamiast ~355 KB).
+    return `https://my.matterport.com/api/v1/player/models/${encodeURIComponent(id)}/thumb?width=480`;
+  }, [virtualTourUrl]);
 
   const hasTour = Boolean(virtualTourUrl?.trim());
   const hasFloorImage = floorImages.length > 0;
@@ -424,17 +454,39 @@ export function OfferQuickMedia({
               <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-500">Spacer 3D</span>
               <span className="truncate text-[15px] font-medium text-ink-900">Otwórz wirtualny spacer</span>
             </span>
-            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink-950 text-white transition-colors group-hover:bg-brand-500">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                <path
-                  d="M8 2.5L13.5 5.75v4.5L8 13.5 2.5 10.25v-4.5L8 2.5z"
-                  stroke="currentColor"
-                  strokeWidth="1.3"
-                  strokeLinejoin="round"
+            {matterportThumb ? (
+              <span
+                className="relative inline-flex h-12 w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-sm)] bg-ink-100 ring-1 ring-ink-200 transition-colors group-hover:ring-brand-300 sm:h-12 sm:w-24 md:h-14 md:w-28"
+                aria-hidden
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={matterportThumb}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="lazy"
+                  draggable={false}
                 />
-                <path d="M8 2.5v11M8 8l5.5-2.25M8 8L2.5 5.75M8 8l5.5 2.25M8 8L2.5 10.25" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" opacity="0.7" />
-              </svg>
-            </span>
+                <span className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
+                <span className="relative z-[1] inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-[2px] ring-1 ring-white/30">
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor" aria-hidden className="translate-x-[0.5px] drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
+                    <path d="M2.5 1.5l7 4-7 4v-8z" />
+                  </svg>
+                </span>
+              </span>
+            ) : (
+              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink-950 text-white transition-colors group-hover:bg-brand-500">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path
+                    d="M8 2.5L13.5 5.75v4.5L8 13.5 2.5 10.25v-4.5L8 2.5z"
+                    stroke="currentColor"
+                    strokeWidth="1.3"
+                    strokeLinejoin="round"
+                  />
+                  <path d="M8 2.5v11M8 8l5.5-2.25M8 8L2.5 5.75M8 8l5.5 2.25M8 8L2.5 10.25" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" opacity="0.7" />
+                </svg>
+              </span>
+            )}
           </button>
         ) : null}
         {hasFloor ? (

@@ -1,7 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { deleteOfferImageAction, updateOfferAction } from "@/app/panel/actions/offers";
+import {
+  deleteOfferImageAction,
+  markGalleryImageAsFloorPlanAction,
+  updateOfferAction,
+} from "@/app/panel/actions/offers";
 import { OfferFilmSection } from "@/app/panel/_components/OfferFilmSection";
 import { OfferFormFields } from "@/app/panel/_components/OfferFormFields";
 import { OfferFloorPlanUploadForm } from "@/app/panel/_components/OfferFloorPlanUploadForm";
@@ -141,6 +145,11 @@ export default async function PanelOfferEditPage({ params }: Props) {
 
   const sortedImages = (images ?? []) as ImageRow[];
   const floorplanRows = (floorplans ?? []) as FloorPlanRow[];
+  // Zbiór URL-i zdjęć już oznaczonych jako rzut - żeby nie pokazywać dla nich przycisku
+  // „Oznacz jako rzut" (i nie dublować wpisów).
+  const floorplanImageUrls = new Set(
+    floorplanRows.filter((x) => x.kind === "image").map((x) => x.url?.trim()).filter(Boolean),
+  );
   const mediaRow = (media ?? null) as OfferMediaRow | null;
   const shortIframeSrc = mediaRow?.cloudflare_video_short_id
     ? cloudflareStreamIframeUrl(mediaRow.cloudflare_video_short_id)
@@ -215,7 +224,10 @@ export default async function PanelOfferEditPage({ params }: Props) {
 
         <section className="rounded-[var(--radius-md)] border border-white/10 bg-white/[0.04] p-6 md:p-8">
           <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-300 mb-2">Zdjęcia oferty</h2>
-          <p className="text-[13px] text-ink-300 mb-6">Galeria na stronie www.</p>
+          <p className="text-[13px] text-ink-300 mb-6">
+            Galeria na stronie www. Jeśli któreś zdjęcie to rzut, kliknij pod nim „Oznacz jako rzut” -
+            pojawi się w kafelku „Rzut 3D” na stronie oferty (bez ponownego wgrywania pliku).
+          </p>
 
           <OfferImageUploadForm offerId={row.id} galacticaOfferId={row.galactica_offer_id} />
 
@@ -232,14 +244,32 @@ export default async function PanelOfferEditPage({ params }: Props) {
                     <span>
                       #{im.order_index}
                       {im.is_primary ? " · główne" : ""}
+                      {floorplanImageUrls.has(im.image_url?.trim()) ? " · rzut" : ""}
                     </span>
-                    <form action={deleteOfferImageAction}>
-                      <input type="hidden" name="image_id" value={im.id} />
-                      <input type="hidden" name="offer_id" value={row.id} />
-                      <button type="submit" className="text-accent-400 hover:text-accent-300 transition-colors">
-                        Usuń
-                      </button>
-                    </form>
+                    <div className="flex items-center gap-3">
+                      {floorplanImageUrls.has(im.image_url?.trim()) ? (
+                        <span className="text-emerald-300">Rzut ✓</span>
+                      ) : (
+                        <form action={markGalleryImageAsFloorPlanAction}>
+                          <input type="hidden" name="image_id" value={im.id} />
+                          <input type="hidden" name="offer_id" value={row.id} />
+                          <button
+                            type="submit"
+                            className="text-brand-300 hover:text-brand-200 transition-colors"
+                            title="Przenieś to zdjęcie do kafelka „Rzut 3D” na stronie oferty"
+                          >
+                            Oznacz jako rzut
+                          </button>
+                        </form>
+                      )}
+                      <form action={deleteOfferImageAction}>
+                        <input type="hidden" name="image_id" value={im.id} />
+                        <input type="hidden" name="offer_id" value={row.id} />
+                        <button type="submit" className="text-accent-400 hover:text-accent-300 transition-colors">
+                          Usuń
+                        </button>
+                      </form>
+                    </div>
                   </div>
                 </li>
               ))}

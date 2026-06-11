@@ -12,21 +12,13 @@ type NavLink = {
   children?: { href: string; label: string }[];
 };
 
+// UWAGA: „Dla firm" (/dla-firm) oraz całe „Zamysłów" (i podstrony: przewodnik-inwestora,
+// zarzadzanie-najmem, galeria-inwestycji, prospekt-informacyjny) są CELOWO ukryte z menu,
+// dopóki projekt jest w przygotowaniu. Strony Zamysłowa są dodatkowo za bramką z hasłem
+// (patrz src/middleware.ts + src/lib/zamyslow-gate.ts). Dostęp tylko przez bezpośredni link.
 const LINKS: NavLink[] = [
   { href: "/oferty", label: "Oferty" },
-  { href: "/dla-firm", label: "Dla firm" },
   { href: "/sprzedaj-z-fibra", label: "Sprzedaj z Fibrą" },
-  {
-    href: "/zamyslow",
-    label: "Zamysłów",
-    children: [
-      { href: "/zamyslow", label: "Osiedle Zamysłów" },
-      { href: "/przewodnik-inwestora", label: "Przewodnik Inwestora" },
-      { href: "/zarzadzanie-najmem", label: "Zarządzanie najmem" },
-      { href: "/galeria-inwestycji", label: "Galeria inwestycji" },
-      { href: "/prospekt-informacyjny", label: "Prospekt informacyjny" },
-    ],
-  },
   { href: "/o-fibrze", label: "O Fibrze" },
   { href: "/kontakt", label: "Kontakt" },
 ];

@@ -1,9 +1,28 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { KURS_ACCESS_COOKIE, verifyAccessToken } from "@/lib/kurs-access";
+import {
+  isZamyslowGatedPath,
+  verifyZamyslowToken,
+  ZAMYSLOW_ACCESS_COOKIE,
+  ZAMYSLOW_GATE_PATH,
+} from "@/lib/zamyslow-gate";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // ---- Bramka projektu „Zamysłów" ----
+  // Strony projektu są usunięte z menu i dostępne tylko przez bezpośredni link,
+  // a i tak najpierw trzeba podać wspólne hasło (ZAMYSLOW_GATE_PASSWORD).
+  if (isZamyslowGatedPath(pathname)) {
+    const token = request.cookies.get(ZAMYSLOW_ACCESS_COOKIE)?.value;
+    if (await verifyZamyslowToken(token)) {
+      return NextResponse.next();
+    }
+    const redirect = new URL(ZAMYSLOW_GATE_PATH, request.url);
+    redirect.searchParams.set("next", pathname);
+    return NextResponse.redirect(redirect);
+  }
 
   // ---- Bramka portalu kursu (/kurs) ----
   // Uwaga: matcher celuje w "/kurs" i "/kurs/...", więc landing
@@ -75,5 +94,20 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/panel/:path*", "/kurs", "/kurs/:path*"],
+  matcher: [
+    "/panel/:path*",
+    "/kurs",
+    "/kurs/:path*",
+    // Bramka „Zamysłów" - musi pokrywać się z ZAMYSLOW_GATED_PREFIXES.
+    "/zamyslow",
+    "/zamyslow/:path*",
+    "/przewodnik-inwestora",
+    "/przewodnik-inwestora/:path*",
+    "/zarzadzanie-najmem",
+    "/zarzadzanie-najmem/:path*",
+    "/galeria-inwestycji",
+    "/galeria-inwestycji/:path*",
+    "/prospekt-informacyjny",
+    "/prospekt-informacyjny/:path*",
+  ],
 };

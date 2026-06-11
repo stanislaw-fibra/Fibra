@@ -65,6 +65,9 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [errorKind, setErrorKind] = useState<"size" | "fail" | null>(null);
+  // Konkretny komunikat błędu (np. odpowiedź Cloudflare / akcji serwera), żeby zamiast
+  // generycznego „nie udało się" pokazać realną przyczynę i dało się ją zdiagnozować.
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const hasVideo = Boolean(videoId?.trim());
   const showDropzone = !hasVideo || forceReplace;
@@ -84,6 +87,7 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
     if (!res.ok) {
       console.error("[film delete]", res.error);
       setErrorKind("fail");
+      setErrorMsg(res.error || "Nie udało się usunąć filmu.");
       setPhase("error");
       return;
     }
@@ -97,6 +101,7 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
     async (file: File) => {
       if (file.size > MAX_FILE_BYTES) {
         setErrorKind("size");
+        setErrorMsg(null);
         setPhase("error");
         return;
       }
@@ -105,6 +110,7 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
       bytePctRef.current = 0;
       setDisplayPct(0);
       setErrorKind(null);
+      setErrorMsg(null);
       setPhase("uploading");
 
       try {
@@ -120,11 +126,11 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
           const initJson = (await init.json().catch(() => ({}))) as { uploadURL?: string; uid?: string; error?: string };
           if (!init.ok) {
             console.error("[film upload]", init.status, initJson);
-            throw new Error("init");
+            throw new Error(initJson.error || `Cloudflare: błąd inicjacji uploadu (HTTP ${init.status}).`);
           }
           if (!initJson.uploadURL || !initJson.uid) {
             console.error("[film upload] bad init payload", initJson);
-            throw new Error("init");
+            throw new Error(initJson.error || "Cloudflare nie zwrócił linku do uploadu.");
           }
 
           const fd = new FormData();
@@ -132,12 +138,12 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
           const up = await fetch(initJson.uploadURL, { method: "POST", body: fd });
           if (!up.ok) {
             console.error("[film upload] file POST", up.status);
-            throw new Error("upload");
+            throw new Error(`Cloudflare odrzucił plik (HTTP ${up.status}).`);
           }
           const resolved = idFromBasicUploadResponse(up, initJson.uid);
           if (!resolved) {
             console.error("[film upload] no id in response");
-            throw new Error("noid");
+            throw new Error("Cloudflare nie zwrócił identyfikatora filmu.");
           }
           videoUid = resolved;
         } else {
@@ -147,7 +153,7 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
               chunkSize: 50 * 1024 * 1024,
               retryDelays: [0, 2000, 5000, 10_000],
               metadata: { filename: file.name, filetype: file.type || "application/octet-stream" },
-              onError: (err) => reject(err),
+              onError: (err) => reject(new Error(`Cloudflare (TUS): ${err instanceof Error ? err.message : String(err)}`)),
               onProgress: (sent, total) => {
                 if (total > 0) {
                   bytePctRef.current = Math.round((sent / total) * 100);
@@ -166,7 +172,7 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
                 const fromHdr = hdr?.trim();
                 const fromUrl = idFromTusUrl(upload.url);
                 const uid = fromHdr || fromUrl;
-                if (!uid) reject(new Error("noid"));
+                if (!uid) reject(new Error("Cloudflare nie zwrócił identyfikatora filmu (TUS)."));
                 else resolve(uid);
               },
             });
@@ -181,7 +187,7 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
         const attach = await attachStreamVideoSlotAction(offerId, "short", videoUid);
         if (!attach.ok) {
           console.error("[film upload] attach", attach.error);
-          throw new Error("attach");
+          throw new Error(attach.error || "Nie udało się powiązać filmu z ofertą.");
         }
 
         setPhase("done");
@@ -197,6 +203,7 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
       } catch (e) {
         console.error("[film upload]", e);
         setErrorKind("fail");
+        setErrorMsg(e instanceof Error ? e.message : String(e));
         setPhase("error");
         setDisplayPct(0);
       }
@@ -259,6 +266,7 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
                 setForceReplace(true);
                 setPhase("idle");
                 setErrorKind(null);
+                setErrorMsg(null);
                 setDisplayPct(0);
               }}
               className="self-start rounded-full border border-white/25 bg-white/10 hover:bg-white/15 disabled:opacity-50 text-[13px] font-semibold text-white px-5 py-2.5 transition-colors"
@@ -332,11 +340,18 @@ function FilmSlot({ offerId, videoId, previewSrc }: FilmSlotProps) {
       )}
 
       {phase === "error" && (
-        <p className="mt-4 text-[13px] text-accent-300 leading-snug">
-          {errorKind === "size"
-            ? "Plik jest większy niż 500 MB. Wybierz mniejszy plik."
-            : "Nie udało się przesłać filmu. Spróbuj ponownie."}
-        </p>
+        <div className="mt-4 text-[13px] text-accent-300 leading-snug">
+          {errorKind === "size" ? (
+            <p>Plik jest większy niż 500 MB. Wybierz mniejszy plik.</p>
+          ) : (
+            <>
+              <p>Nie udało się przesłać filmu. Spróbuj ponownie.</p>
+              {errorMsg ? (
+                <p className="mt-1 text-[12px] text-ink-300 break-words">Szczegóły: {errorMsg}</p>
+              ) : null}
+            </>
+          )}
+        </div>
       )}
 
       {showSuccess && (

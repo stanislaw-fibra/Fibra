@@ -1,8 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { toggleOfferActiveAction } from "@/app/panel/actions/offers";
+import { setOffersVisibilityAction, toggleOfferActiveAction } from "@/app/panel/actions/offers";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { priceFormat } from "@/lib/offers";
+import { OffersBulkBar } from "@/app/panel/_components/OffersBulkBar";
 import { RefreshOffersButton } from "@/app/panel/_components/RefreshOffersButton";
 import { requirePanelScope } from "@/lib/panel-access";
 
@@ -27,6 +28,7 @@ type OfferRow = {
   price: number | null;
   city: string | null;
   is_active: boolean;
+  hidden_by_admin: boolean | null;
   created_at: string;
   offer_images: { image_url: string; order_index: number; is_primary: boolean | null }[] | null;
   offer_media: { cloudflare_video_short_id: string | null } | { cloudflare_video_short_id: string | null }[] | null;
@@ -116,7 +118,7 @@ export default async function PanelOffersPage({ searchParams }: Props) {
   let query = admin
     .from("offers")
     .select(
-      "id, galactica_offer_id, title, category, listing_type, price, city, is_active, created_at, agent_id, offer_images ( image_url, order_index, is_primary ), offer_media ( cloudflare_video_short_id )",
+      "id, galactica_offer_id, title, category, listing_type, price, city, is_active, hidden_by_admin, created_at, agent_id, offer_images ( image_url, order_index, is_primary ), offer_media ( cloudflare_video_short_id )",
     )
     .order("created_at", { ascending: false })
     .limit(400);
@@ -152,6 +154,16 @@ export default async function PanelOffersPage({ searchParams }: Props) {
   }
 
   const list = (rows ?? []) as OfferRow[];
+
+  // Po masowej akcji wracamy na listę z zachowanymi filtrami (np. „Nieaktywne" przy przywracaniu).
+  const returnParams = new URLSearchParams();
+  if (category !== "all") returnParams.set("category", category);
+  if (listing !== "all") returnParams.set("listing", listing);
+  if (active !== "all") returnParams.set("active", active);
+  if (source !== "all") returnParams.set("source", source);
+  if (isAdmin && agent !== "all") returnParams.set("agent", agent);
+  if (q.length) returnParams.set("q", q);
+  const returnTo = `/panel/oferty${returnParams.toString() ? `?${returnParams.toString()}` : ""}`;
 
   return (
     <div className="max-w-[1200px]">
@@ -252,11 +264,14 @@ export default async function PanelOffersPage({ searchParams }: Props) {
         </div>
       </form>
 
+      <OffersBulkBar action={setOffersVisibilityAction} returnTo={returnTo} />
+
       <div className="rounded-[var(--radius-md)] border border-white/10 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-[13px] min-w-[820px]">
+          <table className="w-full text-left text-[13px] min-w-[860px]">
             <thead className="bg-white/[0.04] text-ink-400 uppercase tracking-[0.08em] text-[10px]">
               <tr>
+                <th className="px-3 py-3 w-[40px]" />
                 <th className="px-4 py-3 w-[72px]" />
                 <th className="px-4 py-3 font-medium min-w-[200px]">Oferta</th>
                 <th className="px-4 py-3 font-medium">Kategoria</th>
@@ -276,6 +291,17 @@ export default async function PanelOffersPage({ searchParams }: Props) {
                 const hasVideo = hasShortStreamVideo(row);
                 return (
                   <tr key={row.id} className="hover:bg-white/[0.02]">
+                    <td className="px-3 py-3 align-middle">
+                      <input
+                        type="checkbox"
+                        form="offers-bulk"
+                        name="ids"
+                        value={row.id}
+                        data-bulk-offer="1"
+                        aria-label={`Zaznacz: ${row.title ?? "oferta"}`}
+                        className="h-4 w-4 rounded border-white/25 bg-ink-900 accent-brand-500"
+                      />
+                    </td>
                     <td className="px-4 py-3 align-middle">
                       <Link href={`/panel/oferty/${row.id}`} className="block relative w-14 h-14 rounded-md overflow-hidden bg-ink-800 shrink-0">
                         {thumb ? (
@@ -343,7 +369,9 @@ export default async function PanelOffersPage({ searchParams }: Props) {
                       )}
                     </td>
                     <td className="px-4 py-3 align-middle">
-                      <span className={row.is_active ? "text-emerald-400/90" : "text-ink-500"}>{row.is_active ? "Aktywna" : "Ukryta"}</span>
+                      <span className={row.is_active ? "text-emerald-400/90" : "text-ink-500"}>
+                        {row.is_active ? "Aktywna" : row.hidden_by_admin ? "Wygaszona" : "Ukryta"}
+                      </span>
                     </td>
                     <td className="px-4 py-3 align-middle">
                       <form action={toggleOfferActiveAction} className="inline">
