@@ -22,8 +22,10 @@ type Props = {
    * `avatar` (domyślny) - okrągły awatar z kropką Play (sekcja kontaktu pod hero).
    * `card` - duży, rzucający się w oczy kafelek z plakatem wideo + dużym Play
    *   (dolna sekcja „Kontakt w sprawie oferty"). Bez wideo `card` nic nie renderuje.
+   * `banner` - poziomy klikalny pasek z miniaturą + tekstem zachęty, do wstawienia
+   *   wysoko na stronie oferty (przy parametrach). Bez wideo `banner` nic nie renderuje.
    */
-  variant?: "avatar" | "card";
+  variant?: "avatar" | "card" | "banner";
 };
 
 /**
@@ -101,9 +103,9 @@ export function OfferAgentPresentation({ videoId, photoUrl, name, variant = "ava
 
   useModalHistoryClose(open, () => setOpen(false));
 
-  // Brak wideo - wariant `card` nie zajmuje miejsca; `avatar` pokazuje zwykły awatar.
+  // Brak wideo - `card`/`banner` nie zajmują miejsca; `avatar` pokazuje zwykły awatar.
   if (!streamId) {
-    return variant === "card" ? null : <AgentAvatar photoUrl={photoUrl} name={name} size="md" />;
+    return variant === "avatar" ? <AgentAvatar photoUrl={photoUrl} name={name} size="md" /> : null;
   }
 
   const modal =
@@ -171,6 +173,57 @@ export function OfferAgentPresentation({ videoId, photoUrl, name, variant = "ava
           document.body,
         )
       : null;
+
+  // Wariant `banner`: poziomy, klikalny pasek z miniaturą wideo + tekstem zachęty.
+  // Wstawiany wysoko na stronie oferty (przy parametrach), żeby autoprezentacja była
+  // widoczna bez scrollowania do dolnej sekcji kontaktu.
+  if (variant === "banner") {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label={name ? `Odtwórz autoprezentację: ${name}` : "Odtwórz autoprezentację agenta"}
+          className="group flex w-full items-center gap-4 overflow-hidden rounded-[var(--radius-lg)] border border-ink-200/70 bg-paper p-3 text-left shadow-[var(--shadow-soft)] transition-all duration-300 hover:border-brand-300 hover:shadow-[0_18px_48px_-24px_rgba(11,15,20,0.4)] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+        >
+          {/* Miniatura z plakatem wideo + Play. */}
+          <span className="relative block h-[68px] w-[68px] shrink-0 overflow-hidden rounded-[var(--radius-md)] bg-ink-900">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={posterUrl ?? photoUrl ?? undefined}
+              alt={name ? `Autoprezentacja: ${name}` : "Autoprezentacja agenta"}
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+            <span className="absolute inset-0 bg-ink-950/20" />
+            <span className="absolute inset-0 flex items-center justify-center">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-ink-950 shadow-[0_6px_18px_-6px_rgba(0,0,0,0.55)] transition-transform duration-300 group-hover:scale-110">
+                <svg width="13" height="13" viewBox="0 0 11 11" fill="currentColor" aria-hidden>
+                  <path d="M2.5 1.5l7 4-7 4v-8z" />
+                </svg>
+              </span>
+            </span>
+          </span>
+          {/* Tekst zachęty. */}
+          <span className="min-w-0 flex-1">
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-600">
+              Autoprezentacja{name ? ` · ${name}` : ""}
+            </span>
+            <span className="mt-1 block text-[13.5px] leading-snug text-ink-800">
+              Jeżeli zadzwonisz, porozmawiasz ze mną. Zobacz, kim jestem.
+            </span>
+          </span>
+          <span className="ml-1 hidden shrink-0 items-center gap-1.5 self-center text-[12.5px] font-medium text-brand-600 sm:inline-flex">
+            Zobacz wideo
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden>
+              <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+        </button>
+        {modal}
+      </>
+    );
+  }
 
   // Wariant `card`: duży, rzucający się w oczy kafelek z plakatem wideo (pionowy 4:5)
   // + dużym Play. Wypełnia puste miejsce po prawej w dolnej sekcji „Kontakt w sprawie oferty".

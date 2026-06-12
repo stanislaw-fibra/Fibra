@@ -66,12 +66,17 @@ export function OpeningReels({ offers }: { offers: Offer[] }) {
           dzięki temu zarówno mobile, jak i desktop trzymają całość w pierwszym
           ekranie. Na mobile pojedynczy przycisk pełnoszerokościowy. */}
       <div className="container-xl relative shrink-0 pb-4 md:pb-10">
+        {/* Dolny CTA celowo prowadzi do INNEGO widoku niż górny przycisk w hero.
+            Górny („Przeglądaj oferty") → widok wideo (tylko oferty z filmem).
+            Dolny („Zobacz wszystkie oferty") → widok galerii, który pokazuje
+            PEŁNY katalog, także oferty bez filmu. Dzięki temu dwa przyciski nie
+            wiodą już w to samo miejsce. */}
         <div className="hairline-dark-t pt-3 md:pt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 sm:gap-3">
           <Link
-            href="/oferty?view=video"
+            href="/oferty?view=gallery"
             className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-white text-ink-950 px-5 py-2.5 md:px-6 md:py-3 text-[12.5px] md:text-[13px] font-medium hover:bg-accent-400 hover:text-ink-950 transition-colors duration-300 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.45)]"
           >
-            Przeglądaj wszystkie oferty
+            Zobacz wszystkie oferty
             {ctaArrow}
           </Link>
         </div>

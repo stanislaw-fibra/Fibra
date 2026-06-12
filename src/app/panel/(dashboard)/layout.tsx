@@ -41,7 +41,11 @@ export default async function PanelDashboardLayout({ children }: { children: Rea
 
   return (
     <div className="flex min-h-screen">
-      <aside className="hidden md:flex w-[240px] shrink-0 flex-col border-r border-white/10 bg-ink-900/90">
+      {/* Sticky + self-start + h-screen: bez self-start flex rozciąga sidebar do
+          wysokości najwyższej kolumny (treści), co psuje position: sticky. Z h-screen
+          i overflow-y-auto menu trzyma się góry przy scrollu i samo się przewija,
+          gdyby było wyższe niż ekran. */}
+      <aside className="hidden md:flex w-[240px] shrink-0 flex-col border-r border-white/10 bg-ink-900/90 sticky top-0 self-start h-screen overflow-y-auto">
         <div className="p-6 border-b border-white/10">
           <p className="font-display text-[1.35rem] text-white leading-none">Fibra</p>
           <p className="mt-2 text-[11px] uppercase tracking-[0.14em] text-ink-500">

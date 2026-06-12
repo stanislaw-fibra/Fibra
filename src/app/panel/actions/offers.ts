@@ -475,7 +475,8 @@ export async function deleteOfferImageAction(formData: FormData) {
   await admin.from("offer_images").delete().eq("id", imageId);
   revalidatePath(`/panel/oferty/${offerId}`);
   await revalidateOfferPublicPath(admin, offerId);
-  redirect(`/panel/oferty/${offerId}`);
+  // Bez redirect() - usunięte zdjęcie znika z galerii w miejscu, bez skoku na górę.
+  return;
 }
 
 const FLOORPLANS_BUCKET = "offer-floorplans";
@@ -687,7 +688,11 @@ export async function markGalleryImageAsFloorPlanAction(formData: FormData) {
     .eq("url", imageUrl)
     .maybeSingle();
   if (dup?.id) {
-    redirect(`/panel/oferty/${offerId}?saved=1`);
+    // Już jest rzutem - nic nie zmieniamy. NIE robimy redirect(), bo redirect
+    // przeładowuje stronę i resetuje scroll na górę (Roman: „trzy oznaczenia,
+    // trzy razy scrolluję góra-dół"). revalidatePath odświeża sekcję w miejscu.
+    revalidatePath(`/panel/oferty/${offerId}`);
+    return;
   }
 
   const { count } = await admin
@@ -714,7 +719,9 @@ export async function markGalleryImageAsFloorPlanAction(formData: FormData) {
 
   revalidatePath(`/panel/oferty/${offerId}`);
   await revalidateOfferPublicPath(admin, offerId);
-  redirect(`/panel/oferty/${offerId}?saved=1`);
+  // Bez redirect() - odświeżenie w miejscu zostawia widok przy oznaczonym zdjęciu,
+  // zamiast skakać na górę edytowanej oferty. Zielony „Rzut ✓" to wystarczający sygnał.
+  return;
 }
 
 export async function deleteOfferFloorPlanPdfAction(formData: FormData) {

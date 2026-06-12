@@ -197,6 +197,20 @@ export default async function OfferPage({
                   />
                 </Reveal>
 
+                {/* Autoprezentacja agenta wysoko na stronie - mało kto scrolluje do dolnej
+                    karty kontaktu, więc dajemy klikalny pasek z miniaturą tuż przy parametrach.
+                    Renderuje się tylko gdy oferta ma wideo-autoprezentację agenta. */}
+                {offer.agentVideoId && (
+                  <Reveal delay={120} className="mt-6">
+                    <OfferAgentPresentation
+                      variant="banner"
+                      videoId={offer.agentVideoId}
+                      photoUrl={offer.agentPhotoUrl}
+                      name={offer.agentName}
+                    />
+                  </Reveal>
+                )}
+
                 {/* Galeria w prawej kolumnie - tylko desktop (lg+). Na mobile/tablet
                     galeria jest już renderowana zaraz pod filmem (lewa „kolumna"). */}
                 {heroStreamId && gallery.length > 0 ? (
