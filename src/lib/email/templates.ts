@@ -155,7 +155,7 @@ export function leadClientConfirmation(d: LeadEmailData): RenderedEmail {
       heading: copy.heading,
       contentHtml: copy.body(d),
     }),
-    text: `${copy.textBody(d)}\n\n—\nGrupa Fibra Sp. z o.o.\nul. Rymera 177, 44-310 Radlin\n510 777 200 · biuro@fibra.pl\nfibra.pl`,
+    text: `${copy.textBody(d)}\n\nGrupa Fibra Sp. z o.o.\nul. Rymera 177, 44-310 Radlin\n510 777 200 · biuro@grupafibra.pl\nfibra.pl`,
   };
 }
 
@@ -242,7 +242,6 @@ Logowanie: ${loginUrl}
 
 Masz pytanie albo coś nie działa? Odpowiedz na tę wiadomość, pomożemy.
 
-—
 Grupa Fibra Sp. z o.o.
 fibra.pl`;
 

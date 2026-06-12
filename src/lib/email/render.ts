@@ -130,6 +130,6 @@ export function emailShell({ preheader, heading, contentHtml }: ShellOptions): s
 </html>`;
 }
 
-// Adres pokazywany w stopce maila (kontakt dla odbiorcy). Trzymany osobno,
-// bo skrzynka powiadomień (LEAD_NOTIFY_TO) może się kiedyś różnić od tej w stopce.
-const OFFICE_EMAIL = process.env.PUBLIC_OFFICE_EMAIL?.trim() || "biuro@fibra.pl";
+// Adres pokazywany w stopce maila (kontakt dla odbiorcy). To grupafibra.pl,
+// bo tam biuro realnie odbiera pocztę (nadawca to osobna domena nadawcza fibra.pl).
+const OFFICE_EMAIL = process.env.PUBLIC_OFFICE_EMAIL?.trim() || "biuro@grupafibra.pl";

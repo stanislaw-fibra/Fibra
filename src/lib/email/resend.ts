@@ -17,10 +17,19 @@ import { Resend } from "resend";
 //   LEAD_NOTIFY_TO  - skrzynka biura, na którą lecą powiadomienia o leadach.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Skrzynka biura - tam trafiają powiadomienia o nowych zgłoszeniach i odpowiedzi. */
-export const OFFICE_INBOX = process.env.LEAD_NOTIFY_TO?.trim() || "biuro@fibra.pl";
+/**
+ * Skrzynka biura - tam trafiają powiadomienia o leadach i odpowiedzi klientów.
+ * UWAGA: to jest grupafibra.pl (realna, monitorowana skrzynka), a NIE domena
+ * nadawcza. Reply-To może być dowolnym adresem, nie wymaga weryfikacji w Resend.
+ */
+export const OFFICE_INBOX =
+  process.env.LEAD_NOTIFY_TO?.trim() || "biuro@grupafibra.pl";
 
-/** Nadawca wszystkich maili. Musi być na domenie zweryfikowanej w Resend. */
+/**
+ * Nadawca wszystkich maili. MUSI być na domenie zweryfikowanej w Resend (fibra.pl),
+ * dlatego @fibra.pl, mimo że biuro odbiera na grupafibra.pl. Odpowiedzi i tak
+ * trafiają na grupafibra.pl dzięki Reply-To (DEFAULT_REPLY_TO = OFFICE_INBOX).
+ */
 export const EMAIL_FROM =
   process.env.RESEND_FROM?.trim() || "Fibra Nieruchomości <biuro@fibra.pl>";
 

@@ -116,6 +116,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 
+  // Newsletter to osobny temat - obsłuży go GetResponse (własna lista + automatyczne
+  // wypisywanie). My nie wysyłamy tu żadnego maila, zostawiamy sam zapis w bazie.
+  // U nas Resend = tylko maile transakcyjne (reakcja na formularz, kurs).
+  if (body.source === "newsletter_footer") {
+    return NextResponse.json({ ok: true });
+  }
+
   // Wysyłka maili. Świadomie await (na serverless praca po response bywa ubijana),
   // ale w try/catch + allSettled, żeby ŻADEN problem z mailem nie zepsuł zapisu leada
   // ani nie zwrócił błędu użytkownikowi - lead jest już bezpiecznie w bazie.
