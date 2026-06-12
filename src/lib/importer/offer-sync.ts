@@ -205,6 +205,15 @@ export interface FullExportReconcileResult {
   reason?: string;
   candidates: number;
   wouldDeactivate: number;
+  // Lista galactica_offer_id ofert, które (zostały / zostałyby) wygaszone.
+  // Wypełniana zawsze, gdy reconcile nie został pominięty - przydatne do
+  // podglądu w trybie dry-run, zanim cokolwiek realnie ruszymy w bazie.
+  wouldDeactivateIds?: string[];
+  // Oferty CHRONIONE: brakuje ich w pełnym eksporcie, ALE nasz importer
+  // dotknął ich PO wygenerowaniu tego 'calosc' (czyli pojawiły się w nowszym
+  // diffie). Nie wygaszamy ich - calosc jest wtedy starszą prawdą niż diff.
+  protectedRecent?: number;
+  protectedRecentIds?: string[];
 }
 
 // Plik 'calosc' z mniejszą liczbą ofert traktujemy jako podejrzany/niekompletny.
@@ -232,27 +241,47 @@ const FULL_EXPORT_MAX_DEACTIVATE_RATIO = 0.4;
 export async function deactivateMissingFromFullExport(
   supabase: SupabaseClient,
   presentIds: string[],
+  opts: { dryRun?: boolean; notUpdatedAfter?: string | null } = {},
 ): Promise<FullExportReconcileResult> {
+  const dryRun = opts.dryRun ?? false;
+  // Czas wygenerowania 'calosc'. Oferty, które nasz importer dotknął PÓŹNIEJ
+  // (updated_at > tego), pojawiły się w nowszym diffie - chronimy je.
+  const cutoff = opts.notUpdatedAfter ? new Date(opts.notUpdatedAfter) : null;
+  const cutoffValid = cutoff && !Number.isNaN(cutoff.getTime()) ? cutoff : null;
   const present = new Set(presentIds.filter((id) => id && !id.startsWith("MANUAL-")));
 
   const { data: all, error: selErr } = await supabase
     .from("offers")
-    .select("id, galactica_offer_id")
+    .select("id, galactica_offer_id, updated_at")
     .eq("is_active", true)
     .eq("hidden_by_admin", false)
     .not("galactica_offer_id", "like", "MANUAL-%");
   if (selErr) throw selErr;
 
   const candidates = all ?? [];
-  const toDeactivate = candidates
-    .filter((o) => !present.has(o.galactica_offer_id))
-    .map((o) => o.id);
+  const allMissing = candidates.filter((o) => !present.has(o.galactica_offer_id));
+
+  // Odetnij oferty dotknięte przez nowszy diff niż ten calosc.
+  const protectedRecent: typeof allMissing = [];
+  const missing: typeof allMissing = [];
+  for (const o of allMissing) {
+    const upd = o.updated_at ? new Date(o.updated_at as string) : null;
+    if (cutoffValid && upd && !Number.isNaN(upd.getTime()) && upd > cutoffValid) {
+      protectedRecent.push(o);
+    } else {
+      missing.push(o);
+    }
+  }
+  const toDeactivate = missing.map((o) => o.id);
 
   const result: FullExportReconcileResult = {
     deactivated: 0,
     skipped: false,
     candidates: candidates.length,
     wouldDeactivate: toDeactivate.length,
+    wouldDeactivateIds: missing.map((o) => o.galactica_offer_id),
+    protectedRecent: protectedRecent.length,
+    protectedRecentIds: protectedRecent.map((o) => o.galactica_offer_id),
   };
 
   if (present.size < FULL_EXPORT_MIN_OFFERS) {
@@ -277,6 +306,10 @@ export async function deactivateMissingFromFullExport(
   }
 
   if (toDeactivate.length === 0) return result;
+
+  // Dry-run: przeszliśmy progi bezpieczeństwa i wiemy CO byśmy wygasili,
+  // ale nie ruszamy bazy. Zwracamy listę do podglądu.
+  if (dryRun) return result;
 
   const BATCH = 200;
   let deactivated = 0;

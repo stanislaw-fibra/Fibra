@@ -46,11 +46,23 @@ export interface DownloadedZip {
   size: number;
 }
 
+// Domyślny limit rozmiaru ZIP-a, który cron/panel próbuje pobrać w CAŁOŚCI.
+// Pełny eksport 'calosc' to setki MB (zdjęcia w środku) i na serverless (Vercel)
+// nie da się go pobrać w limicie czasu/pamięci - próba kończy się OOM/timeoutem,
+// a ponieważ plik NIE zostaje oznaczony jako przetworzony, downloader wybiera go
+// w kółko (head-of-line blocking) i blokuje wciąganie mniejszych diffów za nim.
+// Dlatego pliki >= tego progu pomijamy tutaj; ich reconciliacją (wygaszanie
+// brakujących ofert) zajmuje się osobny, lekki endpoint /api/reconcile, który
+// czyta z calosc TYLKO oferty.xml, bez pobierania całego pliku.
+export const DEFAULT_MAX_ZIP_BYTES = 150 * 1024 * 1024; // 150 MB
+
 // Pobiera NAJNOWSZY plik oferty_*.zip z FTP do lokalnego /tmp.
 // skipFilenames - lista nazw plików, które zostały już przetworzone (pomiń je).
+// maxSizeBytes - pomiń pliki >= tego rozmiaru (zbyt duży 'calosc' - patrz wyżej).
 export async function downloadLatestOffersZip(
   config: FtpConfig = getFtpConfig(),
   skipFilenames: string[] = [],
+  maxSizeBytes: number = DEFAULT_MAX_ZIP_BYTES,
 ): Promise<DownloadedZip | null> {
   const client = new Client();
   client.ftp.verbose = false;
@@ -73,6 +85,9 @@ export async function downloadLatestOffersZip(
     const zips = list
       .filter((f) => f.isFile && isOffersZip(f.name))
       .filter((f) => !skipFilenames.includes(f.name))
+      // Pomiń zbyt duże pliki (pełny 'calosc') - patrz DEFAULT_MAX_ZIP_BYTES.
+      // maxSizeBytes <= 0 wyłącza limit (np. lokalny skrypt z dużym RAM).
+      .filter((f) => maxSizeBytes <= 0 || f.size < maxSizeBytes)
       .sort((a, b) => zipDateKey(b.name).localeCompare(zipDateKey(a.name)));
 
     if (zips.length === 0) return null;
