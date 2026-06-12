@@ -7,6 +7,8 @@ import {
   leadOfficeNotification,
   type LeadEmailData,
 } from "@/lib/email/templates";
+import { isValidEmail } from "@/lib/email-validation";
+import { subscribeToNewsletter } from "@/lib/getresponse";
 
 export const runtime = "nodejs";
 
@@ -85,6 +87,15 @@ export async function POST(req: Request) {
     }
   }
 
+  // E-mail jest opcjonalny w większości formularzy, ale jeśli ktoś go podał -
+  // musi być poprawny. W newsletterze jest wymagany (sprawdzony wyżej).
+  if (email && !isValidEmail(email)) {
+    return NextResponse.json(
+      { ok: false, error: "Podaj poprawny adres e-mail." },
+      { status: 400 },
+    );
+  }
+
   const supabase = getSupabaseAnon();
   if (!supabase) {
     return NextResponse.json({ ok: false, error: "Supabase not configured" }, { status: 500 });
@@ -116,9 +127,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 
-  // Newsletter to osobny temat - obsłuży go GetResponse (własna lista + automatyczne
-  // wypisywanie). My nie wysyłamy tu żadnego maila, zostawiamy sam zapis w bazie.
-  // U nas Resend = tylko maile transakcyjne (reakcja na formularz, kurs).
+  // GetResponse - zapis na listę newslettera (z tagiem źródła do późniejszej segmentacji):
+  //  - z formularza newslettera (newsletter_footer) ZAWSZE,
+  //  - z innych formularzy tylko gdy zaznaczono zgodę (newsletter_consent).
+  // subscribeToNewsletter nie rzuca, ale obejmujemy try/catch dla pewności -
+  // problem z GetResponse NIE może zepsuć zapisu leada (jest już w bazie).
+  if ((body.source === "newsletter_footer" || newsletter_consent) && email && isValidEmail(email)) {
+    try {
+      await subscribeToNewsletter({ email, name: full_name, source: body.source });
+    } catch (e) {
+      console.error("[leads] GetResponse subscribe nieudany (lead i tak zapisany):", e);
+    }
+  }
+
+  // Newsletter to osobny temat - listę i double opt-in obsługuje GetResponse
+  // (mail potwierdzający + wypisywanie). My nie wysyłamy tu żadnego maila
+  // transakcyjnego. U nas Resend = tylko reakcja na formularz kontaktowy / kurs.
   if (body.source === "newsletter_footer") {
     return NextResponse.json({ ok: true });
   }
@@ -153,7 +177,7 @@ export async function POST(req: Request) {
     );
 
     // 2) Potwierdzenie do klienta - tylko gdy podał poprawny e-mail.
-    if (email && /.+@.+\..+/.test(email)) {
+    if (email && isValidEmail(email)) {
       const confirm = leadClientConfirmation(emailData);
       jobs.push(
         sendEmail({

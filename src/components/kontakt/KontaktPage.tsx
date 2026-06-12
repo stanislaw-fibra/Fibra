@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { submitLead } from "@/lib/leads-client";
+import { EMAIL_ERROR_MESSAGE, isValidEmail } from "@/lib/email-validation";
 
 const TOPICS = ["Sprzedaż", "Kupno", "Wynajem", "Inne"] as const;
 
@@ -55,7 +56,15 @@ export function KontaktPage() {
                         const full_name = String(fd.get("name") || "").trim();
                         const contact = String(fd.get("contact") || "").trim();
                         const message = String(fd.get("message") || "").trim();
-                        const email = contact.includes("@") ? contact : "";
+                        // Pole łączone: jeśli wygląda na e-mail (zawiera @), wymagamy
+                        // poprawnego adresu; w przeciwnym razie traktujemy jako telefon.
+                        const looksLikeEmail = contact.includes("@");
+                        if (looksLikeEmail && !isValidEmail(contact)) {
+                          setError(EMAIL_ERROR_MESSAGE);
+                          setSending(false);
+                          return;
+                        }
+                        const email = looksLikeEmail ? contact : "";
                         const phone = email ? "" : contact;
                         const composed =
                           [

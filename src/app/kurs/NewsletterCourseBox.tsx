@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { submitLead } from "@/lib/leads-client";
+import { EMAIL_ERROR_MESSAGE, isValidEmail } from "@/lib/email-validation";
 
-type Status = "idle" | "sending" | "done" | "error";
+type Status = "idle" | "sending" | "done" | "error" | "invalid";
 
 /** Zapis do newslettera wewnątrz portalu kursu: audiobook książki + streszczenie
     rysunkowe za zapis. Korzysta z tego samego API leadów co reszta strony
@@ -16,6 +17,10 @@ export function NewsletterCourseBox() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (status === "sending") return;
+    if (!isValidEmail(email)) {
+      setStatus("invalid");
+      return;
+    }
     setStatus("sending");
     try {
       await submitLead({
@@ -48,13 +53,16 @@ export function NewsletterCourseBox() {
   }
 
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={onSubmit} noValidate>
       <div className="flex flex-col gap-2.5 sm:flex-row">
         <input
           type="email"
           required
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (status === "invalid" || status === "error") setStatus("idle");
+          }}
           placeholder="Twój e-mail"
           className="flex-1 rounded-full border border-white/12 bg-white/5 px-5 py-3 text-[14px] text-white placeholder:text-ink-400 transition-colors focus:border-accent-400 focus:bg-white/10 focus:outline-none"
         />
@@ -71,6 +79,9 @@ export function NewsletterCourseBox() {
           {status === "sending" ? "Zapisuję..." : "Zapisz się"}
         </button>
       </div>
+      {status === "invalid" && (
+        <p className="mt-2 text-[13px] text-accent-300">{EMAIL_ERROR_MESSAGE}</p>
+      )}
       {status === "error" && (
         <p className="mt-2 text-[13px] text-accent-300">
           Coś nie zadziałało. Spróbuj ponownie za chwilę.

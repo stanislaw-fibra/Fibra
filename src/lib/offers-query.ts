@@ -321,6 +321,30 @@ export function pickYoutubeUrl(raw: Record<string, unknown> | null | undefined):
 }
 
 /**
+ * Data DODANIA oferty w systemie źródłowym (Galactica/VIRGO). VIRGO podaje ją jako atrybut
+ * `DataWprowadzenia`, który (nie będąc w zestawie CONSUMED mappera) trafia wprost do `raw_params`
+ * przy każdym imporcie - dlatego czytamy ją stąd, bez osobnej kolumny. To po tej dacie sortuje
+ * „Najnowsze" oficjalna strona Galactiki; nasze `updated_at` to tylko czas ostatniego sync-u
+ * (po pełnym imporcie identyczny dla wszystkich ofert), więc nie nadaje się na „najnowsze".
+ * Zwraca ISO, by dało się porównywać 1:1 z `updated_at`.
+ */
+export function pickSourceCreatedAt(
+  raw: Record<string, unknown> | null | undefined,
+): string | undefined {
+  if (!raw) return undefined;
+  const key = Object.keys(raw).find((k) =>
+    /^data(wprowadzenia|dodania|utworzenia)$/i.test(k),
+  );
+  const value = key ? raw[key] : undefined;
+  if (typeof value !== "string") return undefined;
+  const s = value.trim();
+  if (!s) return undefined;
+  const normalized = s.includes("T") ? s : s.replace(" ", "T");
+  const d = new Date(normalized);
+  return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
+}
+
+/**
  * Czyta efektywny link YouTube z kolumny `offers.youtube_url`. To jedyne źródło prawdy do
  * wyświetlania: import (reconciliacja w offer-sync) i ręczna edycja w panelu zapisują tu już
  * gotową wartość. Świadome wyczyszczenie (null/puste) oznacza „brak filmu" - dlatego NIE ma
@@ -556,6 +580,7 @@ export function mapOfferRow(row: OfferRow): Offer {
     youtubeUrl: resolveYoutubeUrl(row.youtube_url ?? null),
     hasShortVideo: Boolean(shortId),
     updatedAt: row.updated_at ?? undefined,
+    sourceCreatedAt: pickSourceCreatedAt(row.raw_params),
   };
 }
 
@@ -802,6 +827,21 @@ async function fetchOfferRow(
 /** Lista publiczna z krótkim filmem (homepage, tryb Video w /oferty).
  *  Zwracamy WYŁĄCZNIE oferty z Cloudflare streamId i realnymi mediami. Brak fallbacku na mocki -
  *  pusta lista jest poprawna i klient renderuje stan „brak ofert". */
+/**
+ * Kolejność „od najnowszych" = data dodania oferty w Galactice (sourceCreatedAt), tak jak na
+ * oficjalnej stronie. Fallback na updatedAt. Stosowana do domyślnej kolejności (hero na stronie
+ * głównej, wstępny render /oferty); na /oferty klient i tak może przesortować innym kluczem.
+ */
+function compareByNewest(a: Offer, b: Offer): number {
+  // Oferty Z realną datą dodania idą pierwsze (malejąco). Te BEZ niej (stare rekordy
+  // FTP/developerka bez DataWprowadzenia) lądują na końcu - NIE używamy dla nich updated_at
+  // (czas sync-u jest „dzisiejszy" i błędnie wypchnąłby je na samą górę „najnowszych").
+  const ka = a.sourceCreatedAt || "";
+  const kb = b.sourceCreatedAt || "";
+  if (ka !== kb) return kb.localeCompare(ka);
+  return (b.updatedAt || "").localeCompare(a.updatedAt || "");
+}
+
 export async function getAllOffers(): Promise<Offer[]> {
   try {
     const rows = await fetchPublicListingOfferRows();
@@ -810,7 +850,7 @@ export async function getAllOffers(): Promise<Offer[]> {
         const m = firstRel(row.offer_media);
         return Boolean(m?.cloudflare_video_short_id?.trim()) && hasUsableMedia(row);
       });
-      return dedupeOffersByRef(filtered.map(mapOfferRow));
+      return dedupeOffersByRef(filtered.map(mapOfferRow)).sort(compareByNewest);
     }
   } catch (e) {
     console.warn("[offers-query] getAllOffers:", e);
@@ -824,7 +864,7 @@ export async function getAllActiveOffers(): Promise<Offer[]> {
   try {
     const rows = await fetchAllActiveOfferRows();
     if (rows && rows.length > 0) {
-      return dedupeOffersByRef(rows.filter(hasUsableMedia).map(mapOfferRow));
+      return dedupeOffersByRef(rows.filter(hasUsableMedia).map(mapOfferRow)).sort(compareByNewest);
     }
   } catch (e) {
     console.warn("[offers-query] getAllActiveOffers:", e);

@@ -77,8 +77,13 @@ export interface Offer {
   youtubeUrl?: string;
   /** Flaga - true gdy oferta ma krótki, pionowy film (Cloudflare Stream). */
   hasShortVideo?: boolean;
-  /** Data ostatniej aktualizacji (ISO) - do sortowania w katalogu. */
+  /** Data ostatniej aktualizacji (ISO) - czas ostatniego sync-u z importu. */
   updatedAt?: string;
+  /**
+   * Data DODANIA oferty w Galactice/VIRGO (ISO, z `raw_params.DataWprowadzenia`).
+   * To po niej sortujemy „Najnowsze" - tak jak oficjalna strona Galactiki.
+   */
+  sourceCreatedAt?: string;
   /** Agent przypisany do oferty (z Galactiki / panelu). */
   agentName?: string;
   agentPhone?: string;

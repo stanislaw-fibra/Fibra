@@ -361,8 +361,17 @@ export function applyFilters(offers: Offer[], f: Filters): Offer[] {
     case "area-desc":
       sorted.sort((a, b) => ((b.areaUsableM2 || b.area) || -1) - ((a.areaUsableM2 || a.area) || -1));
       break;
-    default:
-      sorted.sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+    default: {
+      // „Najnowsze" = data dodania oferty w Galactice (sourceCreatedAt), tak jak na oficjalnej
+      // stronie. Oferty bez tej daty (stare rekordy FTP/developerka) idą na koniec - NIE na
+      // updatedAt (czas sync-u jest „dzisiejszy" i wypchnąłby je błędnie na górę).
+      sorted.sort((a, b) => {
+        const ka = a.sourceCreatedAt || "";
+        const kb = b.sourceCreatedAt || "";
+        if (ka !== kb) return kb.localeCompare(ka);
+        return (b.updatedAt || "").localeCompare(a.updatedAt || "");
+      });
+    }
   }
 
   return sorted;

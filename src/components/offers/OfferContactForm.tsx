@@ -7,6 +7,7 @@ import {
   firstNameInstrumental,
 } from "@/lib/polish-names";
 import { submitLead } from "@/lib/leads-client";
+import { EMAIL_ERROR_MESSAGE, isValidEmail } from "@/lib/email-validation";
 
 type Topic = "prezentacja" | "materialy" | "inne";
 
@@ -107,6 +108,11 @@ export function OfferContactForm({
               const name = String(fd.get("name") || "").trim();
               const phone = String(fd.get("phone") || "").trim();
               const email = String(fd.get("email") || "").trim();
+              if (email && !isValidEmail(email)) {
+                setError(EMAIL_ERROR_MESSAGE);
+                setSending(false);
+                return;
+              }
               const message = String(fd.get("message") || "").trim();
               const topicVal = String(fd.get("topic") || "").trim();
               const composed =

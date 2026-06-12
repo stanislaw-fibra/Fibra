@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { submitLead } from "@/lib/leads-client";
+import { EMAIL_ERROR_MESSAGE, isValidEmail } from "@/lib/email-validation";
 
 // GA4 / Meta Pixel - typujemy minimalnie, żeby nie wymagać deklaracji globalnych.
 type Gtag = (cmd: "event", name: string, params?: Record<string, unknown>) => void;
@@ -136,6 +137,11 @@ export function DlaFirmContactForm({
           const full_name = String(fd.get("name") || "").trim();
           const company = String(fd.get("company") || "").trim();
           const email = String(fd.get("email") || "").trim();
+          if (email && !isValidEmail(email)) {
+            setError(EMAIL_ERROR_MESSAGE);
+            setSending(false);
+            return;
+          }
           const phone = String(fd.get("phone") || "").trim();
           const details = String(fd.get("message") || "").trim();
 
