@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { getSupabaseAnon } from "@/lib/supabase/server-anon";
+import { sendEmail, OFFICE_INBOX } from "@/lib/email/resend";
+import {
+  leadClientConfirmation,
+  leadOfficeNotification,
+  type LeadEmailData,
+} from "@/lib/email/templates";
 
 export const runtime = "nodejs";
 
@@ -108,6 +114,54 @@ export async function POST(req: Request) {
 
   if (error) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+  }
+
+  // Wysyłka maili. Świadomie await (na serverless praca po response bywa ubijana),
+  // ale w try/catch + allSettled, żeby ŻADEN problem z mailem nie zepsuł zapisu leada
+  // ani nie zwrócił błędu użytkownikowi - lead jest już bezpiecznie w bazie.
+  const emailData: LeadEmailData = {
+    source: body.source,
+    full_name,
+    email,
+    phone,
+    message,
+    offer_id,
+    galactica_offer_id,
+    newsletter_consent,
+  };
+  try {
+    const jobs: Promise<unknown>[] = [];
+
+    // 1) Powiadomienie do biura - zawsze. Reply-To = e-mail klienta (jeśli jest),
+    //    żeby biuro mogło odpowiedzieć wprost do zgłaszającego.
+    const office = leadOfficeNotification(emailData);
+    jobs.push(
+      sendEmail({
+        to: OFFICE_INBOX,
+        subject: office.subject,
+        html: office.html,
+        text: office.text,
+        replyTo: email ?? undefined,
+      }),
+    );
+
+    // 2) Potwierdzenie do klienta - tylko gdy podał poprawny e-mail.
+    if (email && /.+@.+\..+/.test(email)) {
+      const confirm = leadClientConfirmation(emailData);
+      jobs.push(
+        sendEmail({
+          to: email,
+          subject: confirm.subject,
+          html: confirm.html,
+          text: confirm.text,
+        }),
+      );
+    }
+
+    await Promise.allSettled(jobs);
+  } catch (e) {
+    // Nie przerywamy - lead zapisany. Tylko log.
+    console.error("[leads] Błąd wysyłki maili (lead i tak zapisany):", e);
   }
 
   return NextResponse.json({ ok: true });

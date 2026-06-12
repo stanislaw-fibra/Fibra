@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
+import { sendEmail } from "@/lib/email/resend";
+import { courseAccessEmail } from "@/lib/email/templates";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -144,8 +146,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 
-  // TODO: wysyłka maila z dostępem (Resend / magic-link) - dopnę, gdy będzie
-  // skonfigurowany Resend (domena nadawcza + API key).
+  // Mail z dostępem do kursu. Dostęp jest już zapisany w course_access, więc nawet
+  // gdyby mail padł, kupujący może zalogować się swoim e-mailem zakupu. Dlatego błąd
+  // wysyłki tylko logujemy - nie zwracamy 500 (Imker ponawiałby webhook bez sensu).
+  try {
+    const mail = courseAccessEmail({ email, customer_name: fullName });
+    const res = await sendEmail({
+      to: email,
+      subject: mail.subject,
+      html: mail.html,
+      text: mail.text,
+    });
+    if (!res.ok && !res.skipped) {
+      console.error("[imker] Dostęp zapisany, ale mail nie poszedł:", res.error);
+    }
+  } catch (e) {
+    console.error("[imker] Wyjątek przy mailu z dostępem (dostęp i tak zapisany):", e);
+  }
 
   return NextResponse.json({ ok: true });
 }
