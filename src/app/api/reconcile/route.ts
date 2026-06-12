@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { reconcileFromCalosc } from "@/lib/importer/calosc-reconcile";
-import { getPanelRouteUser } from "@/lib/supabase/route-handler-auth";
+import { isCronOrAdminAuthorized } from "@/lib/importer/cron-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,21 +10,8 @@ export const maxDuration = 300;
 // początek przez FTP i wyłuskuje oferty.xml. Patrz src/lib/importer/calosc-reconcile.ts.
 // Dlatego jest lekki i mieści się spokojnie nawet w limicie Hobby (60 s).
 
-async function isAuthorized(req: Request): Promise<boolean> {
-  const secret = process.env.IMPORT_SECRET?.trim();
-  if (secret) {
-    const auth = req.headers.get("authorization")?.trim() || "";
-    const fromHeader = auth.startsWith("Bearer ") && auth.slice(7).trim() === secret;
-    const fromCronHeader = req.headers.get("x-import-secret")?.trim() === secret;
-    if (fromHeader || fromCronHeader) return true;
-  }
-  // Drugi wariant: zalogowany admin z panelu.
-  const user = await getPanelRouteUser();
-  return !!user;
-}
-
 async function handle(req: Request) {
-  if (!(await isAuthorized(req))) {
+  if (!(await isCronOrAdminAuthorized(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
