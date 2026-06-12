@@ -52,7 +52,9 @@ export interface MappedOffer {
   /** Link YouTube z Galactiki (klucze wideo/video/film/youtube). Null = Galactica go nie ma. */
   youtube_url: string | null;
   raw_params: Record<string, unknown>;
-  image_filenames: { order: number; filename: string }[];
+  // `fotoId` jest ustawiane tylko dla źródła VIRGO (pobieramy obraz przez GetImage2 po ID).
+  // Ścieżka FTP go nie ustawia - tam obraz bierzemy z puli plików w ZIP-ie po nazwie.
+  image_filenames: { order: number; filename: string; fotoId?: number }[];
 }
 
 // Mapowanie kategorii. "pokoje" traktujemy jako mieszkania (spec FIBRA_IMPORTER_CONTEXT sekcja 3).

@@ -112,11 +112,13 @@ export default async function PanelOfferEditPage({ params }: Props) {
     { data: images, error: imgErr },
     { data: media, error: mediaErr },
     { data: floorplans, error: fpErr },
+    { data: lastRun },
   ] = await Promise.all([
     admin.from("agents").select("id, name").order("name", { ascending: true }),
     admin.from("offer_images").select("id, image_url, order_index, is_primary").eq("offer_id", id).order("order_index", { ascending: true }),
     admin.from("offer_media").select("cloudflare_video_short_id, cloudflare_video_long_id").eq("offer_id", id).maybeSingle(),
     admin.from("offer_floorplans").select("id, kind, label, url, order_index").eq("offer_id", id).order("kind", { ascending: true }).order("order_index", { ascending: true }),
+    admin.from("import_runs").select("finished_at").not("finished_at", "is", null).order("finished_at", { ascending: false }).limit(1).maybeSingle(),
   ]);
 
   if (imgErr) {
@@ -162,6 +164,15 @@ export default async function PanelOfferEditPage({ params }: Props) {
   const displayTitle =
     row.title?.trim() || row.advertisement_text?.trim() || "Bez tytułu";
 
+  const lastSyncedAt = (lastRun as { finished_at: string | null } | null)?.finished_at ?? null;
+  const lastSyncLabel = lastSyncedAt
+    ? new Intl.DateTimeFormat("pl-PL", {
+        dateStyle: "long",
+        timeStyle: "short",
+        timeZone: "Europe/Warsaw",
+      }).format(new Date(lastSyncedAt))
+    : null;
+
   return (
     <div className="max-w-4xl">
       <Link href="/panel/oferty" className="text-[13px] text-ink-300 hover:text-white transition-colors">
@@ -169,6 +180,17 @@ export default async function PanelOfferEditPage({ params }: Props) {
       </Link>
 
       <PanelEditShell formId={FORM_ID} title={displayTitle} subtitle={row.galactica_offer_id}>
+        <div className="mb-8 rounded-[var(--radius-md)] border border-brand-300/30 bg-brand-300/[0.06] px-5 py-4">
+          <p className="text-[13px] font-semibold text-brand-200">Dane pochodzą z systemu VIRGO (Galactica)</p>
+          <p className="mt-1.5 text-[13px] text-ink-300 leading-relaxed">
+            Możesz tu edytować każde pole. Pamiętaj jednak, że pola, które prowadzi VIRGO (np. cena, opis,
+            parametry, przypisany agent), przy następnej automatycznej synchronizacji zostaną nadpisane wartością
+            z VIRGO. Pola własne Fibry (zdjęcia, filmy, rzuty, link YouTube, ogród/loggia itp.) są zachowywane.
+          </p>
+          {lastSyncLabel ? (
+            <p className="mt-2 text-[12px] text-ink-700">Ostatnia synchronizacja z VIRGO: {lastSyncLabel}</p>
+          ) : null}
+        </div>
         <section className="rounded-[var(--radius-md)] border border-white/10 bg-paper p-6 md:p-8 mb-10">
           <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-700 mb-6">Dane oferty</h2>
           <OfferFormFields

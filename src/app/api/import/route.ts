@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { runImport } from "@/lib/importer/run-import";
+import { runVirgoImport } from "@/lib/importer/virgo-run";
 import { isCronOrAdminAuthorized } from "@/lib/importer/cron-auth";
 
 export const runtime = "nodejs";
@@ -15,6 +16,28 @@ async function handle(req: Request) {
   try {
     const url = new URL(req.url);
     const skipImages = url.searchParams.get("skipImages") === "1";
+
+    // Nowe źródło: VIRGO API. FTP zostaje domyślne (?source pominięte) jako uśpiony fallback.
+    if (url.searchParams.get("source") === "virgo") {
+      // importType: "full" (GetOfferList - pełny snapshot) vs "diff" (GetOffers - przyrost; domyślne dla crona).
+      const importType =
+        url.searchParams.get("importType") === "full" ? "full" : "diff";
+      // Reconcile (wygaszanie brakujących) WYŁĄCZONE domyślnie - włączamy je osobnym, dziennym
+      // wywołaniem (?reconcile=1), żeby przyrostowy GetOffers nigdy nie wygasił bazy.
+      const reconcile = url.searchParams.get("reconcile") === "1";
+      const maxImagesRaw = url.searchParams.get("maxImagesPerRun");
+      const maxImagesPerRun = maxImagesRaw ? Number(maxImagesRaw) : undefined;
+      const summary = await runVirgoImport({
+        importType,
+        skipImages,
+        reconcile,
+        maxImagesPerRun: Number.isFinite(maxImagesPerRun) ? maxImagesPerRun : undefined,
+      });
+      const status =
+        summary.status === "failed" ? 500 : summary.status === "partial" ? 207 : 200;
+      return NextResponse.json(summary, { status });
+    }
+
     const force = url.searchParams.get("force") === "1";
     // Pełny eksport 'calosc' ma reconciliować bazę (wygasić oferty, których już nie ma).
     // Można wyłączyć przez ?reconcile=0 (np. gdy podejrzewamy uszkodzony plik).

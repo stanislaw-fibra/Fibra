@@ -7,6 +7,16 @@ export interface ImageInput {
   buffer: Buffer;
 }
 
+// Wariant "leniwy": bufor pobieramy dopiero, gdy zdjęcie jest NOWE (nie ma go jeszcze
+// w bazie). Dla VIRGO to kluczowe - każdy obraz ciągniemy osobnym GetImage2, a API ostro
+// limituje liczbę zapytań, więc nie wolno pobierać tego, co już mamy. `fetchBuffer` zwraca
+// null, gdy pobranie się nie uda (np. rate-limit) - takie zdjęcie pomijamy i wróci następnym razem.
+export interface LazyImageInput {
+  order: number;
+  filename: string;
+  fetchBuffer: () => Promise<Buffer | null>;
+}
+
 export interface ImageSyncResult {
   uploaded: number;
   deleted: number;
@@ -34,6 +44,25 @@ export async function syncOfferImages(
   offerId: string,
   galacticaOfferId: string,
   incoming: ImageInput[],
+): Promise<ImageSyncResult> {
+  // Ścieżka FTP ma bufory od ręki - opakowujemy je w fetchBuffer i lecimy tą samą logiką.
+  return syncOfferImagesLazy(
+    supabase,
+    offerId,
+    galacticaOfferId,
+    incoming.map((i) => ({
+      order: i.order,
+      filename: i.filename,
+      fetchBuffer: async () => i.buffer,
+    })),
+  );
+}
+
+export async function syncOfferImagesLazy(
+  supabase: SupabaseClient,
+  offerId: string,
+  galacticaOfferId: string,
+  incoming: LazyImageInput[],
 ): Promise<ImageSyncResult> {
   const { data: existing, error: selErr } = await supabase
     .from("offer_images")
@@ -94,8 +123,12 @@ export async function syncOfferImages(
       continue;
     }
 
+    // Nowe zdjęcie - dopiero TERAZ pobieramy bufor (FTP: z ZIP-a; VIRGO: GetImage2).
+    const buffer = await img.fetchBuffer();
+    if (!buffer) continue; // pobranie się nie udało (rate-limit / błąd) - pominie, wróci następnym razem
+
     const path = storagePath(galacticaOfferId, img.order, img.filename);
-    const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, img.buffer, {
+    const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, buffer, {
       contentType: "image/jpeg",
       upsert: true,
     });

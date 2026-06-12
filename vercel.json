@@ -1,11 +1,11 @@
 {
   "crons": [
     {
-      "path": "/api/import",
-      "schedule": "*/15 * * * *"
+      "path": "/api/import?source=virgo",
+      "schedule": "*/30 * * * *"
     },
     {
-      "path": "/api/reconcile?apply=1",
+      "path": "/api/import?source=virgo&importType=full&reconcile=1",
       "schedule": "0 5 * * *"
     }
   ]
