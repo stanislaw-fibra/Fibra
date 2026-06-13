@@ -55,6 +55,12 @@ export interface MappedOffer {
   // `fotoId` jest ustawiane tylko dla źródła VIRGO (pobieramy obraz przez GetImage2 po ID).
   // Ścieżka FTP go nie ustawia - tam obraz bierzemy z puli plików w ZIP-ie po nazwie.
   image_filenames: { order: number; filename: string; fotoId?: number }[];
+  /**
+   * Nazwy plików (po sanityzacji) zdjęć oznaczonych w Galactice jako `typ="Rzut"`.
+   * Te pliki są też w `image_filenames` (lądują w galerii), a dodatkowo po uploadzie
+   * dopinamy je jako rzut (`offer_floorplans`). FTP tego nie taguje → pusta lista.
+   */
+  floorplan_filenames: string[];
 }
 
 // Mapowanie kategorii. "pokoje" traktujemy jako mieszkania (spec FIBRA_IMPORTER_CONTEXT sekcja 3).
@@ -303,6 +309,7 @@ export function mapOffer(raw: RawOffer): MappedOffer {
     youtube_url: pickYoutubeUrl(raw_params) ?? null,
     raw_params,
     image_filenames,
+    floorplan_filenames: [],
   };
 }
 

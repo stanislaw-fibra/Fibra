@@ -150,3 +150,87 @@ export async function syncOfferImagesLazy(
 
   return { uploaded, deleted, kept };
 }
+
+// Etykieta wierszy rzutu, którymi ZARZĄDZA import. Reguła własności: importer dotyka
+// wyłącznie wierszy `label = RZUT_IMPORT_LABEL AND storage_path IS NULL`. Dzięki temu
+// NIE rusza rzutów dodanych ręcznie w panelu (te mają storage_path albo inną etykietę,
+// np. "Rzut z galerii"). Etykieta dla zdjęć-rzutów nie jest pokazywana w UI (galeria
+// rzutów renderuje same URL-e), więc to bezpieczny marker.
+const RZUT_IMPORT_LABEL = "Rzut";
+
+export interface FloorplanSyncResult {
+  added: number;
+  removed: number;
+}
+
+/**
+ * Dopina rzuty z Galactiki do `offer_floorplans`, wskazując zdjęcia już wgrane do
+ * `offer-images` (te same pliki są w galerii). Idempotentne i bezpieczne dla rzutów
+ * dodanych ręcznie - zarządza tylko swoimi wierszami (patrz RZUT_IMPORT_LABEL).
+ *
+ * `rzutFilenames` to nazwy plików po sanityzacji (zgodne z offer_images.source_filename).
+ * Zdjęcia jeszcze nie wgrane (rate-limit) po prostu nie mają wiersza - dopną się, gdy
+ * upload się powiedzie w kolejnym runie.
+ */
+export async function syncOfferFloorplansFromGallery(
+  supabase: SupabaseClient,
+  offerId: string,
+  rzutFilenames: string[],
+): Promise<FloorplanSyncResult> {
+  // Wiersze rzutu, którymi zarządza import.
+  const { data: existing, error: exErr } = await supabase
+    .from("offer_floorplans")
+    .select("id, url")
+    .eq("offer_id", offerId)
+    .eq("label", RZUT_IMPORT_LABEL)
+    .is("storage_path", null);
+  if (exErr) throw exErr;
+
+  // Wgrane już zdjęcia-rzuty (po source_filename). Gdy lista pusta - i tak chcemy
+  // posprzątać ewentualne stare wiersze importu (rzut zniknął z Galactiki).
+  const uploaded =
+    rzutFilenames.length > 0
+      ? (
+          await supabase
+            .from("offer_images")
+            .select("image_url, source_filename, order_index")
+            .eq("offer_id", offerId)
+            .in("source_filename", rzutFilenames)
+        ).data ?? []
+      : [];
+
+  const desired = uploaded
+    .filter((i) => i.image_url)
+    .map((i, idx) => ({ url: i.image_url as string, order_index: i.order_index ?? idx }));
+  const desiredUrls = new Set(desired.map((d) => d.url));
+  const existingUrls = new Set((existing ?? []).map((e) => e.url));
+
+  // Usuń wiersze importu, których URL-a już nie ma wśród rzutów (rzut usunięty w Galactice).
+  const toDelete = (existing ?? []).filter((e) => !desiredUrls.has(e.url)).map((e) => e.id);
+  let removed = 0;
+  if (toDelete.length > 0) {
+    const { error } = await supabase.from("offer_floorplans").delete().in("id", toDelete);
+    if (error) throw error;
+    removed = toDelete.length;
+  }
+
+  // Dopisz brakujące (po URL-u, żeby nie dublować).
+  const toInsert = desired
+    .filter((d) => !existingUrls.has(d.url))
+    .map((d) => ({
+      offer_id: offerId,
+      kind: "image",
+      label: RZUT_IMPORT_LABEL,
+      url: d.url,
+      storage_path: null,
+      order_index: d.order_index,
+    }));
+  let added = 0;
+  if (toInsert.length > 0) {
+    const { error } = await supabase.from("offer_floorplans").insert(toInsert);
+    if (error) throw error;
+    added = toInsert.length;
+  }
+
+  return { added, removed };
+}

@@ -51,6 +51,27 @@ function field(node: VirgoOfferNode, name: string): string | null {
   return attr(node, name) ?? childText(node, name);
 }
 
+// Link wirtualnego spaceru. UWAGA: w feedzie VIRGO `WirtualnaWizytaLink` to NIE jest
+// pole tekstowe, tylko KONTENER z dzieckiem <Url>:
+//   <WirtualnaWizytaLink><Url>https://spacer3d...</Url></WirtualnaWizytaLink>
+// Bywa też pojedynczym <Url> (string) albo kilkoma (array) - bierzemy pierwszy niepusty.
+// Dla bezpieczeństwa obsługujemy też wariant, gdy całość przyszłaby jako goły string.
+function virtualTourUrl(node: VirgoOfferNode): string | null {
+  const v = node["WirtualnaWizytaLink"];
+  if (v === undefined || v === null) return null;
+  if (typeof v === "string") return toText(v);
+  if (typeof v === "object") {
+    const o = v as Record<string, unknown>;
+    const url = o["Url"] ?? o["url"] ?? o["#text"];
+    if (Array.isArray(url)) {
+      return url.map((u) => str(u).trim()).find((s) => s.length > 0) ?? null;
+    }
+    const s = str(url).trim();
+    return s || null;
+  }
+  return null;
+}
+
 const toFloat = (v: string | null): number | null => {
   if (v === null) return null;
   const s = v.trim().replace(/\s+/g, "").replace(",", ".");
@@ -210,6 +231,7 @@ export function mapVirgoOffer(
 
   // Zdjęcia + YouTube z <Zdjecia><Foto>
   const image_filenames: MappedOffer["image_filenames"] = [];
+  const floorplan_filenames: string[] = [];
   let youtubeFromFilmy: string | null = null;
   const zdjecia = node.Zdjecia as Record<string, unknown> | undefined;
   const fotos = (zdjecia?.Foto as Record<string, unknown>[] | undefined) ?? [];
@@ -222,14 +244,19 @@ export function mapVirgoOffer(
       youtubeFromFilmy = youtubeFromFilmy ?? toText(childText(f, "LinkFilmYouTube"));
       continue;
     }
-    // Domyślnie traktujemy jako zdjęcie (typ "Zdjecie"); pomijamy tylko Filmy/Dokumenty.
-    if (typ && typ !== "zdjecie") continue;
+    // Bierzemy zdjęcia (typ "Zdjecie") ORAZ rzuty (typ "Rzut"). Galactica taguje rzuty
+    // osobno - wcześniej je gubiliśmy. Rzut ląduje w galerii (jak zdjęcie) i dodatkowo
+    // trafia do floorplan_filenames, żeby downstream dopiął go jako rzut (offer_floorplans).
+    const isRzut = typ === "rzut";
+    if (typ && typ !== "zdjecie" && !isRzut) continue; // pomijamy tylko Dokumenty/inne
     if (!plik || fotoId === null) continue;
+    const filename = sanitizeFilename(plik);
     image_filenames.push({
       order: lp ?? image_filenames.length + 1,
-      filename: sanitizeFilename(plik),
+      filename,
       fotoId,
     });
+    if (isRzut) floorplan_filenames.push(filename);
   }
   image_filenames.sort((a, b) => a.order - b.order);
 
@@ -300,7 +327,7 @@ export function mapVirgoOffer(
     is_primary_market: toBool(attr(node, "Pierwotny")),
     is_exclusive: field(node, "WylacznoscOd") ? true : null,
     is_without_commission: toBool(field(node, "ZeroProwizji")),
-    virtual_tour_url: toText(field(node, "WirtualnaWizytaLink")),
+    virtual_tour_url: virtualTourUrl(node),
     source_updated_at:
       toTimestamp(field(node, "DataAktualizacji")) ??
       toTimestamp(field(node, "DataModyfikacjiListing")) ??
@@ -312,5 +339,6 @@ export function mapVirgoOffer(
     youtube_url: youtubeFromFilmy ?? pickYoutubeUrl(raw_params) ?? null,
     raw_params,
     image_filenames,
+    floorplan_filenames,
   };
 }

@@ -13,7 +13,11 @@ import { parseVirgoXml } from "./virgo-parser";
 import { mapVirgoOffer } from "./virgo-mapper";
 import { upsertAgent } from "./agent-sync";
 import { deactivateMissingFromFullExport, deactivateOffer, upsertOffer } from "./offer-sync";
-import { syncOfferImagesLazy, type LazyImageInput } from "./image-uploader";
+import {
+  syncOfferImagesLazy,
+  syncOfferFloorplansFromGallery,
+  type LazyImageInput,
+} from "./image-uploader";
 import type { ImportSummary, SourceBranch } from "./run-import";
 
 // Orkiestrator importu z VIRGO API. Świadomie ODDZIELNY od runImport (FTP): tam źródłem jest
@@ -70,6 +74,7 @@ export async function runVirgoImport(opts: VirgoRunOptions = {}): Promise<Import
     agents_created: 0,
     images_imported: 0,
     images_deleted: 0,
+    floorplans_imported: 0,
     errors: [],
     duration_ms: 0,
   };
@@ -141,6 +146,8 @@ export async function runVirgoImport(opts: VirgoRunOptions = {}): Promise<Import
     if (opts.dryRun) {
       summary.offers_updated++; // w dry-run nie rozróżniamy create/update - liczymy ogólnie
       summary.images_imported += mapped.image_filenames.length;
+      summary.floorplans_imported =
+        (summary.floorplans_imported ?? 0) + mapped.floorplan_filenames.length;
       continue;
     }
 
@@ -199,6 +206,25 @@ export async function runVirgoImport(opts: VirgoRunOptions = {}): Promise<Import
           summary.errors.push({
             offer_id: mapped.galactica_offer_id,
             step: "images",
+            message: errMsg(e),
+          });
+        }
+      }
+
+      // 4d. Rzuty - dopina zdjęcia oznaczone w Galactice jako "Rzut" (już w galerii)
+      //     do offer_floorplans. Bezpieczne dla rzutów dodanych ręcznie w panelu.
+      if (needImages && offerResult.offerId && mapped.floorplan_filenames.length > 0) {
+        try {
+          const fp = await syncOfferFloorplansFromGallery(
+            supabase,
+            offerResult.offerId,
+            mapped.floorplan_filenames,
+          );
+          summary.floorplans_imported = (summary.floorplans_imported ?? 0) + fp.added;
+        } catch (e) {
+          summary.errors.push({
+            offer_id: mapped.galactica_offer_id,
+            step: "floorplans",
             message: errMsg(e),
           });
         }
@@ -328,6 +354,7 @@ function buildLog(s: ImportSummary): string {
   );
   lines.push(`agents created: ${s.agents_created}`);
   lines.push(`images: +${s.images_imported} / -${s.images_deleted}`);
+  if (s.floorplans_imported) lines.push(`rzuty (offer_floorplans): +${s.floorplans_imported}`);
   if (s.reconcileNote) lines.push(s.reconcileNote);
   lines.push(`duration: ${s.duration_ms} ms`);
   if (s.errors.length > 0) {

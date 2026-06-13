@@ -27,6 +27,8 @@ export interface ImportSummary {
   agents_created: number;
   images_imported: number;
   images_deleted: number;
+  // Rzuty (offer_floorplans) dopięte z Galactiki w tym runie. Opcjonalne - tylko VIRGO.
+  floorplans_imported?: number;
   errors: Array<{ offer_id?: string; step: string; message: string }>;
   duration_ms: number;
   message?: string;
