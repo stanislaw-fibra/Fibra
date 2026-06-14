@@ -134,8 +134,9 @@ export default async function OfferPage({
                         <OfferMiniGallery images={gallery} label="Zdjęcia oferty" />
                       </div>
                     )}
-                    {/* Pod galerią (lub od razu pod filmem na desktopie) - zwarte „klocki" z głównymi parametrami. */}
-                    <SpecStrip offer={offer} className="mt-5" />
+                    {/* Główne liczby (cena · powierzchnia · pokoje) NIE są tu powtarzane -
+                        żyją na przyklejonym dolnym pasku, a pełny komplet parametrów jest
+                        niżej w sekcji OfferDetailParams. Dedup zgłoszony przez Romana. */}
                   </div>
                 ) : (
                   <OfferHeroMedia
@@ -527,6 +528,10 @@ export default async function OfferPage({
       </GalleryLightboxProvider>
       <OfferStickyCta
         priceFrom={offer.priceFrom}
+        priceLabel={offer.priceLabel}
+        area={offer.area}
+        rooms={offer.rooms}
+        kind={offer.kind}
         title={offer.title}
         refNumber={offer.refNumber}
         agentName={offer.agentName}
@@ -547,45 +552,3 @@ function SpecCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-/**
- * Zwarty „strip" z głównymi parametrami pod hero filmem.
- * Pokazuje 4–6 najważniejszych pozycji w jednej, niedużej karcie z linią siatki - żeby parametry
- * nie konkurowały wizualnie z galerią w prawej kolumnie, a zarazem były widoczne razem z filmem.
- */
-function SpecStrip({ offer, className = "" }: { offer: Offer; className?: string }) {
-  const items: { label: string; value: string }[] = [];
-  items.push({
-    label: offer.kind === "grunt" ? "Pow. działki" : "Pow. użytkowa",
-    value: `${offer.area} m²`,
-  });
-  if (offer.rooms != null) items.push({ label: "Pokoje", value: String(offer.rooms) });
-  items.push({ label: offer.priceLabel ?? "Cena", value: priceFormat(offer.priceFrom) });
-  if (offer.pietro) items.push({ label: "Piętro", value: offer.pietro });
-  if (offer.rokBudowy != null) items.push({ label: "Rok budowy", value: String(offer.rokBudowy) });
-  if (offer.miejscParkingowych != null)
-    items.push({ label: "Parking", value: String(offer.miejscParkingowych) });
-  if (offer.powDzialkiM2 != null && offer.kind !== "grunt")
-    items.push({ label: "Działka", value: `${offer.powDzialkiM2.toLocaleString("pl-PL")} m²` });
-  if (offer.energetyka) items.push({ label: "Energetyka", value: offer.energetyka });
-
-  if (items.length === 0) return null;
-
-  return (
-    <div
-      className={[
-        "rounded-[var(--radius-md)] border border-ink-200/70 bg-paper",
-        "grid grid-cols-2 sm:grid-cols-3 divide-x divide-y divide-ink-200/60 overflow-hidden",
-        className,
-      ].join(" ")}
-    >
-      {items.slice(0, 6).map((it) => (
-        <div key={`${it.label}-${it.value}`} className="px-3 py-2.5 sm:py-3 -ml-px -mt-px">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-700">{it.label}</p>
-          <p className="mt-0.5 font-display text-[14px] sm:text-[15px] md:text-[16px] text-ink-950 leading-tight">
-            {it.value}
-          </p>
-        </div>
-      ))}
-    </div>
-  );
-}
