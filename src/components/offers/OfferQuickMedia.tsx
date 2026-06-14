@@ -436,57 +436,47 @@ export function OfferQuickMedia({
     return null;
   }
 
-  const buttonGridClass =
-    [hasTour, hasFloor, hasYoutube].filter(Boolean).length >= 3
-      ? "mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3"
-      : "mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2";
+  // Zwarte mini-kafelki (film · rzut · spacer) - miniatura + krótka etykieta na dole.
+  // Zamiast dużych, pełnoszerokich przycisków: rząd małych kafli, więcej mieści się
+  // w pierwszym widoku, a całość zostaje clean (uwaga Romana o kompaktacji).
+  const mediaCount = [hasTour, hasFloor, hasYoutube].filter(Boolean).length;
+  const rzutThumb = floorImages[0];
+
+  const tileBase =
+    "group relative aspect-[4/3] overflow-hidden rounded-[var(--radius-md)] border border-ink-200/80 bg-ink-100 text-left shadow-[var(--shadow-soft)] transition-all hover:border-brand-400 hover:shadow-md active:scale-[0.99]";
+  const tileScrim =
+    "pointer-events-none absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent";
+  const tileFoot = "absolute inset-x-0 bottom-0 flex items-center gap-1.5 p-2";
+  const tileText =
+    "text-[12px] font-medium leading-tight text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)]";
+  const playBadge =
+    "relative z-[1] inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20 text-white ring-1 ring-white/30 backdrop-blur-[2px]";
 
   return (
     <>
-      <div className={buttonGridClass}>
+      <div
+        className="mb-6 grid gap-2.5"
+        style={{ gridTemplateColumns: `repeat(${mediaCount}, minmax(0, 1fr))` }}
+      >
         {hasTour ? (
-          <button
-            type="button"
-            onClick={() => setOpen("tour")}
-            className="group flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-ink-200/90 bg-paper px-4 py-3.5 text-left shadow-[var(--shadow-soft)] transition-all hover:border-brand-400 hover:shadow-md active:scale-[0.99]"
-          >
-            <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-500">Spacer 3D</span>
-              <span className="truncate text-[15px] font-medium text-ink-900">Otwórz wirtualny spacer</span>
-            </span>
+          <button type="button" onClick={() => setOpen("tour")} className={tileBase} aria-label="Otwórz wirtualny spacer 3D">
             {matterportThumb ? (
-              <span
-                className="relative inline-flex h-12 w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-sm)] bg-ink-100 ring-1 ring-ink-200 transition-colors group-hover:ring-brand-300 sm:h-12 sm:w-24 md:h-14 md:w-28"
-                aria-hidden
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={matterportThumb}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover"
-                  loading="lazy"
-                  draggable={false}
-                />
-                <span className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
-                <span className="relative z-[1] inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-[2px] ring-1 ring-white/30">
-                  <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor" aria-hidden className="translate-x-[0.5px] drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
-                    <path d="M2.5 1.5l7 4-7 4v-8z" />
-                  </svg>
-                </span>
-              </span>
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={matterportThumb} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" draggable={false} />
             ) : (
-              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink-950 text-white transition-colors group-hover:bg-brand-500">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                  <path
-                    d="M8 2.5L13.5 5.75v4.5L8 13.5 2.5 10.25v-4.5L8 2.5z"
-                    stroke="currentColor"
-                    strokeWidth="1.3"
-                    strokeLinejoin="round"
-                  />
-                  <path d="M8 2.5v11M8 8l5.5-2.25M8 8L2.5 5.75M8 8l5.5 2.25M8 8L2.5 10.25" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" opacity="0.7" />
+              <span className="absolute inset-0 flex items-center justify-center bg-ink-950 text-white">
+                <svg width="20" height="20" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path d="M8 2.5L13.5 5.75v4.5L8 13.5 2.5 10.25v-4.5L8 2.5z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
                 </svg>
               </span>
             )}
+            <span className={tileScrim} />
+            <span className={tileFoot}>
+              <span className={playBadge}>
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor" aria-hidden className="translate-x-[0.5px]"><path d="M2.5 1.5l7 4-7 4v-8z" /></svg>
+              </span>
+              <span className={tileText}>Spacer 3D</span>
+            </span>
           </button>
         ) : null}
         {hasFloor ? (
@@ -503,68 +493,48 @@ export function OfferQuickMedia({
               }
               setOpen("floor");
             }}
-            className="group flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-ink-200/90 bg-paper px-4 py-3.5 text-left shadow-[var(--shadow-soft)] transition-all hover:border-brand-400 hover:shadow-md active:scale-[0.99]"
+            className={tileBase}
+            aria-label="Zobacz rzut / układ pomieszczeń"
           >
-            <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-500">Rzut 3D</span>
-              <span className="truncate text-[15px] font-medium text-ink-900">
-                {hasFloorPdf && !hasFloorImage ? "Otwórz rzut PDF" : "Zobacz układ pomieszczeń"}
+            {rzutThumb ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={rzutThumb} alt="" className="absolute inset-0 h-full w-full bg-white object-contain p-1" loading="lazy" draggable={false} referrerPolicy="no-referrer" />
+            ) : (
+              <span className="absolute inset-0 flex items-center justify-center bg-paper-warm text-ink-700">
+                <svg width="22" height="22" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <rect x="2.5" y="3.5" width="11" height="9" rx="1.2" stroke="currentColor" strokeWidth="1.25" />
+                  <path d="M2.5 6.5h11M6 3.5v10" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+                </svg>
               </span>
-            </span>
-            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-ink-200 bg-paper-warm text-ink-900 transition-colors group-hover:border-brand-400 group-hover:bg-brand-50">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                <rect x="2.5" y="3.5" width="11" height="9" rx="1.2" stroke="currentColor" strokeWidth="1.25" />
-                <path d="M2.5 6.5h11M6 3.5v10" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-              </svg>
+            )}
+            <span className={tileScrim} />
+            <span className={tileFoot}>
+              <span className="relative z-[1] inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/90 text-ink-900 ring-1 ring-black/5">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <rect x="2.5" y="3.5" width="11" height="9" rx="1.2" stroke="currentColor" strokeWidth="1.3" />
+                  <path d="M2.5 6.5h11M6 3.5v10" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+                </svg>
+              </span>
+              <span className={tileText}>{hasFloorPdf && !hasFloorImage ? "Rzut PDF" : "Rzut"}</span>
             </span>
           </button>
         ) : null}
         {hasYoutube ? (
-          <button
-            type="button"
-            onClick={() => setOpen("youtube")}
-            className="group flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-ink-200/90 bg-paper px-3.5 py-3 sm:px-4 sm:py-3.5 text-left shadow-[var(--shadow-soft)] transition-all hover:border-brand-400 hover:shadow-md active:scale-[0.99]"
-          >
-            <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-500">Film</span>
-              <span className="truncate text-[15px] font-medium text-ink-900">{youtubeButtonLabel}</span>
-            </span>
-            <span
-              className={[
-                // Prostokątna miniatura na każdym viewporcie - żeby było faktycznie widać kadr filmu (zarówno
-                // na mobile jak i desktop). Powiększona względem poprzedniej wersji, ale wciąż czytelna obok tekstu.
-                "relative inline-flex h-12 w-[72px] sm:h-12 sm:w-24 md:h-14 md:w-28 shrink-0 items-center justify-center overflow-hidden",
-                "rounded-[var(--radius-sm)]",
-                youtubeThumb ? "ring-1 ring-ink-200 bg-ink-100" : "bg-ink-950 text-white",
-                "transition-colors group-hover:ring-brand-300 group-hover:bg-[#FF0033]",
-              ].join(" ")}
-              aria-hidden
-            >
-              {youtubeThumb ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={youtubeThumb}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover"
-                  loading="lazy"
-                  draggable={false}
-                />
-              ) : null}
-              <span className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
-              <span className="relative z-[1] inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/15 backdrop-blur-[2px] ring-1 ring-white/30">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className={[
-                    "translate-x-[0.5px]",
-                    youtubeThumb ? "text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]" : "text-white",
-                  ].join(" ")}
-                >
-                  <path d="M8 5v14l11-7z" />
-                </svg>
+          <button type="button" onClick={() => setOpen("youtube")} className={tileBase} aria-label={youtubeButtonLabel}>
+            {youtubeThumb ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={youtubeThumb} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" draggable={false} />
+            ) : (
+              <span className="absolute inset-0 flex items-center justify-center bg-ink-950 text-white">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M8 5v14l11-7z" /></svg>
               </span>
+            )}
+            <span className={tileScrim} />
+            <span className={tileFoot}>
+              <span className={playBadge}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden className="translate-x-[0.5px]"><path d="M8 5v14l11-7z" /></svg>
+              </span>
+              <span className={tileText}>Film</span>
             </span>
           </button>
         ) : null}

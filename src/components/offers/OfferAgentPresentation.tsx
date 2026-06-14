@@ -184,10 +184,10 @@ export function OfferAgentPresentation({ videoId, photoUrl, name, variant = "ava
           type="button"
           onClick={() => setOpen(true)}
           aria-label={name ? `Odtwórz autoprezentację: ${name}` : "Odtwórz autoprezentację agenta"}
-          className="group flex w-full items-center gap-4 overflow-hidden rounded-[var(--radius-lg)] border border-ink-200/70 bg-paper p-3 text-left shadow-[var(--shadow-soft)] transition-all duration-300 hover:border-brand-300 hover:shadow-[0_18px_48px_-24px_rgba(11,15,20,0.4)] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+          className="group flex w-full items-center gap-3 overflow-hidden rounded-[var(--radius-lg)] border border-ink-200/70 bg-paper p-2 pr-3 text-left shadow-[var(--shadow-soft)] transition-all duration-300 hover:border-brand-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
         >
-          {/* Miniatura z plakatem wideo + Play. */}
-          <span className="relative block h-[68px] w-[68px] shrink-0 overflow-hidden rounded-[var(--radius-md)] bg-ink-900">
+          {/* Kompaktowa miniatura z plakatem wideo + Play. */}
+          <span className="relative block h-[48px] w-[48px] shrink-0 overflow-hidden rounded-[var(--radius-md)] bg-ink-900">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={posterUrl ?? photoUrl ?? undefined}
@@ -197,24 +197,24 @@ export function OfferAgentPresentation({ videoId, photoUrl, name, variant = "ava
             />
             <span className="absolute inset-0 bg-ink-950/20" />
             <span className="absolute inset-0 flex items-center justify-center">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-ink-950 shadow-[0_6px_18px_-6px_rgba(0,0,0,0.55)] transition-transform duration-300 group-hover:scale-110">
-                <svg width="13" height="13" viewBox="0 0 11 11" fill="currentColor" aria-hidden>
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-ink-950 shadow-[0_6px_18px_-6px_rgba(0,0,0,0.55)] transition-transform duration-300 group-hover:scale-110">
+                <svg width="12" height="12" viewBox="0 0 11 11" fill="currentColor" aria-hidden>
                   <path d="M2.5 1.5l7 4-7 4v-8z" />
                 </svg>
               </span>
             </span>
           </span>
-          {/* Tekst zachęty. */}
+          {/* Tekst zachęty - jeden wiersz, zwarcie. */}
           <span className="min-w-0 flex-1">
             <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-600">
               Autoprezentacja{name ? ` · ${name}` : ""}
             </span>
-            <span className="mt-1 block text-[13.5px] leading-snug text-ink-800">
-              Jeżeli zadzwonisz, porozmawiasz ze mną. Zobacz, kim jestem.
+            <span className="mt-0.5 block truncate text-[13px] leading-snug text-ink-600">
+              Zobacz, kim jestem - krótki film agenta.
             </span>
           </span>
-          <span className="ml-1 hidden shrink-0 items-center gap-1.5 self-center text-[12.5px] font-medium text-brand-600 sm:inline-flex">
-            Zobacz wideo
+          <span className="ml-1 inline-flex shrink-0 items-center gap-1.5 self-center text-[12.5px] font-medium text-brand-600">
+            <span className="hidden sm:inline">Zobacz</span>
             <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden>
               <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
