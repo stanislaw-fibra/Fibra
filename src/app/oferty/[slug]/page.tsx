@@ -19,6 +19,7 @@ import { OfferMatterport } from "@/components/offers/OfferMatterport";
 import { OfferYouTube } from "@/components/offers/OfferYouTube";
 import { OfferListingHighlight } from "@/components/offers/OfferListingHighlight";
 import { OfferQuickMedia } from "@/components/offers/OfferQuickMedia";
+import { OfferCollapsible } from "@/components/offers/OfferCollapsible";
 import { GalleryLightboxProvider } from "@/components/offers/GalleryLightbox";
 import { OfferMiniGallery } from "@/components/offers/OfferMiniGallery";
 import { OfferStreamHeroShell } from "@/components/offers/OfferStreamHeroShell";
@@ -157,7 +158,7 @@ export default async function OfferPage({
                       kindLabel={offer.kindLabel}
                     />
                   </div>
-                  <div className="flex flex-wrap items-center gap-3 mb-5">
+                  <div className="flex flex-wrap items-center gap-3 mb-3">
                     <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-ink-700">
                       {offer.city}
                       {offer.district ? ` · ${offer.district}` : ""}
@@ -184,7 +185,34 @@ export default async function OfferPage({
                   )}
                 </Reveal>
 
-                <Reveal delay={80} className="mt-8">
+                {/* Premium pasek ceny + kluczowych faktów (desktop) - od razu czytelna cena
+                    i najważniejsze liczby przy tytule. Na mobile te dane są na dolnym pasku,
+                    a hero jest wysoki - więc tu pokazujemy je tylko od lg w górę. */}
+                <Reveal delay={60} className="mt-6 hidden lg:block">
+                  <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-y border-ink-200/70 py-5">
+                    <div>
+                      <span className="block text-[11px] font-medium uppercase tracking-[0.16em] text-ink-500">
+                        {offer.priceLabel ?? "Cena"}
+                      </span>
+                      <span className="mt-1 block font-display text-[clamp(1.9rem,2.6vw,2.5rem)] leading-none text-ink-950">
+                        {priceFormat(offer.priceFrom)}
+                      </span>
+                    </div>
+                    <dl className="flex flex-wrap items-end gap-x-7 gap-y-3">
+                      <Fact
+                        label={offer.kind === "grunt" ? "Pow. działki" : "Powierzchnia"}
+                        value={`${offer.area} m²`}
+                      />
+                      {offer.rooms != null && <Fact label="Pokoje" value={String(offer.rooms)} />}
+                      {offer.pietro && <Fact label="Piętro" value={offer.pietro} />}
+                      {offer.rokBudowy != null && (
+                        <Fact label="Rok budowy" value={String(offer.rokBudowy)} />
+                      )}
+                    </dl>
+                  </div>
+                </Reveal>
+
+                <Reveal delay={80} className="mt-6">
                   <OfferQuickMedia
                     offerTitle={offer.title}
                     offerKind={offer.kind}
@@ -215,11 +243,11 @@ export default async function OfferPage({
                 {/* Galeria w prawej kolumnie - tylko desktop (lg+). Na mobile/tablet
                     galeria jest już renderowana zaraz pod filmem (lewa „kolumna"). */}
                 {heroStreamId && gallery.length > 0 ? (
-                  <Reveal delay={100} className="mt-10 hidden lg:block">
+                  <Reveal delay={100} className="mt-7 hidden lg:block">
                     <OfferMiniGallery images={gallery} label="Zdjęcia oferty" />
                   </Reveal>
                 ) : (
-                  <Reveal delay={100} className="mt-10 grid grid-cols-2 sm:grid-cols-3 gap-2.5 md:gap-3">
+                  <Reveal delay={100} className="mt-7 grid grid-cols-2 sm:grid-cols-3 gap-2.5 md:gap-3">
                     <SpecCard
                       label={offer.kind === "grunt" ? "Powierzchnia działki" : "Powierzchnia użytkowa"}
                       value={`${offer.area} m²`}
@@ -239,15 +267,21 @@ export default async function OfferPage({
                 )}
 
                 {fullDesc ? (
-                  <Reveal delay={180} className="mt-10 max-w-3xl">
+                  <Reveal delay={180} className="mt-8 max-w-3xl">
                     <p className="eyebrow flex items-center gap-3 mb-4">
                       <span className="inline-block w-8 h-px bg-brand-500" />
                       Opis
                     </p>
-                    <OfferDescription text={fullDesc} />
+                    {fullDesc.length > 520 ? (
+                      <OfferCollapsible collapsedHeight={240} moreLabel="Rozwiń opis" lessLabel="Zwiń opis">
+                        <OfferDescription text={fullDesc} />
+                      </OfferCollapsible>
+                    ) : (
+                      <OfferDescription text={fullDesc} />
+                    )}
                   </Reveal>
                 ) : (
-                  <Reveal delay={180} className="mt-10 max-w-3xl space-y-5">
+                  <Reveal delay={180} className="mt-8 max-w-3xl space-y-5">
                     {(offer.body?.length ? offer.body : [offer.excerpt]).map((p, i) => (
                       <p key={i} className="text-[16px] md:text-[17px] leading-[1.7] text-ink-700">
                         {p}
@@ -256,7 +290,7 @@ export default async function OfferPage({
                   </Reveal>
                 )}
 
-                <Reveal delay={260} className="mt-10">
+                <Reveal delay={260} className="mt-8">
                   <a
                     href="#kontakt"
                     className="inline-flex items-center gap-2 rounded-full bg-ink-950 hover:bg-brand-500 text-white px-7 py-3.5 text-[14px] font-medium transition-colors"
@@ -540,6 +574,16 @@ export default async function OfferPage({
       />
       <Footer />
     </>
+  );
+}
+
+/** Pojedynczy fakt w premium pasku ceny (etykieta nad wartością, display font). */
+function Fact({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-[10px] font-medium uppercase tracking-[0.14em] text-ink-500">{label}</dt>
+      <dd className="mt-0.5 font-display text-[18px] leading-tight text-ink-950">{value}</dd>
+    </div>
   );
 }
 
