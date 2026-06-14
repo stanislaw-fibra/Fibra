@@ -173,6 +173,11 @@ export function OfferVideo({
         <video
           ref={videoRef}
           className={`absolute inset-0 h-full w-full ${fitClass}`}
+          // Natywny poster = ta sama miniatura co warstwa pod spodem. Gdy wideo jest
+          // już ujawnione, ale przeglądarka nie namalowała pierwszej klatki, pokazuje
+          // poster zamiast czarnego prostokąta (hero oferty „gubił" zdjęcie startowe
+          // na mobile - ten sam objaw co na kartach strony głównej).
+          poster={posterLayerUrl || undefined}
           muted={muted}
           loop
           playsInline

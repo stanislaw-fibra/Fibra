@@ -92,8 +92,8 @@ export function OfferMiniGallery({
               alt=""
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-              sizes="(max-width: 640px) 50vw, 260px"
-              quality={70}
+              sizes="(max-width: 640px) 60vw, 460px"
+              quality={82}
             />
             <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <span className="pointer-events-none absolute bottom-2.5 left-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-ink-900 shadow-sm">
@@ -127,8 +127,8 @@ export function OfferMiniGallery({
                 alt=""
                 fill
                 className="object-cover transition-transform duration-400 group-hover:scale-[1.06]"
-                sizes="140px"
-                quality={60}
+                sizes="(max-width: 640px) 30vw, 220px"
+                quality={80}
               />
               {isLast && (
                 <span className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 bg-ink-950/72 text-white backdrop-blur-[2px]">
