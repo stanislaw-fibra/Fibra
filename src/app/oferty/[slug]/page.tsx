@@ -241,28 +241,13 @@ export default async function OfferPage({
                 )}
 
                 {/* Galeria w prawej kolumnie - tylko desktop (lg+). Na mobile/tablet
-                    galeria jest już renderowana zaraz pod filmem (lewa „kolumna"). */}
-                {heroStreamId && gallery.length > 0 ? (
+                    galeria jest już renderowana zaraz pod filmem (lewa „kolumna").
+                    Kluczowe liczby NIE są tu powielane kafelkami (uwaga Romana: "trzy razy
+                    te same dane") - cena/powierzchnia są w premium pasku przy tytule i na
+                    dolnym pasku; pełny komplet parametrów jest niżej w OfferDetailParams. */}
+                {heroStreamId && gallery.length > 0 && (
                   <Reveal delay={100} className="mt-7 hidden lg:block">
                     <OfferMiniGallery images={gallery} label="Zdjęcia oferty" />
-                  </Reveal>
-                ) : (
-                  <Reveal delay={100} className="mt-7 grid grid-cols-2 sm:grid-cols-3 gap-2.5 md:gap-3">
-                    <SpecCard
-                      label={offer.kind === "grunt" ? "Powierzchnia działki" : "Powierzchnia użytkowa"}
-                      value={`${offer.area} m²`}
-                    />
-                    {offer.rooms != null && <SpecCard label="Liczba pokoi" value={String(offer.rooms)} />}
-                    <SpecCard label={offer.priceLabel ?? "Cena"} value={priceFormat(offer.priceFrom)} />
-                    {offer.pietro && <SpecCard label="Piętro / budynek" value={offer.pietro} />}
-                    {offer.rokBudowy != null && <SpecCard label="Rok budowy" value={String(offer.rokBudowy)} />}
-                    {offer.miejscParkingowych != null && (
-                      <SpecCard label="Miejsca parkingowe" value={String(offer.miejscParkingowych)} />
-                    )}
-                    {offer.powDzialkiM2 != null && offer.kind !== "grunt" && (
-                      <SpecCard label="Działka" value={`${offer.powDzialkiM2.toLocaleString("pl-PL")} m²`} />
-                    )}
-                    {offer.energetyka && <SpecCard label="Energetyka" value={offer.energetyka} />}
                   </Reveal>
                 )}
 
@@ -583,15 +568,6 @@ function Fact({ label, value }: { label: string; value: string }) {
     <div>
       <dt className="text-[10px] font-medium uppercase tracking-[0.14em] text-ink-500">{label}</dt>
       <dd className="mt-0.5 font-display text-[18px] leading-tight text-ink-950">{value}</dd>
-    </div>
-  );
-}
-
-function SpecCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[var(--radius-sm)] border border-ink-200/70 bg-paper px-3.5 py-3 md:px-4 md:py-3.5">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-700">{label}</p>
-      <p className="mt-1 font-display text-[16px] md:text-[17.5px] text-ink-950 leading-tight">{value}</p>
     </div>
   );
 }

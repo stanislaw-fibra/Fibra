@@ -55,7 +55,15 @@ export function OfferStickyCta({
   return (
     <div
       data-offer-sticky=""
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-ink-200/90 bg-[var(--color-paper)]/92 backdrop-blur-xl pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-8px_32px_-12px_rgba(11,15,20,0.12)]"
+      className={[
+        "fixed bottom-0 left-0 right-0 z-40 border-t border-ink-200/90 bg-[var(--color-paper)]/92 backdrop-blur-xl pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-8px_32px_-12px_rgba(11,15,20,0.12)]",
+        // Mobile: pasek widoczny zawsze (cena pod ręką, bo nie ma premium bloku w hero).
+        // Desktop (lg): cena jest w premium pasku przy tytule, więc dolny pasek chowamy
+        // u góry i pokazujemy dopiero przy scrollu - żeby ta sama cena nie była na ekranie
+        // dwa razy (uwaga Romana: "trzy razy te same dane").
+        "transition-transform duration-300 ease-out",
+        scrolled ? "lg:translate-y-0" : "lg:translate-y-full",
+      ].join(" ")}
     >
       <div className="container-xl flex items-center justify-between gap-3 py-2 md:py-2.5">
         {/* Dane - zawsze widoczne */}
