@@ -139,6 +139,25 @@ export async function getOfferListXml(
   throw new Error("VIRGO GetOfferList: brak xml.xml w paczce OffersZip");
 }
 
+/**
+ * Wyciąga listę Symbol-i z lekkiej listy GetOfferList. Struktura jest PŁASKA:
+ *   <Dane><Oferta ID="..." Symbol="FIB-XX-NNNN" StatusEks="1" .../> ... </Dane>
+ * czyli <Oferta> bezpośrednio pod <Dane>, BEZ wrappera <Oferty> i bez treści -
+ * dlatego ogólny parseVirgoXml (oczekujący zagnieżdżonych ofert z polami) zwracał 0,
+ * przez co reconcile dostawał pustą listę i był po cichu pomijany (próg bezpieczeństwa).
+ * Tu lecimy prostym, odpornym wyciąganiem atrybutu Symbol.
+ */
+export function parseOfferListSymbols(xml: string): string[] {
+  const out: string[] = [];
+  const re = /<Oferta\b[^>]*\bSymbol="([^"]+)"/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(xml)) !== null) {
+    const s = m[1].trim();
+    if (s) out.push(s);
+  }
+  return out;
+}
+
 // Pobiera jeden obraz po ID zdjęcia (Foto@ID). size w formacie "WIDTH_HEIGHT".
 // Zwraca null, gdy VIRGO zgłosi błąd (Status != 0) - wywołujący pomija takie zdjęcie.
 export async function getImage2(

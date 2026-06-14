@@ -7,6 +7,7 @@ import {
   getOffersXml,
   getVirgoConfig,
   loginEx,
+  parseOfferListSymbols,
   type VirgoConfig,
 } from "./virgo-client";
 import { parseVirgoXml } from "./virgo-parser";
@@ -255,19 +256,16 @@ export async function runVirgoImport(opts: VirgoRunOptions = {}): Promise<Import
     try {
       let symbols: string[];
       if (importType === "full") {
-        // Już mamy pełny snapshot z kroku 1 - użyjmy go zamiast drugiego strzału do API.
-        symbols = parsed.offers
-          .map((o) => (o["@_Symbol"] ?? o["@_ID"]) as string | undefined)
-          .filter((s): s is string => !!s);
+        // `xml` z kroku 1 to już lekka lista GetOfferList - wyciągamy z niej Symbol-e
+        // płaskim ekstraktorem (parseVirgoXml jej NIE czyta: <Oferta> jest bez wrappera
+        // <Oferty>, stąd dawniej 0 symboli -> reconcile zawsze pomijany).
+        symbols = parseOfferListSymbols(xml);
       } else {
         if (!sid || !cfg) {
           cfg = getVirgoConfig();
           sid = await loginEx(cfg);
         }
-        const listParsed = parseVirgoXml(await getOfferListXml(sid, cfg));
-        symbols = listParsed.offers
-          .map((o) => (o["@_Symbol"] ?? o["@_ID"]) as string | undefined)
-          .filter((s): s is string => !!s);
+        symbols = parseOfferListSymbols(await getOfferListXml(sid, cfg));
       }
       const recon = await deactivateMissingFromFullExport(supabase, symbols, {
         dryRun: opts.dryRun,
