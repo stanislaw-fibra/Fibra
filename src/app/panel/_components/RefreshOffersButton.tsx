@@ -26,9 +26,13 @@ function pluralOffers(n: number): string {
 }
 
 /**
- * Ręczny trigger pełnej synchronizacji z Galactiką (`POST /api/import` - wraz ze zdjęciami).
+ * Ręczny trigger synchronizacji z Galactiką przez VIRGO (`POST /api/import?source=virgo`).
  * Autoryzacja poprzez sesję zalogowanego admina (cookie). Debounce 30 s chroni przed spamowaniem.
- * Automatyczny sync chodzi z crona co 15 min; ten przycisk jest do natychmiastowego odświeżenia.
+ *
+ * UWAGA: VIRGO GetOffers jest PRZYROSTOWY - ten przycisk pobiera najnowsze ZMIANY z Galactiki
+ * (nowe/zmienione oferty wraz ze zdjęciami, rzutami i spacerami). Gdy od ostatniego synca crona
+ * nic się nie zmieniło, zwróci 0 - to poprawne zachowanie, nie błąd. Pełny re-sync całej bazy
+ * idzie z zapisanego eksportu (ops), nie z tego przycisku.
  */
 export function RefreshOffersButton() {
   const router = useRouter();
@@ -54,10 +58,10 @@ export function RefreshOffersButton() {
   const handleClick = useCallback(async () => {
     if (disabled) return;
     setStatus("loading");
-    setMessage("Synchronizuję oferty z Galactiką (wraz ze zdjęciami)...");
+    setMessage("Pobieram najnowsze zmiany z Galactiki (VIRGO)...");
 
     try {
-      const res = await fetch("/api/import", {
+      const res = await fetch("/api/import?source=virgo", {
         method: "POST",
         headers: { accept: "application/json" },
       });
@@ -76,8 +80,8 @@ export function RefreshOffersButton() {
       const d = data.offers_deleted ?? 0;
       const updatedTotal = c + u;
       const summary =
-        data.status === "skipped"
-          ? "Brak nowych danych - nic nie zmieniono."
+        data.status === "skipped" || (updatedTotal === 0 && d === 0)
+          ? "Brak nowych zmian w Galactice - wszystko aktualne."
           : `Zaktualizowano ${updatedTotal} ${pluralOffers(updatedTotal)}, ${c} ${c === 1 ? "nowa" : "nowych"}, ${d} ${d === 1 ? "usunięta" : pluralOffers(d) === "oferty" ? "usunięte" : "usuniętych"}.`;
 
       setStatus("success");
@@ -106,7 +110,7 @@ export function RefreshOffersButton() {
         disabled={disabled}
         className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-5 py-2.5 text-[13px] font-medium text-ink-200 transition-colors hover:bg-white/[0.09] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
         aria-live="polite"
-        title="Uruchom pełną synchronizację z Galactiką (wraz ze zdjęciami)"
+        title="Pobierz najnowsze zmiany z Galactiki przez VIRGO (nowe/zmienione oferty, zdjęcia, rzuty, spacery)"
       >
         {status === "loading" ? (
           <svg
