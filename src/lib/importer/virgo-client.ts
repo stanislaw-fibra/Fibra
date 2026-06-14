@@ -158,6 +158,39 @@ export function parseOfferListSymbols(xml: string): string[] {
   return out;
 }
 
+/**
+ * Reset stanu dostarczenia po stronie serwera VIRGO (SOAP "Reset", jak w
+ * referencyjnym kliencie). Po resecie kolejne GetOffers zwraca PEŁEN zestaw ofert
+ * od nowa - to oficjalny sposób na wymuszenie pełnej resynchronizacji przez żywe
+ * API (bez ręcznego seeda). GetOffers jest przyrostowy i stanowy: serwer pamięta,
+ * co już nam wysłał; Reset czyści tę pamięć, więc dostajemy wszystko ponownie.
+ */
+export async function resetOffers(sid: string, cfg: VirgoConfig = getVirgoConfig()): Promise<string> {
+  const resp = await soapCall(cfg, "Reset", `<sid>${escXml(sid)}</sid>`);
+  const status = firstTag(resp, "Status");
+  const msg = firstTag(resp, "Message") ?? "";
+  if (status !== null && status.trim() !== "0") {
+    throw new Error(`VIRGO Reset Status=${status}: ${msg || resp.slice(0, 200)}`);
+  }
+  return msg;
+}
+
+/**
+ * Zgłasza serwerowi VIRGO listę ID ofert, których NAM brakuje (SOAP "SetMissingOffers",
+ * param `mids`). Serwer dosyła je w następnym GetOffers - to mechanizm samonaprawy
+ * z referencyjnego klienta (porównuje GetOfferList z własną bazą i prosi o brakujące).
+ * `ids` to numeryczne ID z Galactiki (atrybut ID w GetOfferList), łączone przecinkami.
+ */
+export async function setMissingOffers(
+  sid: string,
+  ids: string[],
+  cfg: VirgoConfig = getVirgoConfig(),
+): Promise<void> {
+  if (ids.length === 0) return;
+  const mids = ids.join(",");
+  await soapCall(cfg, "SetMissingOffers", `<sid>${escXml(sid)}</sid><mids>${escXml(mids)}</mids>`);
+}
+
 // Pobiera jeden obraz po ID zdjęcia (Foto@ID). size w formacie "WIDTH_HEIGHT".
 // Zwraca null, gdy VIRGO zgłosi błąd (Status != 0) - wywołujący pomija takie zdjęcie.
 export async function getImage2(

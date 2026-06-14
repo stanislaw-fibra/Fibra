@@ -25,12 +25,16 @@ async function handle(req: Request) {
       // Reconcile (wygaszanie brakujących) WYŁĄCZONE domyślnie - włączamy je osobnym, dziennym
       // wywołaniem (?reconcile=1), żeby przyrostowy GetOffers nigdy nie wygasił bazy.
       const reconcile = url.searchParams.get("reconcile") === "1";
+      // Reset: wymusza pełną resynchronizację (VIRGO Reset -> GetOffers zwraca komplet).
+      // Świadomie ręczny / rzadki - kasuje stan dostarczenia po stronie serwera VIRGO.
+      const reset = url.searchParams.get("reset") === "1";
       const maxImagesRaw = url.searchParams.get("maxImagesPerRun");
       const maxImagesPerRun = maxImagesRaw ? Number(maxImagesRaw) : undefined;
       const summary = await runVirgoImport({
         importType,
         skipImages,
         reconcile,
+        reset,
         maxImagesPerRun: Number.isFinite(maxImagesPerRun) ? maxImagesPerRun : undefined,
       });
       const status =

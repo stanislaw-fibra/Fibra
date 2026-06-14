@@ -8,6 +8,7 @@ import {
   getVirgoConfig,
   loginEx,
   parseOfferListSymbols,
+  resetOffers,
   type VirgoConfig,
 } from "./virgo-client";
 import { parseVirgoXml } from "./virgo-parser";
@@ -51,6 +52,10 @@ export interface VirgoRunOptions {
   sourceBranch?: SourceBranch;
   // Po imporcie zrób reconcile z GetOfferList (wygaś Symbol-e, których już nie ma w VIRGO).
   reconcile?: boolean;
+  // Przed pobraniem wywołaj VIRGO Reset - serwer kasuje stan dostarczenia, więc kolejne
+  // GetOffers zwraca PEŁEN zestaw od nowa (pełna resynchronizacja przez żywe API).
+  // Wymusza ścieżkę GetOffers (diff), bo to ona dostaje pełną paczkę po resecie.
+  reset?: boolean;
 }
 
 const DEFAULT_IMAGE_DELAY_MS = 250;
@@ -61,7 +66,10 @@ export async function runVirgoImport(opts: VirgoRunOptions = {}): Promise<Import
   const started = Date.now();
   const supabase = createSupabaseAdmin();
   const sourceBranch = (opts.sourceBranch ?? "unknown").trim() || "unknown";
-  const importType: "full" | "diff" = opts.importType ?? (opts.localXmlPath ? "full" : "diff");
+  // Reset wymusza GetOffers (diff) - po resecie to ona dostaje pełną paczkę.
+  const importType: "full" | "diff" = opts.reset
+    ? "diff"
+    : (opts.importType ?? (opts.localXmlPath ? "full" : "diff"));
 
   const summary: ImportSummary = {
     runId: null,
@@ -87,12 +95,19 @@ export async function runVirgoImport(opts: VirgoRunOptions = {}): Promise<Import
 
   const needImages = !opts.skipImages && !opts.dryRun;
   const needLiveXml = !opts.localXmlPath;
-  const needLogin = needLiveXml || needImages || (opts.reconcile === true && !opts.dryRun);
+  const needLogin =
+    needLiveXml || needImages || (opts.reconcile === true && !opts.dryRun) || opts.reset === true;
 
   try {
     if (needLogin) {
       cfg = getVirgoConfig();
       sid = await loginEx(cfg);
+    }
+    // Reset PRZED pobraniem: serwer kasuje stan dostarczenia, więc GetOffers poniżej
+    // zwróci pełen zestaw ofert od nowa (pełna resynchronizacja).
+    if (opts.reset && !opts.dryRun && sid && cfg) {
+      const msg = await resetOffers(sid, cfg);
+      summary.reconcileNote = `Reset VIRGO wykonany${msg ? `: ${msg}` : ""}.`;
     }
     if (opts.localXmlPath) {
       xml = await fs.readFile(opts.localXmlPath, "utf-8");
