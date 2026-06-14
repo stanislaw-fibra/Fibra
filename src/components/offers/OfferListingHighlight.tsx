@@ -16,7 +16,7 @@ type Props = {
  */
 export function OfferListingHighlight({ listingType, kind, kindLabel }: Props) {
   return (
-    <div className="mb-6 flex flex-wrap items-center gap-2">
+    <div className="mb-4 flex flex-wrap items-center gap-2">
       {kindLabel ? (
         <OfferKindTag kind={kind} kindLabel={kindLabel} variant="page-hero" />
       ) : null}

@@ -176,7 +176,7 @@ export function OfferKindTag({ kind, kindLabel, variant = "media-dark", classNam
     return (
       <span
         className={[
-          "inline-flex shrink-0 items-center gap-2 rounded-full border bg-paper px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.18em] shadow-[var(--shadow-soft)]",
+          "inline-flex shrink-0 items-center gap-1.5 rounded-full border bg-paper px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] shadow-[var(--shadow-soft)]",
           tone.page,
           className,
         ].join(" ")}

@@ -86,18 +86,18 @@ export default async function OfferPage({
       <Nav />
       <GalleryLightboxProvider images={gallery} title={offer.title}>
       <main className="flex-1 pt-[72px] pb-28 md:pb-32">
-        <section className="relative py-10 md:py-16 border-b border-ink-200/80">
+        <section className="relative pt-5 pb-10 md:pt-9 md:pb-16 border-b border-ink-200/80">
           <div className="container-xl">
-            <nav className="text-[13px] text-ink-500 mb-8 flex flex-wrap items-center gap-2">
-              <Link href="/" className="hover:text-brand-500 transition-colors">
+            <nav className="text-[12px] text-ink-500 mb-4 flex items-center gap-1.5 overflow-hidden whitespace-nowrap">
+              <Link href="/" className="shrink-0 hover:text-brand-500 transition-colors">
                 Strona główna
               </Link>
-              <span aria-hidden>/</span>
-              <Link href="/oferty" className="hover:text-brand-500 transition-colors">
+              <span aria-hidden className="shrink-0 text-ink-300">/</span>
+              <Link href="/oferty" className="shrink-0 hover:text-brand-500 transition-colors">
                 Oferty
               </Link>
-              <span aria-hidden>/</span>
-              <span className="text-ink-900 font-medium line-clamp-1">{offer.title}</span>
+              <span aria-hidden className="shrink-0 text-ink-300">/</span>
+              <span className="truncate text-ink-700">{offer.title}</span>
             </nav>
 
             <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
