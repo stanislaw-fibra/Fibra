@@ -166,6 +166,11 @@ export function GridClipSurface({
           <video
             ref={videoRef}
             className="absolute inset-0 h-full w-full object-cover"
+            // Natywny poster = ta sama miniatura co warstwa pod spodem. Gdy wideo
+            // jest już ujawnione (opacity 100), ale przeglądarka nie namalowała
+            // jeszcze pierwszej klatki, pokazuje poster zamiast czarnego prostokąta
+            // (objaw: aktywna karta hero na mobile „gubiła" zdjęcie startowe).
+            poster={posterUrl}
             muted={muted}
             loop
             playsInline
