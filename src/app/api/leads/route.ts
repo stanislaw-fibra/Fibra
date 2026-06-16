@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { getSupabaseAnon } from "@/lib/supabase/server-anon";
-import { sendEmail, OFFICE_INBOX } from "@/lib/email/resend";
+import { sendEmail, LEAD_NOTIFY_RECIPIENTS } from "@/lib/email/resend";
 import {
   leadClientConfirmation,
   leadOfficeNotification,
@@ -198,7 +198,7 @@ export async function POST(req: Request) {
     const office = leadOfficeNotification(emailData);
     jobs.push(
       sendEmail({
-        to: OFFICE_INBOX,
+        to: LEAD_NOTIFY_RECIPIENTS,
         subject: office.subject,
         html: office.html,
         text: office.text,
