@@ -3,10 +3,10 @@
 import { useFilters } from "@/app/oferty/filters-state";
 
 /**
- * Ciemny hero strony głównej (styl jak dawne OpeningReels) + wyeksponowane,
- * OtoDom-owe wejście w katalog: Kupno/Wynajem, typy nieruchomości i przełącznik
- * widoku (wideo / klasyczny). Steruje tym samym, URL-owym stanem filtrów co
- * katalog (OfertyPageClient) poniżej - więc klik tutaj filtruje listę od razu.
+ * Kompaktowy, ciemny pasek wejściowy strony głównej. Jeden zwięzły rząd na górze
+ * (tytuł + przełącznik widoku), drugi na całą szerokość (Kupno/Wynajem + typy).
+ * Steruje tym samym, URL-owym stanem filtrów co katalog poniżej - więc klik tutaj
+ * filtruje listę od razu. Świadomie niski, żeby kafelki wideo nie były ucinane.
  */
 
 const TYPES: { key: string; label: string }[] = [
@@ -34,41 +34,40 @@ export function HomeOffersHero() {
   return (
     <section className="relative overflow-hidden bg-ink-950 text-ink-100 pt-[72px]">
       <div className="absolute inset-0 grad-radial-brand opacity-70 pointer-events-none" />
-      <div className="absolute inset-0 grain grain-on-dark pointer-events-none opacity-45" />
+      <div className="absolute inset-0 grain grain-on-dark pointer-events-none opacity-40" />
 
-      <div className="container-xl relative py-7 md:py-10 lg:py-12">
-        <p className="eyebrow eyebrow-on-dark inline-flex items-center gap-3">
-          <span className="inline-block w-6 lg:w-8 h-px bg-accent-400" />
-          Fibra Nieruchomości
-        </p>
-        <h1 className="mt-3 font-display text-white leading-[1.04] tracking-tight text-[clamp(1.6rem,5vw,2.2rem)] md:text-[clamp(1.9rem,3vw,2.8rem)] max-w-[20ch]">
+      <div className="container-xl relative py-5 md:py-6">
+        {/* Tytuł - własny, zwięzły rząd. */}
+        <h1 className="font-display text-white leading-[1.08] tracking-tight text-[clamp(1.35rem,4vw,1.9rem)]">
           Znajdź swoje miejsce.{" "}
           <em className="italic text-accent-400">Zobacz je na wideo.</em>
         </h1>
 
-        {/* Kupno / Wynajem - duży, czytelny wybór jak na OtoDom. */}
-        <div className="mt-6 inline-flex rounded-full border border-white/15 bg-white/[0.06] p-1 backdrop-blur-sm">
-          {LISTINGS.map((l) => {
-            const active = filters.listing === l.key;
-            return (
-              <button
-                key={l.key}
-                type="button"
-                onClick={() => apply({ listing: l.key })}
-                aria-pressed={active}
-                className={[
-                  "rounded-full px-4 py-2 text-[13px] font-medium transition-colors",
-                  active ? "bg-white text-ink-950" : "text-white/80 hover:text-white",
-                ].join(" ")}
-              >
-                {l.label}
-              </button>
-            );
-          })}
-        </div>
+        {/* Pasek sterowania na całą szerokość: filtry po lewej, widok po prawej
+            (układ jak na OtoDom). */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <div className="inline-flex rounded-full border border-white/15 bg-white/[0.06] p-1">
+            {LISTINGS.map((l) => {
+              const active = filters.listing === l.key;
+              return (
+                <button
+                  key={l.key}
+                  type="button"
+                  onClick={() => apply({ listing: l.key })}
+                  aria-pressed={active}
+                  className={[
+                    "rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors",
+                    active ? "bg-white text-ink-950" : "text-white/80 hover:text-white",
+                  ].join(" ")}
+                >
+                  {l.label}
+                </button>
+              );
+            })}
+          </div>
 
-        {/* Typy nieruchomości - szybkie wejście, filtruje katalog poniżej. */}
-        <div className="mt-3 flex flex-wrap gap-2">
+          <span className="mx-1 hidden h-5 w-px bg-white/15 sm:inline-block" aria-hidden />
+
           {TYPES.map((t) => {
             const active = filters.categories.includes(t.key);
             return (
@@ -78,7 +77,7 @@ export function HomeOffersHero() {
                 onClick={() => toggleType(t.key)}
                 aria-pressed={active}
                 className={[
-                  "rounded-full border px-4 py-2 text-[13px] font-medium transition-colors",
+                  "rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium transition-colors",
                   active
                     ? "border-accent-400 bg-accent-400 text-ink-950"
                     : "border-white/15 bg-white/[0.04] text-white/85 hover:border-white/35 hover:text-white",
@@ -88,14 +87,11 @@ export function HomeOffersHero() {
               </button>
             );
           })}
-        </div>
 
-        {/* Przełącznik widoku - wideo domyślnie, klasyczny po kliknięciu. */}
-        <div className="mt-5 flex items-center gap-3">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">
-            Widok
-          </span>
-          <div className="inline-flex rounded-full border border-white/15 bg-white/[0.06] p-1">
+          {/* Przełącznik widoku - dosunięty do prawej krawędzi. Tylko desktop:
+              na mobile pełnoszerokościowy przełącznik „Widok" jest już w pasku
+              filtrów poniżej, więc tutaj go nie dublujemy. */}
+          <div className="ml-auto hidden rounded-full border border-white/15 bg-white/[0.06] p-1 lg:inline-flex">
             {(["video", "gallery"] as const).map((v) => {
               const active = filters.view === v;
               return (
