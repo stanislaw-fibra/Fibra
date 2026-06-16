@@ -64,7 +64,12 @@ export async function verifyTurnstile(
         body: form.toString(),
       },
     );
-    const data = (await res.json()) as { success?: boolean };
+    const data = (await res.json()) as { success?: boolean; "error-codes"?: string[] };
+    if (!data.success) {
+      // Powód odrzucenia z Cloudflare - przydatne do diagnozy (np. invalid-input-secret
+      // = zły sekret, invalid-input-response = zły/wygasły token, timeout-or-duplicate).
+      console.warn("[anti-bot] Turnstile odrzucił token:", data["error-codes"] ?? "(brak kodów)");
+    }
     return { ok: Boolean(data.success), skipped: false };
   } catch (e) {
     console.error("[anti-bot] Turnstile verify error (fail-open):", e);
