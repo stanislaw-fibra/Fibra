@@ -9,6 +9,7 @@ import {
 } from "@/lib/email/templates";
 import { isValidEmail } from "@/lib/email-validation";
 import { subscribeToNewsletter } from "@/lib/getresponse";
+import { honeypotTripped, tooFast, verifyTurnstile, rateLimited } from "@/lib/forms/anti-bot";
 
 export const runtime = "nodejs";
 
@@ -30,6 +31,10 @@ type LeadPayload = {
   phone?: string | null;
   message?: string | null;
   newsletter_consent?: boolean | null;
+  // Pola anty-bot (dokładane automatycznie przez useFormGuards po stronie klienta).
+  hp?: string | null;
+  ts?: number | null;
+  turnstile_token?: string | null;
 };
 
 function isLeadSource(x: unknown): x is LeadSource {
@@ -67,6 +72,40 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Invalid source" }, { status: 400 });
   }
 
+  // ── Ochrona antybotowa ──────────────────────────────────────────────
+  // Honeypot i pułapka czasowa: zwracamy "ciche" OK (200), żeby nie podpowiadać
+  // botowi, że został złapany - a leada nie zapisujemy.
+  if (honeypotTripped(body.hp) || tooFast(body.ts)) {
+    return NextResponse.json({ ok: true });
+  }
+
+  const userAgent = req.headers.get("user-agent");
+  const forwarded = req.headers.get("x-forwarded-for");
+  const ip =
+    forwarded?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip")?.trim() ||
+    null;
+  const salt = process.env.LEAD_IP_SALT?.trim() || "";
+  const ip_hash = ip ? sha256Hex(`${salt}${ip}`) : null;
+
+  // Cloudflare Turnstile - pomijane, dopóki nie ustawiono TURNSTILE_SECRET_KEY.
+  const turnstile = await verifyTurnstile(body.turnstile_token, ip);
+  if (!turnstile.ok) {
+    return NextResponse.json(
+      { ok: false, error: "Weryfikacja antyspamowa nie powiodła się. Odśwież stronę i spróbuj ponownie." },
+      { status: 400 },
+    );
+  }
+
+  // Rate-limit per IP (twardy limit zgłoszeń z jednego adresu w oknie czasu).
+  if (await rateLimited(ip_hash)) {
+    return NextResponse.json(
+      { ok: false, error: "Za dużo zgłoszeń z tego adresu. Odczekaj chwilę i spróbuj ponownie." },
+      { status: 429 },
+    );
+  }
+  // ────────────────────────────────────────────────────────────────────
+
   const full_name = cleanText(body.full_name) ?? null;
 
   const offer_id = cleanText(body.offer_id) ?? null;
@@ -100,15 +139,6 @@ export async function POST(req: Request) {
   if (!supabase) {
     return NextResponse.json({ ok: false, error: "Supabase not configured" }, { status: 500 });
   }
-
-  const userAgent = req.headers.get("user-agent");
-  const forwarded = req.headers.get("x-forwarded-for");
-  const ip =
-    forwarded?.split(",")[0]?.trim() ||
-    req.headers.get("x-real-ip")?.trim() ||
-    null;
-  const salt = process.env.LEAD_IP_SALT?.trim() || "";
-  const ip_hash = ip ? sha256Hex(`${salt}${ip}`) : null;
 
   const { error } = await supabase.from("lead_submissions").insert({
     source: body.source,

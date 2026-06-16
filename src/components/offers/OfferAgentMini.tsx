@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { firstName as getFirstName, firstNameGenitive } from "@/lib/polish-names";
 import { submitLead } from "@/lib/leads-client";
+import { useFormGuards, GUARD_NOT_READY_MESSAGE } from "@/components/forms/FormGuards";
 
 export function OfferAgentMini({
   offerId,
@@ -20,6 +21,7 @@ export function OfferAgentMini({
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { guards, getGuardData, ready } = useFormGuards();
   const firstName = getFirstName(agentName);
   const firstNameGen = firstNameGenitive(agentName);
 
@@ -37,6 +39,10 @@ export function OfferAgentMini({
       onSubmit={async (e) => {
         e.preventDefault();
         if (sending) return;
+        if (!ready) {
+          setError(GUARD_NOT_READY_MESSAGE);
+          return;
+        }
         setError(null);
         setSending(true);
         try {
@@ -51,6 +57,7 @@ export function OfferAgentMini({
             phone,
             message: "Prośba o kontakt (formularz szybki).",
             newsletter_consent: false,
+            ...getGuardData(),
           });
           setSent(true);
         } catch (err) {
@@ -76,6 +83,7 @@ export function OfferAgentMini({
         placeholder="Telefon"
         className="min-w-[160px] flex-1 rounded-[var(--radius-sm)] border border-ink-200 bg-paper px-4 py-3 text-[14px] outline-none focus:border-brand-500"
       />
+      {guards}
       {error ? (
         <p className="text-[13px] text-red-600 sm:basis-full">{error}</p>
       ) : null}

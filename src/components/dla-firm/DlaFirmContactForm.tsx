@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { submitLead } from "@/lib/leads-client";
 import { EMAIL_ERROR_MESSAGE, isValidEmail } from "@/lib/email-validation";
+import { useFormGuards, GUARD_NOT_READY_MESSAGE } from "@/components/forms/FormGuards";
 
 // GA4 / Meta Pixel - typujemy minimalnie, żeby nie wymagać deklaracji globalnych.
 type Gtag = (cmd: "event", name: string, params?: Record<string, unknown>) => void;
@@ -39,6 +40,7 @@ export function DlaFirmContactForm({
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { guards, getGuardData, ready } = useFormGuards();
 
   if (variant === "compact") {
     return (
@@ -48,6 +50,10 @@ export function DlaFirmContactForm({
         onSubmit={async (e) => {
           e.preventDefault();
           if (sending) return;
+          if (!ready) {
+            setError(GUARD_NOT_READY_MESSAGE);
+            return;
+          }
           setError(null);
           setSending(true);
           try {
@@ -61,6 +67,7 @@ export function DlaFirmContactForm({
               phone: phone || null,
               message: null,
               newsletter_consent: false,
+              ...getGuardData(),
             });
 
             if (typeof window !== "undefined") {
@@ -109,6 +116,7 @@ export function DlaFirmContactForm({
                 {sending ? "Wysyłanie…" : "Oddzwońcie do mnie"}
               </button>
             </div>
+            {guards}
             {error ? <p className="text-[13px] text-red-300">{error}</p> : null}
             <p className="text-[12.5px] text-white/55 leading-relaxed">
               Albo zadzwoń teraz:{" "}
@@ -142,6 +150,11 @@ export function DlaFirmContactForm({
             setSending(false);
             return;
           }
+          if (!ready) {
+            setError(GUARD_NOT_READY_MESSAGE);
+            setSending(false);
+            return;
+          }
           const phone = String(fd.get("phone") || "").trim();
           const details = String(fd.get("message") || "").trim();
 
@@ -157,6 +170,7 @@ export function DlaFirmContactForm({
             phone: phone || null,
             message,
             newsletter_consent: false,
+            ...getGuardData(),
           });
 
           if (typeof window !== "undefined") {
@@ -206,6 +220,8 @@ export function DlaFirmContactForm({
               className="mt-2 w-full bg-ink-50 focus:bg-white border border-ink-200 focus:border-brand-500 rounded-[var(--radius-sm)] px-4 py-3 text-[14px] outline-none transition-colors resize-none"
             />
           </label>
+
+          {guards}
 
           {error ? <p className="mt-4 text-[13px] text-red-600">{error}</p> : null}
 

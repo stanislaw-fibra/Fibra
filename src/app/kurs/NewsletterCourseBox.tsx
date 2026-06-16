@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { submitLead } from "@/lib/leads-client";
 import { EMAIL_ERROR_MESSAGE, isValidEmail } from "@/lib/email-validation";
+import { useFormGuards } from "@/components/forms/FormGuards";
 
 type Status = "idle" | "sending" | "done" | "error" | "invalid";
 
@@ -13,12 +14,17 @@ type Status = "idle" | "sending" | "done" | "error" | "invalid";
 export function NewsletterCourseBox() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
+  const { guards, getGuardData, ready } = useFormGuards();
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (status === "sending") return;
     if (!isValidEmail(email)) {
       setStatus("invalid");
+      return;
+    }
+    if (!ready) {
+      setStatus("error");
       return;
     }
     setStatus("sending");
@@ -30,6 +36,7 @@ export function NewsletterCourseBox() {
         full_name: null,
         phone: null,
         message: "Zapis z portalu kursu - audiobook + streszczenie",
+        ...getGuardData(),
       });
       setEmail("");
       setStatus("done");
@@ -87,6 +94,7 @@ export function NewsletterCourseBox() {
           Coś nie zadziałało. Spróbuj ponownie za chwilę.
         </p>
       )}
+      {guards}
       <p className="mt-3 text-[12px] leading-relaxed text-ink-400">
         Zero spamu. W każdej chwili możesz się wypisać jednym kliknięciem.
       </p>

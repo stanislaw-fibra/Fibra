@@ -16,6 +16,10 @@ export type SubmitLeadInput = {
   phone?: string | null;
   message?: string | null;
   newsletter_consent?: boolean | null;
+  // Pola anty-bot - dokładane przez useFormGuards (honeypot, znacznik czasu, token Turnstile).
+  hp?: string;
+  ts?: number;
+  turnstile_token?: string;
 };
 
 export async function submitLead(input: SubmitLeadInput): Promise<void> {

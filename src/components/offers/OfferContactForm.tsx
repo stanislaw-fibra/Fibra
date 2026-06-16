@@ -8,6 +8,7 @@ import {
 } from "@/lib/polish-names";
 import { submitLead } from "@/lib/leads-client";
 import { EMAIL_ERROR_MESSAGE, isValidEmail } from "@/lib/email-validation";
+import { useFormGuards, GUARD_NOT_READY_MESSAGE } from "@/components/forms/FormGuards";
 
 type Topic = "prezentacja" | "materialy" | "inne";
 
@@ -55,6 +56,7 @@ export function OfferContactForm({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newsletter, setNewsletter] = useState(false);
+  const { guards, getGuardData, ready } = useFormGuards();
 
   useEffect(() => {
     const applyFromHash = () => {
@@ -113,6 +115,11 @@ export function OfferContactForm({
                 setSending(false);
                 return;
               }
+              if (!ready) {
+                setError(GUARD_NOT_READY_MESSAGE);
+                setSending(false);
+                return;
+              }
               const message = String(fd.get("message") || "").trim();
               const topicVal = String(fd.get("topic") || "").trim();
               const composed =
@@ -129,6 +136,7 @@ export function OfferContactForm({
                 email,
                 message: composed,
                 newsletter_consent: newsletter,
+                ...getGuardData(),
               });
               setSent(true);
             } catch (err) {
@@ -266,6 +274,8 @@ export function OfferContactForm({
               </span>
             </label>
           </div>
+
+          {guards}
 
           {error ? (
             <p className="mt-4 text-[13px] text-red-600">{error}</p>

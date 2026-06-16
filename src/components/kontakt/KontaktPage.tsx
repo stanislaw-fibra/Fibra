@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { submitLead } from "@/lib/leads-client";
 import { EMAIL_ERROR_MESSAGE, isValidEmail } from "@/lib/email-validation";
+import { useFormGuards, GUARD_NOT_READY_MESSAGE } from "@/components/forms/FormGuards";
 
 const TOPICS = ["Sprzedaż", "Kupno", "Wynajem", "Inne"] as const;
 
@@ -19,6 +20,7 @@ export function KontaktPage() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newsletter, setNewsletter] = useState(false);
+  const { guards, getGuardData, ready } = useFormGuards();
 
   return (
     <>
@@ -64,6 +66,11 @@ export function KontaktPage() {
                           setSending(false);
                           return;
                         }
+                        if (!ready) {
+                          setError(GUARD_NOT_READY_MESSAGE);
+                          setSending(false);
+                          return;
+                        }
                         const email = looksLikeEmail ? contact : "";
                         const phone = email ? "" : contact;
                         const composed =
@@ -81,6 +88,7 @@ export function KontaktPage() {
                           phone,
                           message: composed,
                           newsletter_consent: newsletter,
+                          ...getGuardData(),
                         });
                         setSent(true);
                       } catch (err) {
@@ -163,6 +171,8 @@ export function KontaktPage() {
                         </span>
                       </label>
                     </div>
+
+                    {guards}
 
                     {error ? <p className="mt-4 text-[13px] text-red-600">{error}</p> : null}
 

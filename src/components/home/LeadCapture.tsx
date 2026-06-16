@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { submitLead } from "@/lib/leads-client";
+import { useFormGuards, GUARD_NOT_READY_MESSAGE } from "@/components/forms/FormGuards";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -12,6 +13,7 @@ export function LeadCapture() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newsletter, setNewsletter] = useState(false);
+  const { guards, getGuardData, ready } = useFormGuards();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
 
@@ -78,6 +80,10 @@ export function LeadCapture() {
               onSubmit={async (e) => {
                 e.preventDefault();
                 if (sending) return;
+                if (!ready) {
+                  setError(GUARD_NOT_READY_MESSAGE);
+                  return;
+                }
                 setError(null);
                 setSending(true);
                 try {
@@ -92,6 +98,7 @@ export function LeadCapture() {
                     phone,
                     message: message.length ? message : null,
                     newsletter_consent: newsletter,
+                    ...getGuardData(),
                   });
 
                   setSent(true);
@@ -153,6 +160,8 @@ export function LeadCapture() {
                       </span>
                     </label>
                   </div>
+
+                  {guards}
 
                   {error ? <p className="mt-4 text-[13px] text-red-600">{error}</p> : null}
 
