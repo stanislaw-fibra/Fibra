@@ -7,9 +7,31 @@ import {
   ZAMYSLOW_ACCESS_COOKIE,
   ZAMYSLOW_GATE_PATH,
 } from "@/lib/zamyslow-gate";
+import {
+  isOpenPath,
+  SITE_GATE_COOKIE,
+  SITE_GATE_PATH,
+  verifySiteGateToken,
+} from "@/lib/site-gate";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // ---- Bramka „Premiera strony już wkrótce" (PRZEJŚCIOWA) ----
+  // Chowa CAŁĄ stronę za wspólnym hasłem do publicznego startu. Wyjątki
+  // (isOpenPath): kurs (sprzedaż/portal), strony prawne, panel, API, sama bramka.
+  // PO PUBLICZNYM STARCIE: usuń ten jeden blok - reszta (kurs/panel/Zamysłów)
+  // zostaje bez zmian.
+  if (!isOpenPath(pathname)) {
+    const token = request.cookies.get(SITE_GATE_COOKIE)?.value;
+    if (!(await verifySiteGateToken(token))) {
+      const redirect = new URL(SITE_GATE_PATH, request.url);
+      redirect.searchParams.set("next", pathname);
+      return NextResponse.redirect(redirect);
+    }
+    // Ma dostęp - puszczamy dalej (cała witryna pod tym samym hasłem).
+    return NextResponse.next();
+  }
 
   // ---- Bramka projektu „Zamysłów" ----
   // Strony projektu są usunięte z menu i dostępne tylko przez bezpośredni link,
@@ -94,20 +116,8 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/panel/:path*",
-    "/kurs",
-    "/kurs/:path*",
-    // Bramka „Zamysłów" - musi pokrywać się z ZAMYSLOW_GATED_PREFIXES.
-    "/zamyslow",
-    "/zamyslow/:path*",
-    "/przewodnik-inwestora",
-    "/przewodnik-inwestora/:path*",
-    "/zarzadzanie-najmem",
-    "/zarzadzanie-najmem/:path*",
-    "/galeria-inwestycji",
-    "/galeria-inwestycji/:path*",
-    "/prospekt-informacyjny",
-    "/prospekt-informacyjny/:path*",
-  ],
+  // Bramka „wkrótce" chowa całą stronę, więc middleware musi działać na (prawie)
+  // wszystkich trasach. Wykluczamy tylko: API (webhooki/leady/cron), zasoby
+  // Next (_next) oraz pliki z rozszerzeniem (statyczne assety, robots.txt itd.).
+  matcher: ["/((?!api/|_next/|.*\\..*).*)"],
 };
