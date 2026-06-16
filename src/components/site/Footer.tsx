@@ -123,6 +123,16 @@ export function Footer() {
               />
             </a>
             <p>&copy; {new Date().getFullYear()} Fibra Nieruchomości. Wszelkie prawa zastrzeżone.</p>
+            <span aria-hidden className="text-ink-700">·</span>
+            <a
+              href="https://virgo.galactica.pl/"
+              target="_blank"
+              rel="nofollow noopener noreferrer"
+              title="oprogramowanie dla biur nieruchomości"
+              className="whitespace-nowrap text-ink-500 transition-colors hover:text-ink-300"
+            >
+              Powered by <b className="font-medium text-ink-400">VIRGO API</b>
+            </a>
           </div>
           <div className="flex flex-wrap gap-x-5 gap-y-2">
             {GORODO_LINKS.map((link) => (

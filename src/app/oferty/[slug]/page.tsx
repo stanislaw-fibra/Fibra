@@ -24,6 +24,7 @@ import { GalleryLightboxProvider } from "@/components/offers/GalleryLightbox";
 import { OfferMiniGallery } from "@/components/offers/OfferMiniGallery";
 import { OfferStreamHeroShell } from "@/components/offers/OfferStreamHeroShell";
 import { firstNameInstrumental } from "@/lib/polish-names";
+import { buildOfferJsonLd } from "@/lib/seo/offer-jsonld";
 
 export const revalidate = 60;
 
@@ -45,9 +46,38 @@ export async function generateMetadata({
   const { slug } = await params;
   const offer = await getOfferBySlug(slug);
   if (!offer) return { title: "Oferta niedostępna" };
+
+  const canonical = `/oferty/${offer.slug ?? slug}`;
+  const ogImage = offer.gallery?.find(Boolean);
+  const transakcja = offer.listingType === "wynajem" ? "na wynajem" : "na sprzedaż";
+  const keywords = [
+    offer.kindLabel,
+    offer.city ? `${offer.kindLabel} ${offer.city}` : null,
+    offer.city ? `${offer.kindLabel} ${transakcja} ${offer.city}` : null,
+    offer.refNumber,
+    "Fibra Nieruchomości",
+  ].filter((v): v is string => Boolean(v));
+
   return {
     title: `${offer.title} - Fibra Nieruchomości`,
     description: offer.excerpt,
+    keywords,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      locale: "pl_PL",
+      url: canonical,
+      siteName: "Fibra Nieruchomości",
+      title: offer.title,
+      description: offer.excerpt,
+      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: offer.title,
+      description: offer.excerpt,
+      ...(ogImage ? { images: [ogImage] } : {}),
+    },
   };
 }
 
@@ -558,6 +588,13 @@ export default async function OfferPage({
         agentPhotoUrl={offer.agentPhotoUrl}
       />
       <Footer />
+      {buildOfferJsonLd(offer).map((node, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(node) }}
+        />
+      ))}
     </>
   );
 }
