@@ -34,6 +34,11 @@ function sanitizeFilename(name: string): string {
     .replace(/[^A-Za-z0-9._-]/g, "_");
 }
 
+// Nazwa pliku jednoznacznie wskazująca na rzut/plan - łapiemy też zdjęcia, którym
+// Galactica nie ustawiła `typ=Rzut` (jak robi OtoDom). Wąsko, żeby nie brać zdjęć
+// pokoi: „rzut z wymiarami", „rzut parteru", „układ pomieszczeń", „kondygnacja".
+const RZUT_FILENAME_RE = /rzut|wymiar|uk[lł]ad|kondygnacj/i;
+
 function attr(node: VirgoOfferNode, name: string): string | null {
   const v = node[`@_${name}`];
   return v === undefined || v === null ? null : String(v).trim();
@@ -247,8 +252,8 @@ export function mapVirgoOffer(
     // Bierzemy zdjęcia (typ "Zdjecie") ORAZ rzuty (typ "Rzut"). Galactica taguje rzuty
     // osobno - wcześniej je gubiliśmy. Rzut ląduje w galerii (jak zdjęcie) i dodatkowo
     // trafia do floorplan_filenames, żeby downstream dopiął go jako rzut (offer_floorplans).
-    const isRzut = typ === "rzut";
-    if (typ && typ !== "zdjecie" && !isRzut) continue; // pomijamy tylko Dokumenty/inne
+    const isRzutTyp = typ === "rzut";
+    if (typ && typ !== "zdjecie" && !isRzutTyp) continue; // pomijamy tylko Dokumenty/inne
     if (!plik || fotoId === null) continue;
     const filename = sanitizeFilename(plik);
     image_filenames.push({
@@ -256,7 +261,12 @@ export function mapVirgoOffer(
       filename,
       fotoId,
     });
-    if (isRzut) floorplan_filenames.push(filename);
+    // Rzut = tag `typ=Rzut` LUB nazwa pliku jednoznacznie wskazująca na rzut.
+    // Galactica często wrzuca rzut 2D ("rzut z wymiarami.jpg") jako zwykłe zdjęcie
+    // (typ=Zdjecie), a OtoDom i tak pokazuje go jako rzut - łapie go po nazwie.
+    // Robimy to samo. Wzorce wąskie (rzut/wymiar/układ/kondygnacja), żeby NIE łapać
+    // zdjęć pokoi typu "14 pokój piętro.jpg" (brak słów rzut/wymiar).
+    if (isRzutTyp || RZUT_FILENAME_RE.test(plik)) floorplan_filenames.push(filename);
   }
   image_filenames.sort((a, b) => a.order - b.order);
 
