@@ -644,10 +644,10 @@ export function TeamMemberEditor({
  */
 function AgentPublicLinkCopier({ slug }: { slug: string }) {
   const [copied, setCopied] = useState(false);
-  const url = `fibranieruchomosci.pl/agent/${slug}`;
+  const url = `fibra.pl/agent/${slug}`;
   const fullUrl = typeof window !== "undefined"
     ? `${window.location.protocol}//${window.location.host.replace(/^.+?\./, "")}/agent/${slug}`
-    : `https://fibranieruchomosci.pl/agent/${slug}`;
+    : `https://fibra.pl/agent/${slug}`;
 
   return (
     <div className="mt-4 rounded-[var(--radius-sm)] border border-ink-200/70 bg-ink-50/60 p-3">

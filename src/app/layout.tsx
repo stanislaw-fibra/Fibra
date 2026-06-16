@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   title: "Fibra Nieruchomości - Rybnik, Radlin, region",
   description:
     "Fibra Nieruchomości - wideo, wirtualny spacer 3D i pełna obsługa transakcji. Powiat rybnicki i wodzisławski, biuro w Radlinie.",
-  metadataBase: new URL("https://fibranieruchomosci.pl"),
+  metadataBase: new URL("https://fibra.pl"),
   openGraph: {
     title: "Fibra Nieruchomości",
     description:
