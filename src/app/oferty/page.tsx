@@ -1,84 +1,19 @@
-import { Suspense } from "react";
-import { getAllActiveOffers } from "@/lib/offers-query";
-import { getPublicAgentBySlug } from "@/lib/team-query";
-import { Nav } from "@/components/site/Nav";
-import { Footer } from "@/components/site/Footer";
-import { Reveal } from "@/components/ui/Reveal";
-import { OfertyPageClient } from "@/app/oferty/OfertyPageClient";
-import { OfertyHeaderViewToggle } from "@/app/oferty/_ui/OfertyHeaderViewToggle";
-import { AgentHero } from "@/components/team/AgentHero";
+import { redirect } from "next/navigation";
 
-export const revalidate = 60;
-
-export const metadata = {
-  title: "Oferty Fibry - Fibra Nieruchomości",
-  description:
-    "Aktualne oferty z powiatu rybnickiego i wodzisławskiego - wideo, wirtualny spacer 3D i pełna obsługa od pierwszego kontaktu do aktu.",
-};
-
+// Katalog przeniesiony na stronę główną (/). /oferty przekierowuje na / z
+// zachowaniem parametrów (np. ?agent=, ?view=, ?category=), żeby stare linki,
+// filtry agenta i deep-linki dalej działały.
 type Props = {
-  searchParams: Promise<{ agent?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function OfertyPage({ searchParams }: Props) {
-  const { agent: agentSlugParam } = await searchParams;
-  const agentSlug = agentSlugParam?.trim().toLowerCase();
-
-  const [offers, agent] = await Promise.all([
-    getAllActiveOffers(),
-    agentSlug ? getPublicAgentBySlug(agentSlug) : Promise.resolve(null),
-  ]);
-
-  const offersWord =
-    offers.length === 1 ? "oferta" : offers.length < 5 ? "oferty" : "ofert";
-
-  return (
-    <>
-      <Nav />
-      <main className="flex-1 pt-[72px]">
-        {/* Pasek nagłówkowy katalogu - celowo bardzo niski, żeby oferty (wraz
-            z paskiem filtrów) były widoczne nad fold od razu po wejściu, na
-            mobile i na desktop. Pełny opisowy hero przeniesiony jest pod
-            paskiem filtrów (sticky-like flow), ten blok służy tylko jako
-            jednowierszowy „chleb" katalogu. */}
-        <section className="hidden sm:block relative overflow-hidden border-b border-ink-200/70 bg-paper">
-          <div className="absolute inset-0 -z-10 grad-radial-brand opacity-25" />
-          <div className="container-xl py-3 md:py-4 flex items-center justify-between gap-4">
-            <Reveal className="flex items-baseline gap-3 md:gap-4 min-w-0">
-              <h1 className="font-display text-ink-950 leading-none tracking-tight text-[clamp(1.05rem,3.6vw,1.5rem)] md:text-[clamp(1.2rem,2vw,1.65rem)] truncate">
-                Oferty Fibry
-              </h1>
-              <span
-                aria-hidden
-                className="hidden sm:inline-block h-3 w-px bg-ink-300"
-              />
-              <div className="hidden sm:flex items-center gap-3 min-w-0">
-                <p className="text-[11.5px] md:text-[12px] uppercase tracking-[0.14em] text-ink-500 truncate">
-                  {offers.length} {offersWord}
-                </p>
-                <span
-                  className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-400 select-none"
-                  aria-hidden
-                >
-                  Widok
-                </span>
-                <Suspense fallback={null}>
-                  <OfertyHeaderViewToggle />
-                </Suspense>
-              </div>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* Agent hero - pasek u góry listy gdy aktywny `?agent=<slug>` filter.
-            Pokazuje wideo-autoprezentację + CTA do pełnego profilu. */}
-        {agent ? <AgentHero agent={agent} variant="compact" /> : null}
-
-        <Suspense fallback={null}>
-          <OfertyPageClient allOffers={offers} />
-        </Suspense>
-      </main>
-      <Footer />
-    </>
-  );
+export default async function OfertyRedirect({ searchParams }: Props) {
+  const sp = await searchParams;
+  const qs = new URLSearchParams();
+  for (const [key, value] of Object.entries(sp)) {
+    if (typeof value === "string") qs.set(key, value);
+    else if (Array.isArray(value) && value[0]) qs.set(key, value[0]);
+  }
+  const q = qs.toString();
+  redirect(q ? `/?${q}` : "/");
 }

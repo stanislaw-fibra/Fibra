@@ -17,7 +17,7 @@ type NavLink = {
 // dopóki projekt jest w przygotowaniu. Strony Zamysłowa są dodatkowo za bramką z hasłem
 // (patrz src/middleware.ts + src/lib/zamyslow-gate.ts). Dostęp tylko przez bezpośredni link.
 const LINKS: NavLink[] = [
-  { href: "/oferty", label: "Oferty" },
+  { href: "/", label: "Oferty" },
   { href: "/sprzedaj-z-fibra", label: "Sprzedaj z Fibrą" },
   { href: "/o-fibrze", label: "O Fibrze" },
   { href: "/kontakt", label: "Kontakt" },

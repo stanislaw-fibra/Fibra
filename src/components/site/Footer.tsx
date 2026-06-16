@@ -55,8 +55,7 @@ export function Footer() {
                   galeria-inwestycji, prospekt-informacyjny) są celowo ukryte z nawigacji
                   i schowane za bramką z hasłem, dopóki projekt jest w przygotowaniu. */}
               {[
-                ["/", "Strona główna"],
-                ["/oferty", "Oferty"],
+                ["/", "Oferty"],
                 ["/sprzedaj-z-fibra", "Sprzedaj z Fibrą"],
                 ["/o-fibrze", "O Fibrze"],
                 ["/kontakt", "Kontakt"],

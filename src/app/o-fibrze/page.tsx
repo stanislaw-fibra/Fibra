@@ -3,6 +3,7 @@ import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { Reveal } from "@/components/ui/Reveal";
 import { TeamMemberMedia } from "@/components/team/TeamMemberMedia";
+import { OfficeVirtualTour } from "@/components/home/OfficeVirtualTour";
 import { getPublicTeamMembers, type TeamMember } from "@/lib/team-query";
 
 export const revalidate = 60;
@@ -338,6 +339,9 @@ export default async function OFibrzePage() {
             </div>
           </div>
         </section>
+
+        {/* 3c - Spacer po biurze (przeniesiony z dawnej strony głównej) */}
+        <OfficeVirtualTour />
 
         {/* 4 - Motto */}
         <section className="relative py-20 md:py-40 bg-ink-950 text-ink-100 overflow-hidden">
