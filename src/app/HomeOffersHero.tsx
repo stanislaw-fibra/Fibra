@@ -3,19 +3,12 @@
 import { useFilters } from "@/app/oferty/filters-state";
 
 /**
- * Kompaktowy, ciemny pasek wejściowy strony głównej. Jeden zwięzły rząd na górze
- * (tytuł + przełącznik widoku), drugi na całą szerokość (Kupno/Wynajem + typy).
- * Steruje tym samym, URL-owym stanem filtrów co katalog poniżej - więc klik tutaj
- * filtruje listę od razu. Świadomie niski, żeby kafelki wideo nie były ucinane.
+ * Kompaktowy, ciemny pasek wejściowy strony głównej. Eksponujemy TYLKO jedną,
+ * najważniejszą oś wyboru - Kupno/Wynajem (jak Otodom/Rightmove/Zillow). Typ
+ * nieruchomości celowo NIE jest tu wyłożony pigułkami (to zagracało i dublowało
+ * „Kategorię" w pasku filtrów niżej) - zostaje w filtrze. Steruje tym samym,
+ * URL-owym stanem co katalog poniżej. Świadomie niski, żeby wideo nie było ucinane.
  */
-
-const TYPES: { key: string; label: string }[] = [
-  { key: "mieszkania", label: "Mieszkania" },
-  { key: "domy", label: "Domy" },
-  { key: "dzialki", label: "Działki" },
-  { key: "lokale", label: "Lokale" },
-  { key: "obiekty", label: "Obiekty" },
-];
 
 const LISTINGS: { key: "all" | "sprzedaz" | "wynajem"; label: string }[] = [
   { key: "all", label: "Wszystkie" },
@@ -25,11 +18,6 @@ const LISTINGS: { key: "all" | "sprzedaz" | "wynajem"; label: string }[] = [
 
 export function HomeOffersHero() {
   const { filters, apply } = useFilters();
-
-  const toggleType = (key: string) => {
-    const has = filters.categories.includes(key);
-    apply({ categories: has ? [] : [key] });
-  };
 
   return (
     <section className="relative overflow-hidden bg-ink-950 text-ink-100 pt-[72px]">
@@ -65,28 +53,6 @@ export function HomeOffersHero() {
               );
             })}
           </div>
-
-          <span className="mx-1 hidden h-5 w-px bg-white/15 sm:inline-block" aria-hidden />
-
-          {TYPES.map((t) => {
-            const active = filters.categories.includes(t.key);
-            return (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => toggleType(t.key)}
-                aria-pressed={active}
-                className={[
-                  "rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium transition-colors",
-                  active
-                    ? "border-accent-400 bg-accent-400 text-ink-950"
-                    : "border-white/15 bg-white/[0.04] text-white/85 hover:border-white/35 hover:text-white",
-                ].join(" ")}
-              >
-                {t.label}
-              </button>
-            );
-          })}
 
           {/* Przełącznik widoku - dosunięty do prawej krawędzi. Tylko desktop:
               na mobile pełnoszerokościowy przełącznik „Widok" jest już w pasku
