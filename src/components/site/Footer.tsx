@@ -146,9 +146,6 @@ export function Footer() {
                 {link.label}
               </a>
             ))}
-            <Link href="/regulamin" className="hover:text-white transition-colors">
-              Regulamin
-            </Link>
             <Link href="/cookies" className="hover:text-white transition-colors">
               Cookies
             </Link>

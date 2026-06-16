@@ -1093,9 +1093,9 @@ export default function Kurs20LekcjiPage() {
                 Polityka prywatności
               </a>
               <a
-                href="/regulamin"
+                href="https://bartosznosiadek.salescrm.pl/regulamin"
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="nofollow noopener noreferrer"
                 className="hover:text-ink-950 transition-colors"
               >
                 Regulamin

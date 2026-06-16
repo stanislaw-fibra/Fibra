@@ -16,7 +16,6 @@ const STATIC_ROUTES: {
   { path: "/o-fibrze", priority: 0.7, changeFrequency: "monthly" },
   { path: "/kontakt", priority: 0.6, changeFrequency: "yearly" },
   { path: "/kurs-20-lekcji-inwestora", priority: 0.6, changeFrequency: "monthly" },
-  { path: "/regulamin", priority: 0.2, changeFrequency: "yearly" },
   { path: "/cookies", priority: 0.2, changeFrequency: "yearly" },
 ];
 
