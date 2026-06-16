@@ -7,8 +7,9 @@ import {
   getOffersXml,
   getVirgoConfig,
   loginEx,
-  parseOfferListSymbols,
+  parseOfferListEntries,
   resetOffers,
+  setMissingOffers,
   type VirgoConfig,
 } from "./virgo-client";
 import { parseVirgoXml } from "./virgo-parser";
@@ -269,19 +270,20 @@ export async function runVirgoImport(opts: VirgoRunOptions = {}): Promise<Import
   //    Te same progi bezpieczeństwa co przy FTP 'calosc' (min ofert / max % wygaszeń).
   if (opts.reconcile) {
     try {
-      let symbols: string[];
-      if (importType === "full") {
-        // `xml` z kroku 1 to już lekka lista GetOfferList - wyciągamy z niej Symbol-e
-        // płaskim ekstraktorem (parseVirgoXml jej NIE czyta: <Oferta> jest bez wrappera
-        // <Oferty>, stąd dawniej 0 symboli -> reconcile zawsze pomijany).
-        symbols = parseOfferListSymbols(xml);
-      } else {
+      // GetOfferList: dla "full" mamy go już w `xml`; dla "diff" dociągamy osobno.
+      // Parsujemy PEŁNE wpisy (ID + Symbol + StatusEks) - potrzebne i do reconcile
+      // (po Symbol-u), i do samonaprawy (SetMissingOffers po numerycznym ID).
+      let listXml = xml;
+      if (importType !== "full") {
         if (!sid || !cfg) {
           cfg = getVirgoConfig();
           sid = await loginEx(cfg);
         }
-        symbols = parseOfferListSymbols(await getOfferListXml(sid, cfg));
+        listXml = await getOfferListXml(sid, cfg);
       }
+      const entries = parseOfferListEntries(listXml);
+      const symbols = entries.map((e) => e.symbol);
+
       const recon = await deactivateMissingFromFullExport(supabase, symbols, {
         dryRun: opts.dryRun,
       });
@@ -292,6 +294,28 @@ export async function runVirgoImport(opts: VirgoRunOptions = {}): Promise<Import
         summary.reconcileNote =
           `Reconcile: wygaszono ${recon.deactivated} z ${recon.candidates} aktywnych ` +
           `(VIRGO lista: ${symbols.length} ofert).`;
+      }
+
+      // 6b. SAMONAPRAWA (jak VerifyOffers -> SetMissingOffers w referencji): oferty,
+      // które Galactica wystawia (StatusEks != 0), a których w ogóle NIE mamy w bazie,
+      // zgłaszamy serwerowi - dosyła je w kolejnym GetOffers. Dzięki temu jesteśmy
+      // autonomiczni: nie potrzebujemy już resetu Galactiki, by odzyskać zgubioną ofertę.
+      if (!opts.dryRun && sid && cfg && entries.length > 0) {
+        try {
+          const { data: ourRows } = await supabase.from("offers").select("galactica_offer_id");
+          const ours = new Set((ourRows ?? []).map((r) => r.galactica_offer_id));
+          const missingIds = entries
+            .filter((e) => e.statusEks !== "0" && !ours.has(e.symbol))
+            .map((e) => e.id);
+          if (missingIds.length > 0) {
+            await setMissingOffers(sid, missingIds, cfg);
+            summary.reconcileNote =
+              (summary.reconcileNote ?? "") +
+              ` SetMissingOffers: zgłoszono ${missingIds.length} brakujących (dośle GetOffers).`;
+          }
+        } catch (e) {
+          summary.errors.push({ step: "virgo_set_missing", message: errMsg(e) });
+        }
       }
     } catch (e) {
       summary.errors.push({ step: "virgo_reconcile", message: errMsg(e) });

@@ -158,6 +158,31 @@ export function parseOfferListSymbols(xml: string): string[] {
   return out;
 }
 
+export interface OfferListEntry {
+  id: string;
+  symbol: string;
+  statusEks: string;
+}
+
+/**
+ * Pełne wpisy z GetOfferList: ID (numeryczne Galactiki), Symbol (FIB-XX-NNNN) i
+ * StatusEks. Potrzebne do samonaprawy: VerifyOffers/SetMissingOffers w referencyjnym
+ * kliencie operują na NUMERYCZNYM ID (nie Symbol) i tylko na StatusEks != "0".
+ */
+export function parseOfferListEntries(xml: string): OfferListEntry[] {
+  const out: OfferListEntry[] = [];
+  const re = /<Oferta\b([^>]*)\/?>/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(xml)) !== null) {
+    const attrs = m[1];
+    const id = /\bID="([^"]+)"/.exec(attrs)?.[1]?.trim();
+    const symbol = /\bSymbol="([^"]+)"/.exec(attrs)?.[1]?.trim();
+    const statusEks = /\bStatusEks="([^"]+)"/.exec(attrs)?.[1]?.trim() ?? "1";
+    if (id && symbol) out.push({ id, symbol, statusEks });
+  }
+  return out;
+}
+
 /**
  * Reset stanu dostarczenia po stronie serwera VIRGO (SOAP "Reset", jak w
  * referencyjnym kliencie). Po resecie kolejne GetOffers zwraca PEŁEN zestaw ofert
