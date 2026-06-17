@@ -11,7 +11,9 @@ import type { CourseMaterials } from "@/lib/course-materials";
  * generowane na serwerze tylko dla osoby z dostępem.
  */
 export function CourseBonuses({ materials }: { materials: CourseMaterials }) {
-  const { ebookUrl, sketchnotesUrl, audiobook, vodStreamId } = materials;
+  // sketchnotes NIE są tu - to bonus tylko dla zapisanych do newslettera
+  // (sekcja newslettera niżej w portalu, dostawa osobno przez GetResponse/Resend).
+  const { ebookUrl, audiobook, vodStreamId } = materials;
   const vodSrc = cloudflareStreamIframeUrl(vodStreamId);
 
   return (
@@ -23,8 +25,8 @@ export function CourseBonuses({ materials }: { materials: CourseMaterials }) {
         Bonusy i materiały
       </h2>
       <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-ink-300">
-        Wszystko, co dostajesz w pakiecie: szkolenie wideo, e-book, sketchnotes i
-        audiobook. Materiały są dostępne tylko dla Ciebie po zalogowaniu.
+        Wszystko, co dostajesz w pakiecie: szkolenie wideo, e-book i audiobook.
+        Materiały są dostępne tylko dla Ciebie po zalogowaniu.
       </p>
 
       {/* Szkolenie VOD */}
@@ -46,19 +48,13 @@ export function CourseBonuses({ materials }: { materials: CourseMaterials }) {
         </div>
       )}
 
-      {/* PDF-y: e-book + sketchnotes */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+      {/* E-book (sketchnotes są bonusem newsletterowym - nie w pakiecie) */}
+      <div className="mt-8">
         <PdfCard
           url={ebookUrl}
           eyebrow="E-book"
           title="Zarabianie Uczciwych Pieniędzy"
           subtitle="Pełna książka w PDF"
-        />
-        <PdfCard
-          url={sketchnotesUrl}
-          eyebrow="Sketchnotes"
-          title="Streszczenie rysunkowe"
-          subtitle="Książka w jednym pliku graficznym"
         />
       </div>
 

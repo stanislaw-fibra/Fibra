@@ -20,7 +20,6 @@ export type AudiobookChapter = { n: number; title: string; url: string };
 
 export type CourseMaterials = {
   ebookUrl: string | null;
-  sketchnotesUrl: string | null;
   audiobook: AudiobookChapter[];
   vodStreamId: string;
 };
@@ -37,7 +36,6 @@ function prettyChapter(filename: string): { n: number; title: string } {
 
 const EMPTY: CourseMaterials = {
   ebookUrl: null,
-  sketchnotesUrl: null,
   audiobook: [],
   vodStreamId: COURSE_VOD_STREAM_ID,
 };
@@ -52,11 +50,10 @@ export async function getCourseMaterials(): Promise<CourseMaterials> {
 
   const store = admin.storage.from(BUCKET);
 
-  // PDF-y (e-book + sketchnotes) - jedno żądanie na oba.
-  const { data: pdfSigned } = await store.createSignedUrls(["ebook.pdf", "sketchnotes.pdf"], TTL_SECONDS);
-  const pdfByPath = new Map((pdfSigned ?? []).map((x) => [x.path, x.signedUrl]));
-  const ebookUrl = pdfByPath.get("ebook.pdf") ?? null;
-  const sketchnotesUrl = pdfByPath.get("sketchnotes.pdf") ?? null;
+  // E-book (sketchnotes celowo NIE tutaj - to bonus newsletterowy, dostarczany
+  // osobnym flow; plik zostaje w buckecie do tej automatyzacji).
+  const { data: ebookSigned } = await store.createSignedUrl("ebook.pdf", TTL_SECONDS);
+  const ebookUrl = ebookSigned?.signedUrl ?? null;
 
   // Audiobook - lista rozdziałów z folderu + podpis każdego.
   const { data: files } = await store.list("audiobook", {
@@ -80,5 +77,5 @@ export async function getCourseMaterials(): Promise<CourseMaterials> {
     })
     .filter((c) => c.url);
 
-  return { ebookUrl, sketchnotesUrl, audiobook, vodStreamId: COURSE_VOD_STREAM_ID };
+  return { ebookUrl, audiobook, vodStreamId: COURSE_VOD_STREAM_ID };
 }
