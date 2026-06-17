@@ -44,7 +44,7 @@ const FALLBACK_FOUNDER: TeamMember = {
   name: "Bartosz Nosiadek",
   role: "Założyciel, Prezes Zarządu",
   bio:
-    "Wierzę, że w nieruchomościach – bardziej niż w jakiejkolwiek innej branży – liczy się człowiek i przejrzyste zasady. Tworząc Fibrę przyjąłem prostą dewizę: interesy robi się z ludźmi, a nie na ludziach.\n\nDziś, po 20 latach na rynku, z dumą patrzę na osiedla, które wybudowaliśmy i setki rodzin, którym pomogliśmy znaleźć ich miejsce na ziemi. Jako praktyk i autor książki „Zarabianie uczciwych pieniędzy”, dbam o to, by każdy etap naszej współpracy – od budowy, przez finansowanie, aż po zarządzanie najmem – opierał się na fundamencie zaufania.\n\nFibra to nie tylko deweloper czy biuro nieruchomości. To zespół specjalistów, którzy biorą pełną odpowiedzialność za Twój komfort i bezpieczeństwo finansowe. Zapraszam Cię do poznania nas bliżej - chociażby przez pryzmat naszych wideo-prezentacji.",
+    "Od ponad 20 lat zajmuję się nieruchomościami. Przez ten czas nauczyłem się, że największą wartością w biznesie nie są budynki ani pieniądze, ale zaufanie ludzi.\n\nDlatego od początku prowadzenia Fibry trzymam się zasady: interesy robi się z ludźmi, a nie na ludziach.\n\nBudujemy mieszkania, pomagamy inwestorom kupować nieruchomości na wynajem i zarządzamy nimi w imieniu właścicieli. Staramy się robić to tak, jak sami chcielibyśmy być obsłużeni – uczciwie, odpowiedzialnie i z myśleniem o długim terminie.\n\nJestem autorem książki „Zarabianie Uczciwych Pieniędzy”, ale przede wszystkim praktykiem. To, o czym piszę i mówię, od lat sprawdzam we własnym biznesie. Dzięki temu mogę z przekonaniem powiedzieć, że uczciwość i skuteczność nie wykluczają się – wręcz przeciwnie.\n\nZapraszam Cię do obejrzenia naszych materiałów wideo. Pokażę Ci, jak budujemy, jak inwestujemy i dlaczego wielu naszych klientów powierza nam nie tylko zakup mieszkania, ale również zarządzanie swoim majątkiem przez kolejne lata.",
   photoUrl: `${AGENTS_BUCKET}/Bartosz%20Nosiadek.jpg`,
   kind: "founder",
   order: 0,
@@ -95,7 +95,7 @@ const PILLARS: { n: string; title: string; body: string }[] = [
     n: "03",
     title: "Pomoc w\nfinansowaniu",
     body:
-      "Pomagamy w uzyskaniu kredytu hipotecznego dopasowanego do konkretnej sytuacji. Klient nie ponosi kosztu naszej obsługi, ponieważ wynagrodzenie doradcy pokrywa bank.",
+      "Pomagamy w uzyskaniu kredytu hipotecznego dopasowanego do konkretnej sytuacji. Nie pobieramy od klienta prowizji za nasze usługi pośrednictwa finansowego.",
   },
 ];
 
@@ -145,56 +145,6 @@ export default async function OFibrzePage() {
           </div>
         </section>
 
-        {/* 2 - Co robimy */}
-        <section className="relative py-20 md:py-32 bg-ink-950 text-ink-100 overflow-hidden">
-          <div className="absolute inset-0 grad-radial-brand opacity-50" aria-hidden />
-          <div className="absolute inset-0 grain grain-on-dark" aria-hidden />
-          <div className="container-xl relative">
-            <div className="mx-auto max-w-3xl text-center">
-              <Reveal>
-                <p className="eyebrow inline-flex items-center gap-3 mb-6 text-ink-200">
-                  <span className="inline-block w-6 sm:w-8 h-px bg-accent-400" />
-                  Co robimy
-                  <span className="inline-block w-6 sm:w-8 h-px bg-accent-400" />
-                </p>
-              </Reveal>
-              <Reveal delay={80}>
-                <h2
-                  className="font-display text-white tracking-tight leading-[1.05] text-balance"
-                  style={{ fontSize: "clamp(1.75rem, 4vw, 3rem)" }}
-                >
-                  Trzy obszary, które dobrze się uzupełniają.
-                </h2>
-              </Reveal>
-            </div>
-            <div className="mt-12 md:mt-20 grid md:grid-cols-3 gap-10 md:gap-0 md:divide-x md:divide-white/10">
-              {PILLARS.map((p, i) => (
-                <Reveal
-                  key={p.n}
-                  delay={i * 90}
-                  className={
-                    i === 0
-                      ? "md:pr-10 lg:pr-14"
-                      : i === PILLARS.length - 1
-                        ? "md:pl-10 lg:pl-14"
-                        : "md:px-10 lg:px-14"
-                  }
-                >
-                  <span className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/15 bg-white/[0.04] text-[11px] font-semibold tracking-wide text-accent-400">
-                    {p.n}
-                  </span>
-                  <h3 className="font-display text-white text-[1.55rem] md:text-[1.85rem] leading-tight tracking-tight mt-5 md:mt-6 mb-4 md:mb-5 whitespace-pre-line min-h-[2.5em]">
-                    {p.title}
-                  </h3>
-                  <p className="text-ink-200 text-[15.5px] md:text-[17px] leading-[1.65] max-w-md">
-                    {p.body}
-                  </p>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* 3 - Założyciel */}
         <section className="relative py-20 md:py-32 bg-paper-warm border-t border-ink-200/60">
           <div className="container-xl">
@@ -210,6 +160,13 @@ export default async function OFibrzePage() {
               <Reveal delay={80}>
                 <p className="mt-5 md:mt-6 text-[16px] md:text-[18px] text-ink-700 leading-relaxed text-pretty">
                   Za każdą ofertą, transakcją i rozmową stoi konkretna osoba.
+                </p>
+              </Reveal>
+              <Reveal delay={120}>
+                <p className="mt-4 mx-auto max-w-2xl text-[15px] md:text-[16.5px] text-ink-600 leading-relaxed text-pretty">
+                  Dlatego wszędzie, gdzie to możliwe, nasi agenci przedstawiają się sami, na wideo.
+                  Widzisz twarz i od początku wiesz, z kim będziesz rozmawiać. Stawiamy na ludzi,
+                  nie na algorytm.
                 </p>
               </Reveal>
               <Reveal delay={160}>
@@ -340,7 +297,58 @@ export default async function OFibrzePage() {
           </div>
         </section>
 
-        {/* 3c - Spacer po biurze (przeniesiony z dawnej strony głównej) */}
+        {/* Co robimy (sekcja tekstowa - po autoprezentacjach, zgodnie z uwagą Romana:
+            najpierw twarze/wideo, potem teksty) */}
+        <section className="relative py-20 md:py-32 bg-ink-950 text-ink-100 overflow-hidden">
+          <div className="absolute inset-0 grad-radial-brand opacity-50" aria-hidden />
+          <div className="absolute inset-0 grain grain-on-dark" aria-hidden />
+          <div className="container-xl relative">
+            <div className="mx-auto max-w-3xl text-center">
+              <Reveal>
+                <p className="eyebrow inline-flex items-center gap-3 mb-6 text-ink-200">
+                  <span className="inline-block w-6 sm:w-8 h-px bg-accent-400" />
+                  Co robimy
+                  <span className="inline-block w-6 sm:w-8 h-px bg-accent-400" />
+                </p>
+              </Reveal>
+              <Reveal delay={80}>
+                <h2
+                  className="font-display text-white tracking-tight leading-[1.05] text-balance"
+                  style={{ fontSize: "clamp(1.75rem, 4vw, 3rem)" }}
+                >
+                  Trzy obszary, które dobrze się uzupełniają.
+                </h2>
+              </Reveal>
+            </div>
+            <div className="mt-12 md:mt-20 grid md:grid-cols-3 gap-10 md:gap-0 md:divide-x md:divide-white/10">
+              {PILLARS.map((p, i) => (
+                <Reveal
+                  key={p.n}
+                  delay={i * 90}
+                  className={
+                    i === 0
+                      ? "md:pr-10 lg:pr-14"
+                      : i === PILLARS.length - 1
+                        ? "md:pl-10 lg:pl-14"
+                        : "md:px-10 lg:px-14"
+                  }
+                >
+                  <span className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/15 bg-white/[0.04] text-[11px] font-semibold tracking-wide text-accent-400">
+                    {p.n}
+                  </span>
+                  <h3 className="font-display text-white text-[1.55rem] md:text-[1.85rem] leading-tight tracking-tight mt-5 md:mt-6 mb-4 md:mb-5 whitespace-pre-line min-h-[2.5em]">
+                    {p.title}
+                  </h3>
+                  <p className="text-ink-200 text-[15.5px] md:text-[17px] leading-[1.65] max-w-md">
+                    {p.body}
+                  </p>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Spacer po biurze (przeniesiony z dawnej strony głównej) */}
         <OfficeVirtualTour />
 
         {/* 4 - Motto */}

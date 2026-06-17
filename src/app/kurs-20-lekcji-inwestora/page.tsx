@@ -1083,31 +1083,30 @@ export default function Kurs20LekcjiPage() {
         <div className="container-xl py-10 pb-28">
           <div className="flex flex-col items-center gap-5 text-center">
             <p className="font-display text-[1.4rem] leading-none text-ink-950">Fibra</p>
-            <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-ink-600">
-              <a
-                href="/polityka-prywatnosci"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-ink-950 transition-colors"
-              >
-                Polityka prywatności
-              </a>
-              <a
-                href="https://bartosznosiadek.salescrm.pl/regulamin"
-                target="_blank"
-                rel="nofollow noopener noreferrer"
-                className="hover:text-ink-950 transition-colors"
-              >
-                Regulamin
-              </a>
-              <a
-                href="/cookies"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-ink-950 transition-colors"
-              >
-                Cookies
-              </a>
+            {/* Dokumenty prawne dotyczą sprzedaży kursu (Bartosz Nosiadek,
+                NIP 647-236-75-67) - linkujemy do oficjalnych dokumentów tej
+                działalności (salescrm + gorodo), te same co na
+                zarabianieuczciwychpieniedzy.pl. NIE wewnętrzne strony Grupy Fibra. */}
+            <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13px] text-ink-600">
+              {[
+                ["Polityka prywatności", "https://bartosznosiadek.salescrm.pl/page/polityka-prywatnosci"],
+                ["Regulamin", "https://bartosznosiadek.salescrm.pl/regulamin"],
+                ["Klauzula informacyjna", "https://app.gorodo.pl/api/klauzula_informacyjna_klient/6472367567"],
+                ["Zgoda klienta", "https://app.gorodo.pl/api/zgoda_klient/6472367567"],
+                ["Klauzula marketingowa", "https://app.gorodo.pl/api/klauzula_informacyjna_marketing/6472367567"],
+                ["Żądanie RODO", "https://app.gorodo.pl/api/zadanie/6472367567"],
+                ["Certyfikat RODO", "https://www.gorodo.pl/certyfikat.php?nip=647-236-75-67"],
+              ].map(([label, href]) => (
+                <a
+                  key={href}
+                  href={href}
+                  target="_blank"
+                  rel="nofollow noopener noreferrer"
+                  className="hover:text-ink-950 transition-colors"
+                >
+                  {label}
+                </a>
+              ))}
             </nav>
             <p className="max-w-xl text-[12px] leading-relaxed text-ink-400">
               Grupa Fibra Sp. z o.o. · ul. Rymera 177, 44-310 Radlin · © {new Date().getFullYear()}{" "}
