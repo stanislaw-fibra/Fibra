@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { CoursePortal } from "./CoursePortal";
+import { CourseBonuses } from "./CourseBonuses";
 import { NewsletterCourseBox } from "./NewsletterCourseBox";
 import { LESSONS } from "./lessons";
+import { getCourseMaterials } from "@/lib/course-materials";
 import bookMockup from "../../../public/kurs/bartosz-nosiadek-zarabianie-uczciwych-pieniedzy.png";
 
 export const metadata: Metadata = {
@@ -10,18 +12,27 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+// Materiały serwujemy przez signed URL-e (TTL 12 h) generowane przy każdym
+// wejściu - strona musi być dynamiczna, żeby linki były świeże.
+export const dynamic = "force-dynamic";
+
 /** Portal kursu (dostęp po zakupie). Układ panelu: stały sidebar + główna
     kolumna ze sceną wideo i programem (CoursePortal). Ciemny, spokojny,
     app-owy motyw - ma dawać poczucie dopracowanego produktu. Bramka dostępu
     (magic-link) dojdzie, gdy będzie skonfigurowany Resend; wideo przejdzie na
     podpisane URL-e Cloudflare przed publikacją. */
-export default function KursPage() {
+export default async function KursPage() {
+  const materials = await getCourseMaterials();
+
   return (
     <div className="grain-on-dark relative min-h-screen bg-ink-950 text-white">
       <div className="grad-radial-hero pointer-events-none absolute inset-0" />
 
       <div className="relative z-10">
         <CoursePortal lessons={LESSONS}>
+          {/* ====== BONUSY / MATERIAŁY: VOD + e-book + sketchnotes + audiobook ====== */}
+          <CourseBonuses materials={materials} />
+
           {/* ====== NEWSLETTER: streszczenie rysunkowe za zapis ====== */}
           <section className="mt-14 overflow-hidden rounded-2xl border border-white/8 bg-white/[0.02]">
             <div className="grid items-center gap-8 p-6 sm:p-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-12 lg:p-10">
