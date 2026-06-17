@@ -48,7 +48,7 @@ const BONUS = {
   ],
 };
 const BOOK_VIDEO_ID = "PZxnHJVVP7A";
-const HERO_VIDEO_ID = "e86aa1bc1b857b5a77e027911534648e";
+const HERO_VIDEO_ID = "d0e5dfcdcb14ec9f7f8f0bc918ddb590";
 
 const AUTHOR_PHOTO =
   "https://yrkvochsziertbvzbnol.supabase.co/storage/v1/object/public/agent-photos/Bartosz%20Nosiadek.jpg";
