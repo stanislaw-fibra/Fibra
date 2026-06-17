@@ -36,6 +36,7 @@ export function NewsletterCourseBox() {
         full_name: null,
         phone: null,
         message: "Zapis z portalu kursu - audiobook + streszczenie",
+        course_context: true,
         ...getGuardData(),
       });
       setEmail("");

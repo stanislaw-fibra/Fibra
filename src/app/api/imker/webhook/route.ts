@@ -178,7 +178,12 @@ export async function POST(req: Request) {
   const newsletterConsent = order.newsletter === true || order.newsletter === "true";
   if (newsletterConsent && email) {
     try {
-      await subscribeToNewsletter({ email, name: fullName, source: "newsletter_footer" });
+      await subscribeToNewsletter({
+        email,
+        name: fullName,
+        source: "newsletter_footer",
+        extraTags: ["zrodlo-kurs"],
+      });
     } catch (e) {
       console.error("[imker] GetResponse subscribe nieudany (dostęp i tak zapisany):", e);
     }

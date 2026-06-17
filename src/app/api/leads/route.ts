@@ -31,6 +31,8 @@ type LeadPayload = {
   phone?: string | null;
   message?: string | null;
   newsletter_consent?: boolean | null;
+  // Zapis z kontekstu kursu -> tag 'zrodlo-kurs' w GetResponse (wyzwala streszczenie).
+  course_context?: boolean | null;
   // Pola anty-bot (dokładane automatycznie przez useFormGuards po stronie klienta).
   hp?: string | null;
   ts?: number | null;
@@ -164,7 +166,12 @@ export async function POST(req: Request) {
   // problem z GetResponse NIE może zepsuć zapisu leada (jest już w bazie).
   if ((body.source === "newsletter_footer" || newsletter_consent) && email && isValidEmail(email)) {
     try {
-      await subscribeToNewsletter({ email, name: full_name, source: body.source });
+      await subscribeToNewsletter({
+        email,
+        name: full_name,
+        source: body.source,
+        extraTags: body.course_context ? ["zrodlo-kurs"] : undefined,
+      });
     } catch (e) {
       console.error("[leads] GetResponse subscribe nieudany (lead i tak zapisany):", e);
     }

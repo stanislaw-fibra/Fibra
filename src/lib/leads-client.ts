@@ -16,6 +16,9 @@ export type SubmitLeadInput = {
   phone?: string | null;
   message?: string | null;
   newsletter_consent?: boolean | null;
+  /** Zapis z kontekstu kursu (box w portalu kursu) - dokłada tag 'zrodlo-kurs'
+   *  w GetResponse, po którym wyzwalamy wysyłkę streszczenia rysunkowego. */
+  course_context?: boolean;
   // Pola anty-bot - dokładane przez useFormGuards (honeypot, znacznik czasu, token Turnstile).
   hp?: string;
   ts?: number;

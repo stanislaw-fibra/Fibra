@@ -202,6 +202,9 @@ export async function subscribeToNewsletter(input: {
   email: string;
   name?: string | null;
   source: NewsletterSource;
+  /** Dodatkowe tagi segmentujące (np. 'zrodlo-kurs' dla osób związanych z kursem),
+   *  poza BASE_TAG i tagiem źródła. Po nich wyzwalamy automatyzacje w GetResponse. */
+  extraTags?: string[];
 }): Promise<SubscribeResult> {
   const cfg = getConfig();
   if (!cfg) {
@@ -216,7 +219,9 @@ export async function subscribeToNewsletter(input: {
   const name = input.name?.trim() || undefined;
 
   try {
-    const wantedTags = [cfg.baseTag, SOURCE_TAG[input.source] ?? "zrodlo-inne"];
+    const wantedTags = Array.from(
+      new Set([cfg.baseTag, SOURCE_TAG[input.source] ?? "zrodlo-inne", ...(input.extraTags ?? [])]),
+    );
     const tagIds = (
       await Promise.all(wantedTags.map((n) => resolveTagId(cfg, n)))
     ).filter((x): x is string => !!x);
