@@ -497,12 +497,13 @@ export function FiltersBar({
         <div ref={sentinelRef} aria-hidden className="h-px" />
       </div>
 
-      {/* MINI-TOOLBAR (mobile) - pojawia się fixed gdy pełny pasek wyszedł
-          z horyzontu. Transition-opacity + translate daje subtelne,
-          naturalne wejście. */}
+      {/* MINI-TOOLBAR (mobile + desktop) - pojawia się fixed gdy pełny pasek
+          wyszedł z horyzontu, żeby filtry i sortowanie były dostępne też przy
+          scrollu w dół (uwaga Romana). Mobile: sort + Filtry + widok. Desktop:
+          komplet pigułek filtrów + sort + widok (jest więcej miejsca). */}
       <div
         className={[
-          "lg:hidden fixed left-0 right-0 z-40",
+          "fixed left-0 right-0 z-40",
           "border-b border-ink-200/80 bg-paper/94 backdrop-blur-md",
           "transition-[opacity,transform] duration-[220ms] ease-out will-change-[opacity,transform]",
           showMini
@@ -512,7 +513,7 @@ export function FiltersBar({
         style={{ top: `${NAV_OFFSET}px` }}
         aria-hidden={!showMini}
       >
-        <div className="container-xl py-2.5 flex items-center justify-between gap-2">
+        <div className="lg:hidden container-xl py-2.5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             {sortPopover("start")}
             <span className="hidden sm:inline text-[10.5px] uppercase tracking-[0.14em] text-ink-500 whitespace-nowrap">
@@ -547,6 +548,31 @@ export function FiltersBar({
             totalGallery={totalMatches}
             totalVideo={totalVideoMatches}
           />
+        </div>
+
+        {/* DESKTOP - komplet pigułek (jest więcej miejsca): filtry po lewej,
+            sort + przełącznik widoku po prawej. */}
+        <div className="hidden lg:block">
+          <div className="container-xl py-2.5 flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-2 min-w-0">
+              {categoryPopover}
+              {listingPopover}
+              {pricePopover}
+              {roomsPopover}
+              {locationPopover}
+              {moreFiltersBtn}
+              {resetBtn}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {sortPopover("end")}
+              <ViewToggleIcons
+                view={filters.view}
+                onChange={(v) => apply({ view: v })}
+                totalGallery={totalMatches}
+                totalVideo={totalVideoMatches}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </>
