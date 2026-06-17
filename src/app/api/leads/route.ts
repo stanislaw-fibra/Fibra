@@ -170,7 +170,7 @@ export async function POST(req: Request) {
         email,
         name: full_name,
         source: body.source,
-        extraTags: body.course_context ? ["zrodlo-kurs"] : undefined,
+        extraTags: body.course_context ? ["zrodlo_kurs"] : undefined,
       });
     } catch (e) {
       console.error("[leads] GetResponse subscribe nieudany (lead i tak zapisany):", e);

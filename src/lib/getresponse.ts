@@ -32,18 +32,27 @@ export type NewsletterSource =
 
 /**
  * Tag źródła = z jakiego formularza przyszedł kontakt. Po tym segmentujemy
- * wysyłki w GetResponse. 'zrodlo-newsletter' to czysty zapis na newsletter;
+ * wysyłki w GetResponse. 'zrodlo_newsletter' to czysty zapis na newsletter;
  * pozostałe oznaczają zgodę zaznaczoną przy innym formularzu.
+ *
+ * UWAGA: GetResponse dopuszcza w nazwie tagu TYLKO [A-Za-z0-9_] (bez myślników!).
+ * Dlatego podkreślniki, nie myślniki - inaczej tworzenie tagu zwraca 400 i kontakt
+ * zostaje BEZ tagów (cicho). Dodatkowo grTagName() sanityzuje każdą nazwę.
  */
 const SOURCE_TAG: Record<NewsletterSource, string> = {
-  newsletter_footer: "zrodlo-newsletter",
-  offer_page: "zrodlo-oferta",
-  offer_page_mini: "zrodlo-oferta",
-  contact_page: "zrodlo-kontakt",
-  sprzedaj_page: "zrodlo-sprzedaj",
-  home_form: "zrodlo-strona-glowna",
-  b2b_page: "zrodlo-dla-firm",
+  newsletter_footer: "zrodlo_newsletter",
+  offer_page: "zrodlo_oferta",
+  offer_page_mini: "zrodlo_oferta",
+  contact_page: "zrodlo_kontakt",
+  sprzedaj_page: "zrodlo_sprzedaj",
+  home_form: "zrodlo_strona_glowna",
+  b2b_page: "zrodlo_dla_firm",
 };
+
+/** GetResponse: nazwa tagu tylko [A-Za-z0-9_]. Zamieniamy resztę na '_'. */
+function grTagName(name: string): string {
+  return name.trim().replace(/[^A-Za-z0-9_]/g, "_");
+}
 
 interface GrConfig {
   apiKey: string;
@@ -59,7 +68,7 @@ function getConfig(): GrConfig | null {
   const baseUrl =
     process.env.GETRESPONSE_API_BASE?.trim().replace(/\/+$/, "") ||
     "https://api.getresponse.com/v3";
-  const baseTag = process.env.GETRESPONSE_BASE_TAG?.trim() || "strona-www";
+  const baseTag = process.env.GETRESPONSE_BASE_TAG?.trim() || "strona_www";
   return { apiKey, campaignId, baseUrl, baseTag };
 }
 
@@ -220,7 +229,11 @@ export async function subscribeToNewsletter(input: {
 
   try {
     const wantedTags = Array.from(
-      new Set([cfg.baseTag, SOURCE_TAG[input.source] ?? "zrodlo-inne", ...(input.extraTags ?? [])]),
+      new Set(
+        [cfg.baseTag, SOURCE_TAG[input.source] ?? "zrodlo_inne", ...(input.extraTags ?? [])].map(
+          grTagName,
+        ),
+      ),
     );
     const tagIds = (
       await Promise.all(wantedTags.map((n) => resolveTagId(cfg, n)))

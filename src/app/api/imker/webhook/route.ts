@@ -182,7 +182,7 @@ export async function POST(req: Request) {
         email,
         name: fullName,
         source: "newsletter_footer",
-        extraTags: ["zrodlo-kurs"],
+        extraTags: ["zrodlo_kurs"],
       });
     } catch (e) {
       console.error("[imker] GetResponse subscribe nieudany (dostęp i tak zapisany):", e);
