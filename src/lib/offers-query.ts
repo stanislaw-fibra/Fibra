@@ -488,7 +488,7 @@ export function mapOfferRow(row: OfferRow): Offer {
   const images = [...(row.offer_images || [])].sort(
     (a, b) => (a.order_index ?? 0) - (b.order_index ?? 0),
   );
-  const gallery = images.map((i) => i.image_url).filter(Boolean);
+  const galleryAll = images.map((i) => i.image_url).filter(Boolean);
 
   const floor = row.floor;
   const floorsTotal = row.floors_total;
@@ -518,6 +518,26 @@ export function mapOfferRow(row: OfferRow): Offer {
     .filter((x) => x.kind === "pdf")
     .map((x) => ({ url: x.url, label: x.label?.trim() || undefined }))
     .filter((x) => Boolean(x.url));
+
+  // Zabezpieczenie przed „pustym rzutem": jeśli `floor_plan_image_url` (pole z panelu)
+  // wskazuje na obraz GALERII (offer-images), którego NIE MA już w aktualnej galerii
+  // - to osierocony wpis po przenumerowaniu plików przy imporcie. Pomijamy go, żeby
+  // nie renderować martwego kafla; rzut i tak mamy z offer_floorplans.
+  const fpCol = row.floor_plan_image_url?.trim();
+  const fpColOrphaned =
+    !!fpCol && fpCol.includes("/offer-images/") && galleryAll.length > 0 && !galleryAll.includes(fpCol);
+  const floorPlanImageUrlSafe = fpColOrphaned ? undefined : fpCol;
+
+  // Dedup rzutów (uwaga Romana): rzut detektowany w galerii trafia też do
+  // offer_floorplans. Z galerii zdjęć go wykluczamy, żeby nie dublował się w
+  // karuzeli - rzuty są wyłącznie w sekcji „Rzuty".
+  const floorImageUrlSet = new Set<string>([
+    ...floorPlanImages.map((u) => u.trim()),
+    ...(floorPlanImageUrlSafe && galleryAll.includes(floorPlanImageUrlSafe)
+      ? [floorPlanImageUrlSafe]
+      : []),
+  ]);
+  const gallery = galleryAll.filter((u) => !floorImageUrlSet.has(u));
 
   return {
     id: row.id,
@@ -567,7 +587,7 @@ export function mapOfferRow(row: OfferRow): Offer {
     isPriceNegotiable: row.is_price_negotiable ?? undefined,
     virtualTourUrl: row.virtual_tour_url?.trim() || undefined,
     floorPlanImageUrl:
-      row.floor_plan_image_url?.trim() || floorPlanImages[0]?.trim() || pickFloorPlanImageUrl(row.raw_params),
+      floorPlanImageUrlSafe || floorPlanImages[0]?.trim() || pickFloorPlanImageUrl(row.raw_params),
     floorPlanPdfUrl: row.floor_plan_pdf_url?.trim() || floorPlanPdfs[0]?.url?.trim() || undefined,
     floorPlanImages: floorPlanImages.length ? floorPlanImages : undefined,
     floorPlanPdfs: floorPlanPdfs.length ? floorPlanPdfs : undefined,
