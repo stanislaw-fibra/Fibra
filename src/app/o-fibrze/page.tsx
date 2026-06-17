@@ -115,47 +115,18 @@ export default async function OFibrzePage() {
     <>
       <Nav />
       <main className="flex-1 pt-[72px]">
-        {/* 1 - Hero */}
-        <section className="relative py-16 md:py-24 overflow-hidden">
+        {/* Ludzie Fibry - OTWARCIE strony: najpierw ludzie/autoprezentacje,
+            intro „o nas" („Doświadczenie…") przeniesiony niżej (uwaga Romana). */}
+        <section className="relative py-16 md:py-24 bg-paper-warm">
           <div className="container-xl">
             <div className="mx-auto max-w-3xl text-center">
               <Reveal>
-                <p className="eyebrow inline-flex items-center gap-3 mb-6">
-                  <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
-                  O Fibrze
-                  <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
-                </p>
-              </Reveal>
-              <Reveal delay={80}>
                 <h1
-                  className="font-display text-ink-950 leading-[1.05] tracking-tight text-balance"
-                  style={{ fontSize: "clamp(2rem, 5vw, 3.75rem)" }}
-                >
-                  Doświadczenie, któremu możesz zaufać.
-                </h1>
-              </Reveal>
-              <Reveal delay={180}>
-                <p className="mt-5 md:mt-8 text-[16px] md:text-[19px] leading-[1.55] text-ink-700 text-pretty">
-                  Fibra to zespół, który łączy doświadczenie w budowie mieszkań, obrocie nieruchomościami i
-                  finansowaniu zakupu. Działamy na Śląsku od 2006 roku, koncentrując się przede wszystkim na rynku
-                  lokalnym i na tym, żeby dobrze przeprowadzić klienta przez cały proces.
-                </p>
-              </Reveal>
-            </div>
-          </div>
-        </section>
-
-        {/* 3 - Założyciel */}
-        <section className="relative py-20 md:py-32 bg-paper-warm border-t border-ink-200/60">
-          <div className="container-xl">
-            <div className="mx-auto max-w-3xl text-center">
-              <Reveal>
-                <h2
                   className="font-display text-ink-950 tracking-tight leading-[1.05]"
-                  style={{ fontSize: "clamp(1.85rem, 4vw, 3rem)" }}
+                  style={{ fontSize: "clamp(2rem, 4.5vw, 3.25rem)" }}
                 >
                   Ludzie Fibry
-                </h2>
+                </h1>
               </Reveal>
               <Reveal delay={80}>
                 <p className="mt-5 md:mt-6 text-[16px] md:text-[18px] text-ink-700 leading-relaxed text-pretty">
@@ -293,6 +264,36 @@ export default async function OFibrzePage() {
                   </article>
                 </Reveal>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Intro „o nas" (przeniesione spod góry - najpierw ludzie, potem ten tekst) */}
+        <section className="relative py-16 md:py-24 overflow-hidden border-t border-ink-200/60">
+          <div className="container-xl">
+            <div className="mx-auto max-w-3xl text-center">
+              <Reveal>
+                <p className="eyebrow inline-flex items-center gap-3 mb-6">
+                  <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
+                  O Fibrze
+                  <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
+                </p>
+              </Reveal>
+              <Reveal delay={80}>
+                <h2
+                  className="font-display text-ink-950 leading-[1.05] tracking-tight text-balance"
+                  style={{ fontSize: "clamp(1.85rem, 4.5vw, 3rem)" }}
+                >
+                  Doświadczenie, któremu możesz zaufać.
+                </h2>
+              </Reveal>
+              <Reveal delay={180}>
+                <p className="mt-5 md:mt-8 text-[16px] md:text-[19px] leading-[1.55] text-ink-700 text-pretty">
+                  Fibra to zespół, który łączy doświadczenie w budowie mieszkań, obrocie nieruchomościami i
+                  finansowaniu zakupu. Działamy na Śląsku od 2006 roku, koncentrując się przede wszystkim na rynku
+                  lokalnym i na tym, żeby dobrze przeprowadzić klienta przez cały proces.
+                </p>
+              </Reveal>
             </div>
           </div>
         </section>
