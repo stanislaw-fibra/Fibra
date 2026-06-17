@@ -83,6 +83,34 @@ export async function POST(req: Request) {
   const rawBody = await req.text();
   const signature = req.headers.get(HMAC_HEADER) ?? "";
 
+  // ── TYMCZASOWY DEBUG (usunąć po diagnozie) ──────────────────────────────
+  // Zapisuje KAŻDE wywołanie webhooka (podpis + ciało + nasze wyliczenia) do
+  // prywatnego bucketa, żeby ustalić, jakim sekretem/schematem Imker podpisuje
+  // i jaki jest realny kształt payloadu.
+  try {
+    const dbgHeaders: Record<string, string | null> = {};
+    for (const k of ["shoplo-hmac-sha256", "content-type", "user-agent", "x-shoplo-hmac-sha256"]) {
+      dbgHeaders[k] = req.headers.get(k);
+    }
+    const candidates = {
+      base64_body: createHmac("sha256", secret).update(rawBody, "utf8").digest("base64"),
+      hex_body: createHmac("sha256", secret).update(rawBody, "utf8").digest("hex"),
+      base64_secret_plus_body: createHmac("sha256", secret).update(secret + rawBody, "utf8").digest("base64"),
+    };
+    const dbg = JSON.stringify(
+      { ts: new Date().toISOString(), receivedSignature: signature, headers: dbgHeaders, secretLen: secret.length, candidates, rawBody },
+      null,
+      2,
+    );
+    const admin = createSupabaseAdmin();
+    await admin.storage
+      .from("course-materials")
+      .upload(`_debug/imker-${Date.now()}.json`, dbg, { contentType: "application/json", upsert: true });
+  } catch {
+    // debug nie może wpłynąć na działanie webhooka
+  }
+  // ────────────────────────────────────────────────────────────────────────
+
   if (!signature || !verifySignature(rawBody, secret, signature)) {
     return NextResponse.json({ ok: false, error: "Invalid signature" }, { status: 401 });
   }
