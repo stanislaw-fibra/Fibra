@@ -22,11 +22,11 @@ export function CourseBonuses({ materials }: { materials: CourseMaterials }) {
         Twój pakiet
       </p>
       <h2 className="mt-3 font-display text-[1.8rem] leading-[1.05] sm:text-[2.2rem]">
-        Bonusy i materiały
+        Dziękuję za Twoje zaufanie
       </h2>
       <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-ink-300">
-        Wszystko, co dostajesz w pakiecie: szkolenie wideo, e-book i audiobook.
-        Materiały są dostępne tylko dla Ciebie po zalogowaniu.
+        Zgodnie z obietnicą, razem z kursem otrzymujesz ode mnie komplet bonusów:
+        szkolenie wideo, e-book i audiobook. Wszystko czeka na Ciebie poniżej.
       </p>
 
       {/* Szkolenie VOD */}
