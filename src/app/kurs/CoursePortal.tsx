@@ -879,11 +879,6 @@ export function CoursePortal({ lessons, children }: Props) {
               );
             })}
           </div>
-
-          <p className="mt-5 rounded-2xl border border-white/8 bg-white/[0.02] px-5 py-4 text-[13px] leading-relaxed text-ink-300">
-            Kolejne lekcje dodajemy na bieżąco - znajdziesz je w tym samym
-            miejscu, gdy tylko trafią do kursu.
-          </p>
         </div>
 
         {/* Slot na sekcję dodatkową (newsletter) */}
