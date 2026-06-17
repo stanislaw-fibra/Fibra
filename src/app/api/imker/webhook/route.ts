@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/resend";
 import { courseAccessEmail } from "@/lib/email/templates";
+import { subscribeToNewsletter } from "@/lib/getresponse";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +27,11 @@ type ImkerOrderItem = {
 
 type ImkerOrder = {
   order_identifier?: string | null;
+  email_address?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  newsletter?: boolean | string | null;
+  status?: string | null;
   customer?: ImkerCustomer | null;
   order_items?: ImkerOrderItem[] | null;
 };
@@ -59,6 +65,18 @@ function verifySignature(rawBody: string, secret: string, received: string): boo
   });
 }
 
+/** Porównanie odporne na timing dla sekretu z URL. */
+function safeEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  try {
+    return timingSafeEqual(ab, bb);
+  } catch {
+    return false;
+  }
+}
+
 function cleanEmail(v: unknown): string | null {
   if (typeof v !== "string") return null;
   const t = v.trim().toLowerCase();
@@ -83,36 +101,14 @@ export async function POST(req: Request) {
   const rawBody = await req.text();
   const signature = req.headers.get(HMAC_HEADER) ?? "";
 
-  // ── TYMCZASOWY DEBUG (usunąć po diagnozie) ──────────────────────────────
-  // Zapisuje KAŻDE wywołanie webhooka (podpis + ciało + nasze wyliczenia) do
-  // prywatnego bucketa, żeby ustalić, jakim sekretem/schematem Imker podpisuje
-  // i jaki jest realny kształt payloadu.
-  try {
-    const dbgHeaders: Record<string, string | null> = {};
-    for (const k of ["shoplo-hmac-sha256", "content-type", "user-agent", "x-shoplo-hmac-sha256"]) {
-      dbgHeaders[k] = req.headers.get(k);
-    }
-    const candidates = {
-      base64_body: createHmac("sha256", secret).update(rawBody, "utf8").digest("base64"),
-      hex_body: createHmac("sha256", secret).update(rawBody, "utf8").digest("hex"),
-      base64_secret_plus_body: createHmac("sha256", secret).update(secret + rawBody, "utf8").digest("base64"),
-    };
-    const dbg = JSON.stringify(
-      { ts: new Date().toISOString(), receivedSignature: signature, headers: dbgHeaders, secretLen: secret.length, candidates, rawBody },
-      null,
-      2,
-    );
-    const admin = createSupabaseAdmin();
-    await admin.storage
-      .from("course-materials")
-      .upload(`_debug/imker-${Date.now()}.json`, dbg, { contentType: "application/json", upsert: true });
-  } catch {
-    // debug nie może wpłynąć na działanie webhooka
-  }
-  // ────────────────────────────────────────────────────────────────────────
-
-  if (!signature || !verifySignature(rawBody, secret, signature)) {
-    return NextResponse.json({ ok: false, error: "Invalid signature" }, { status: 401 });
+  // Autoryzacja: sekret w URL (?key=) LUB podpis HMAC (gdy Imker go wysyła).
+  // W tej konfiguracji Imker NIE wysyła nagłówka podpisu, więc głównym mechanizmem
+  // jest sekret w URL; weryfikację HMAC zostawiamy, gdyby kiedyś zaczął podpisywać.
+  const queryKey = new URL(req.url).searchParams.get("key")?.trim() ?? "";
+  const authedByKey = queryKey.length > 0 && safeEqual(queryKey, secret);
+  const authedBySig = signature.length > 0 && verifySignature(rawBody, secret, signature);
+  if (!authedByKey && !authedBySig) {
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
   let payload: ImkerPayload;
@@ -133,13 +129,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, skipped: "no course product" });
   }
 
-  const email = cleanEmail(order.customer?.email);
+  // Imker przysyła e-mail w `order.email_address`, a imię/nazwisko w
+  // `first_name`/`last_name` (fallback do `customer.*` na wypadek innego formatu).
+  const email = cleanEmail(order.email_address ?? order.customer?.email);
   if (!email) {
     return NextResponse.json({ ok: false, error: "Missing customer email" }, { status: 400 });
   }
 
   const fullName =
-    [order.customer?.name, order.customer?.surname]
+    [order.first_name ?? order.customer?.name, order.last_name ?? order.customer?.surname]
       .map((p) => (typeof p === "string" ? p.trim() : ""))
       .filter(Boolean)
       .join(" ") || null;
@@ -172,6 +170,18 @@ export async function POST(req: Request) {
 
   if (error) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+  }
+
+  // Zgoda marketingowa z zamówienia (order.newsletter) -> zapis na newsletter w
+  // GetResponse. Double opt-in + dostarczenie streszczenia rysunkowego ogarnia
+  // GetResponse (autoresponder). Błąd nie może zepsuć nadania dostępu.
+  const newsletterConsent = order.newsletter === true || order.newsletter === "true";
+  if (newsletterConsent && email) {
+    try {
+      await subscribeToNewsletter({ email, name: fullName, source: "newsletter_footer" });
+    } catch (e) {
+      console.error("[imker] GetResponse subscribe nieudany (dostęp i tak zapisany):", e);
+    }
   }
 
   // Mail z dostępem do kursu. Dostęp jest już zapisany w course_access, więc nawet
