@@ -5,6 +5,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { TeamMemberMedia } from "@/components/team/TeamMemberMedia";
 import { OfficeVirtualTour } from "@/components/home/OfficeVirtualTour";
 import { getPublicTeamMembers, type TeamMember } from "@/lib/team-query";
+import { GoogleReviews } from "@/components/reviews/GoogleReviews";
 
 export const revalidate = 60;
 
@@ -101,6 +102,48 @@ const PILLARS: { n: string; title: string; body: string }[] = [
 
 function formatPhoneHref(phone: string) {
   return `tel:+48${phone.replace(/\D/g, "")}`;
+}
+
+/** Warianty unicode (math-bold itp.) -> zwykłe znaki; usuwa znaki zero-width. */
+function normalizePlain(s: string) {
+  return s.normalize("NFKC").replace(/[\u200B-\u200D\uFEFF]/g, "");
+}
+
+const onlyDigits = (s: string) => s.replace(/\D/g, "");
+
+/**
+ * Usuwa z POCZĄTKU bio linie będące zdublowanym kontaktem agenta (jego email lub
+ * jego numer), które bywały ręcznie wklejane w treść opisu. Usuwa tylko ZNANE
+ * dane (z pól email/phone), nigdy nieznanej treści, i zatrzymuje się na pierwszej
+ * linii, która kontaktem nie jest. Dodatkowo normalizuje unicode w całym bio.
+ */
+function cleanBio(bio: string, name?: string, email?: string, phone?: string): string {
+  const normalized = normalizePlain(bio);
+  const nameLc = name?.trim().toLowerCase();
+  const emailLc = email?.trim().toLowerCase();
+  const phoneDigits = phone ? onlyDigits(phone) : "";
+  if (!nameLc && !emailLc && !phoneDigits) return normalized.trim();
+
+  const lines = normalized.split("\n");
+  let start = 0;
+  while (start < lines.length) {
+    const raw = lines[start].trim();
+    if (raw === "") {
+      start++;
+      continue;
+    }
+    const ld = onlyDigits(raw);
+    const isKnownName = Boolean(nameLc) && raw.toLowerCase() === nameLc;
+    const isKnownEmail = Boolean(emailLc) && raw.toLowerCase().includes(emailLc!);
+    const isKnownPhone =
+      Boolean(phoneDigits) && ld.includes(phoneDigits) && ld.length <= phoneDigits.length + 3;
+    if (isKnownName || isKnownEmail || isKnownPhone) {
+      start++;
+      continue;
+    }
+    break;
+  }
+  return lines.slice(start).join("\n").trim();
 }
 
 export default async function OFibrzePage() {
@@ -235,31 +278,54 @@ export default async function OFibrzePage() {
                       <p className="mt-2 text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-700">
                         {member.role}
                       </p>
-                      <div className="mt-5 text-[15.5px] md:text-[16px] text-ink-800 leading-[1.7] text-pretty">
-                        {member.bio.split(/\n{2,}/).map((para, j) => (
-                          <p key={j} className="mb-3 last:mb-0 whitespace-pre-line">
-                            {para}
-                          </p>
-                        ))}
-                      </div>
-                      {member.phone ? (
-                        <a
-                          href={formatPhoneHref(member.phone)}
-                          className="mt-6 inline-flex items-center gap-2 self-start rounded-full bg-ink-950 px-6 py-3 text-[13px] font-semibold text-white transition-colors hover:bg-brand-500 active:scale-[0.98]"
-                          aria-label={`Zadzwoń do ${member.name}, ${member.phone}`}
-                        >
-                          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden>
-                            <path
-                              d="M11.5 9.8v1.4a1.2 1.2 0 0 1-1.3 1.2 11.8 11.8 0 0 1-5.1-1.8 11.6 11.6 0 0 1-3.6-3.6 11.8 11.8 0 0 1-1.8-5.2 1.2 1.2 0 0 1 1.2-1.3h1.4a1.2 1.2 0 0 1 1.2 1 7.8 7.8 0 0 0 .4 1.8 1.2 1.2 0 0 1-.3 1.2l-.6.6a9.6 9.6 0 0 0 3.6 3.6l.6-.6a1.2 1.2 0 0 1 1.2-.3 7.8 7.8 0 0 0 1.8.4 1.2 1.2 0 0 1 1 1.2Z"
-                              stroke="currentColor"
-                              strokeWidth="1.3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          <span className="tabular-nums">{member.phone}</span>
-                        </a>
+                      {/* Kontakt bezpośrednio pod nazwiskiem i rolą - numer i mail są
+                          jednoznacznie przypisane do tej osoby (uwaga Romana: wcześniej
+                          numer wisiał luzem pod długim bio i nie było jasne, czyj jest). */}
+                      {member.phone || member.email ? (
+                        <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2">
+                          {member.phone ? (
+                            <a
+                              href={formatPhoneHref(member.phone)}
+                              className="inline-flex items-center gap-2 rounded-full bg-ink-950 px-5 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-brand-500 active:scale-[0.98]"
+                              aria-label={`Zadzwoń do ${member.name}, ${member.phone}`}
+                            >
+                              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden>
+                                <path
+                                  d="M11.5 9.8v1.4a1.2 1.2 0 0 1-1.3 1.2 11.8 11.8 0 0 1-5.1-1.8 11.6 11.6 0 0 1-3.6-3.6 11.8 11.8 0 0 1-1.8-5.2 1.2 1.2 0 0 1 1.2-1.3h1.4a1.2 1.2 0 0 1 1.2 1 7.8 7.8 0 0 0 .4 1.8 1.2 1.2 0 0 1-.3 1.2l-.6.6a9.6 9.6 0 0 0 3.6 3.6l.6-.6a1.2 1.2 0 0 1 1.2-.3 7.8 7.8 0 0 0 1.8.4 1.2 1.2 0 0 1 1 1.2Z"
+                                  stroke="currentColor"
+                                  strokeWidth="1.3"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                              <span className="tabular-nums">{member.phone}</span>
+                            </a>
+                          ) : null}
+                          {member.email ? (
+                            <a
+                              href={`mailto:${member.email}`}
+                              className="inline-flex items-center gap-1.5 text-[14px] text-ink-600 underline decoration-ink-300 underline-offset-4 transition-colors hover:text-brand-600 hover:decoration-brand-500 break-all"
+                              aria-label={`Napisz do ${member.name}, ${member.email}`}
+                            >
+                              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0">
+                                <rect x="1.5" y="3" width="13" height="10" rx="1.6" stroke="currentColor" strokeWidth="1.2" />
+                                <path d="M2 4l6 4.2L14 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                              {member.email}
+                            </a>
+                          ) : null}
+                        </div>
                       ) : null}
+
+                      <div className="mt-6 text-[15.5px] md:text-[16px] text-ink-800 leading-[1.7] text-pretty">
+                        {cleanBio(member.bio, member.name, member.email, member.phone)
+                          .split(/\n{2,}/)
+                          .map((para, j) => (
+                            <p key={j} className="mb-3 last:mb-0 whitespace-pre-line">
+                              {para}
+                            </p>
+                          ))}
+                      </div>
                     </div>
                   </article>
                 </Reveal>
@@ -373,6 +439,9 @@ export default async function OFibrzePage() {
             </Reveal>
           </div>
         </section>
+
+        {/* Opinie klientów - po micie firmy, tuż przed finalnym CTA. */}
+        <GoogleReviews />
 
         {/* 5 - CTA */}
         <section className="relative py-20 md:py-32">

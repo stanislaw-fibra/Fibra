@@ -186,8 +186,10 @@ export function OfferAgentPresentation({ videoId, photoUrl, name, variant = "ava
           aria-label={name ? `Odtwórz autoprezentację: ${name}` : "Odtwórz autoprezentację agenta"}
           className="group flex w-full items-center gap-3 overflow-hidden rounded-[var(--radius-lg)] border border-ink-200/70 bg-paper p-2 pr-3 text-left shadow-[var(--shadow-soft)] transition-all duration-300 hover:border-brand-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
         >
-          {/* Kompaktowa miniatura z plakatem wideo + Play. */}
-          <span className="relative block h-[48px] w-[48px] shrink-0 overflow-hidden rounded-[var(--radius-md)] bg-ink-900">
+          {/* Kompaktowa miniatura z plakatem wideo. Play to mały badge w rogu - NIE
+              zakrywa kadru, żeby było widać twarz agenta (uwaga Romana: wcześniej
+              duże kółko Play na środku zasłaniało całą miniaturę). */}
+          <span className="relative block h-[56px] w-[56px] shrink-0 overflow-hidden rounded-[var(--radius-md)] bg-ink-900">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={posterUrl ?? photoUrl ?? undefined}
@@ -195,13 +197,12 @@ export function OfferAgentPresentation({ videoId, photoUrl, name, variant = "ava
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
             />
-            <span className="absolute inset-0 bg-ink-950/20" />
-            <span className="absolute inset-0 flex items-center justify-center">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-ink-950 shadow-[0_6px_18px_-6px_rgba(0,0,0,0.55)] transition-transform duration-300 group-hover:scale-110">
-                <svg width="12" height="12" viewBox="0 0 11 11" fill="currentColor" aria-hidden>
-                  <path d="M2.5 1.5l7 4-7 4v-8z" />
-                </svg>
-              </span>
+            {/* Delikatny gradient u dołu - badge czytelny, twarz odsłonięta. */}
+            <span className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink-950/55 to-transparent" />
+            <span className="absolute bottom-1 right-1 inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-white/95 text-ink-950 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-110">
+              <svg width="9" height="9" viewBox="0 0 11 11" fill="currentColor" aria-hidden>
+                <path d="M2.5 1.5l7 4-7 4v-8z" />
+              </svg>
             </span>
           </span>
           {/* Tekst zachęty - jeden wiersz, zwarcie. */}

@@ -25,6 +25,7 @@ import { OfferMiniGallery } from "@/components/offers/OfferMiniGallery";
 import { OfferStreamHeroShell } from "@/components/offers/OfferStreamHeroShell";
 import { firstNameInstrumental } from "@/lib/polish-names";
 import { buildOfferJsonLd } from "@/lib/seo/offer-jsonld";
+import { OfferReviewsBar } from "@/components/reviews/OfferReviewsBar";
 
 export const revalidate = 60;
 
@@ -451,6 +452,10 @@ export default async function OfferPage({
             </div>
           </section>
         )}
+
+        {/* Dowód zaufania tuż przed formularzem kontaktowym - user obejrzał ofertę,
+            widzi ocenę z Google i od razu pod spodem zostawia namiary. */}
+        <OfferReviewsBar />
 
         <section className="relative py-20 md:py-28 bg-paper">
           <span

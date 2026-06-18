@@ -404,6 +404,23 @@ function pickFloorPlanImageUrl(raw: Record<string, unknown> | null | undefined):
   return undefined;
 }
 
+/**
+ * Usuwa tagi HTML i zwija whitespace - tytuł/tagline mają być czystym tekstem.
+ * `advertisement_text` z importu bywa zapisany z `<strong>...</strong>` (bold
+ * marketingowy), co w tytule renderowało się jako surowe tagi (uwaga Romana).
+ * Boldy zostają tam, gdzie mają sens - w OPISIE (OfferDescription, sanitizeInlineHtml).
+ */
+function stripHtml(s: string): string {
+  return s
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0?39;|&apos;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function categoryToKind(category: string, title: string): OfferKind {
   const t = (title || "").toLowerCase();
   if (t.includes("penthouse")) return "penthouse";
@@ -468,7 +485,8 @@ export function mapOfferRow(row: OfferRow): Offer {
   const areaPlot = num(row.area_plot);
   const area = kind === "grunt" ? (areaPlot || areaTotal || areaUsable) : areaUsable || areaTotal;
 
-  const displayTitle = (row.advertisement_text?.trim() || row.title?.trim() || "Oferta").slice(0, 120);
+  const cleanAdText = stripHtml(row.advertisement_text ?? "");
+  const displayTitle = (cleanAdText || stripHtml(row.title ?? "") || "Oferta").slice(0, 120);
   // Wstaw breaks blokowe „w locie" - istniejące opisy w bazie były zapisywane bez `\n\n`
   // między akapitami, przez co cały tekst lądował w jednym `<p>` (bez nagłówków, bez list).
   // Re-import jest niepotrzebny - naprawiamy przy odczycie tym samym helperem co importer.
@@ -557,7 +575,7 @@ export function mapOfferRow(row: OfferRow): Offer {
     priceFrom,
     priceLabel: listing === "wynajem" ? "Cena miesięczna" : undefined,
     listingType: listing,
-    tagline: row.advertisement_text?.trim() || displayTitle,
+    tagline: cleanAdText || displayTitle,
     excerpt,
     highlights: [],
     fullDescription: desc.length > 0 ? desc : undefined,

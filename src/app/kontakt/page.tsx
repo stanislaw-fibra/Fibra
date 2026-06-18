@@ -1,6 +1,7 @@
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { KontaktPage as KontaktScreen } from "@/components/kontakt/KontaktPage";
+import { GoogleReviews } from "@/components/reviews/GoogleReviews";
 
 export const metadata = {
   title: "Kontakt - Fibra Nieruchomości",
@@ -14,6 +15,7 @@ export default function Page() {
       <Nav />
       <main className="flex-1 pt-[72px]">
         <KontaktScreen />
+        <GoogleReviews />
       </main>
       <Footer />
     </>

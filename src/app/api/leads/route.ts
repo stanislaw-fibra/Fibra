@@ -90,8 +90,15 @@ export async function POST(req: Request) {
   const salt = process.env.LEAD_IP_SALT?.trim() || "";
   const ip_hash = ip ? sha256Hex(`${salt}${ip}`) : null;
 
-  // Cloudflare Turnstile - pomijane, dopóki nie ustawiono TURNSTILE_SECRET_KEY.
-  const turnstile = await verifyTurnstile(body.turnstile_token, ip);
+  // Cloudflare Turnstile - egzekwowane TYLKO na hoście produkcyjnym. Poza prod
+  // (localhost, *.vercel.app) klient renderuje testowy klucz CF, którego prawdziwy
+  // sekret by nie zweryfikował - więc tam pomijamy (chronią honeypot + pułapka
+  // czasowa + rate-limit). Na prod: pełna weryfikacja. Pomijane też bez SECRET_KEY.
+  const host = req.headers.get("host")?.toLowerCase() ?? "";
+  const isProdHost = host === "fibra.pl" || host === "www.fibra.pl";
+  const turnstile = isProdHost
+    ? await verifyTurnstile(body.turnstile_token, ip)
+    : { ok: true, skipped: true };
   if (!turnstile.ok) {
     return NextResponse.json(
       { ok: false, error: "Weryfikacja antyspamowa nie powiodła się. Odśwież stronę i spróbuj ponownie." },

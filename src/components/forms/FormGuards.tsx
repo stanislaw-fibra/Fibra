@@ -19,7 +19,25 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
  * normalnie, chronione honeypotem + pułapką czasową + rate-limitem na serwerze.
  */
 
-const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+// Prawdziwy klucz produkcyjny (z env). Poza produkcją (localhost, *.vercel.app)
+// używamy testowego klucza Cloudflare, który ZAWSZE przechodzi - dzięki temu dev
+// i preview nie wpadają w błąd 110200 (domena spoza allowlisty sitekey), a formularze
+// działają end-to-end. Serwer (/api/leads) pomija weryfikację Turnstile poza prod.
+const REAL_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+const TEST_SITE_KEY = "1x00000000000000000000AA";
+const PROD_HOSTS = new Set(["fibra.pl", "www.fibra.pl"]);
+
+/** Czy Turnstile jest w ogóle skonfigurowany (steruje renderem widgetu i `ready`). */
+const TURNSTILE_ENABLED = Boolean(REAL_SITE_KEY);
+
+/** Klucz do renderu widgetu: prawdziwy tylko na hoście produkcyjnym, inaczej testowy. */
+function resolveSiteKey(): string {
+  if (typeof window !== "undefined" && !PROD_HOSTS.has(window.location.hostname)) {
+    return TEST_SITE_KEY;
+  }
+  return REAL_SITE_KEY ?? "";
+}
+
 const SCRIPT_SRC =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
@@ -63,31 +81,42 @@ export function useFormGuards() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const widgetIdRef = useRef<string | null>(null);
   const [token, setToken] = useState("");
+  const [turnstileError, setTurnstileError] = useState(false);
 
   useEffect(() => {
     mountedAtRef.current = Date.now();
   }, []);
 
   useEffect(() => {
-    if (!SITE_KEY) return;
+    if (!TURNSTILE_ENABLED) return;
     let active = true;
     loadTurnstileScript()
       .then(() => {
         if (!active || !containerRef.current || !window.turnstile) return;
         if (widgetIdRef.current) return;
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
-          sitekey: SITE_KEY,
-          callback: (t: string) => setToken(t),
-          "error-callback": () => setToken(""),
+          sitekey: resolveSiteKey(),
+          callback: (t: string) => {
+            setToken(t);
+            setTurnstileError(false);
+          },
+          "error-callback": () => {
+            setToken("");
+            setTurnstileError(true);
+          },
           "expired-callback": () => setToken(""),
-          "timeout-callback": () => setToken(""),
+          "timeout-callback": () => {
+            setToken("");
+            setTurnstileError(true);
+          },
           theme: "auto",
           action: "lead",
         });
       })
       .catch(() => {
-        // Sieć do Cloudflare padła - serwer i tak jest fail-open, więc nie
-        // blokujemy użytkownika. Zostawiamy honeypot + pułapkę czasową.
+        // Skrypt CF się nie wczytał (np. AdBlock). Pokazujemy czytelny komunikat
+        // z opcją ponowienia zamiast martwego przycisku.
+        setTurnstileError(true);
       });
     return () => {
       active = false;
@@ -120,10 +149,11 @@ export function useFormGuards() {
       }
     }
     setToken("");
+    setTurnstileError(false);
   }, []);
 
   // Gotowość do wysyłki: Turnstile wyłączony → zawsze; włączony → dopiero z tokenem.
-  const ready = !SITE_KEY || Boolean(token);
+  const ready = !TURNSTILE_ENABLED || Boolean(token);
 
   const guards = useMemo(
     () => (
@@ -152,10 +182,31 @@ export function useFormGuards() {
             />
           </label>
         </div>
-        {SITE_KEY ? <div ref={containerRef} className="mt-4" /> : null}
+        {TURNSTILE_ENABLED ? (
+          <div className="mt-4">
+            <div ref={containerRef} />
+            {turnstileError ? (
+              <p className="mt-2 text-[13px] leading-relaxed text-ink-600">
+                Weryfikacja antyspamowa nie odpowiada.{" "}
+                <button
+                  type="button"
+                  onClick={resetGuards}
+                  className="font-medium text-brand-600 underline underline-offset-2 transition-colors hover:text-brand-500"
+                >
+                  Spróbuj ponownie
+                </button>{" "}
+                lub zadzwoń:{" "}
+                <a href="tel:+48510777200" className="font-medium text-brand-600 hover:text-brand-500">
+                  510 777 200
+                </a>
+                .
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </>
     ),
-    [],
+    [turnstileError, resetGuards],
   );
 
   return {
@@ -163,7 +214,7 @@ export function useFormGuards() {
     getGuardData,
     resetGuards,
     ready,
-    turnstileEnabled: Boolean(SITE_KEY),
+    turnstileEnabled: TURNSTILE_ENABLED,
   };
 }
 
