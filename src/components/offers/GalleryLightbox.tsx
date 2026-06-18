@@ -397,7 +397,7 @@ export function GalleryLightboxProvider({
                           width={1600}
                           height={1200}
                           sizes={isMobileLandscape ? "100vw" : "(min-width: 1280px) 1240px, 95vw"}
-                          quality={78}
+                          quality={90}
                           priority={isActive}
                           fetchPriority={isActive ? "high" : "auto"}
                           onLoad={() => markLoaded(i)}

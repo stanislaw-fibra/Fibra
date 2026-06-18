@@ -19,7 +19,10 @@ const nextConfig: NextConfig = {
     ],
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30,
-    qualities: [60, 72, 75, 78],
+    // Next 16: tylko te wartości `quality` są dozwolone (każde quality={n} w kodzie
+    // musi tu być). 90 = ostre zdjęcia w galerii oferty (miniatury od razu w wysokiej
+    // jakości, nie dopiero po kliknięciu w lightbox).
+    qualities: [60, 72, 75, 78, 80, 82, 85, 90],
   },
   async redirects() {
     return [

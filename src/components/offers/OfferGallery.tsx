@@ -59,10 +59,10 @@ export function OfferGallery({ images, title }: Props) {
               alt=""
               fill
               className="relative object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-              sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 380px"
+              sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 420px"
               priority={i < 6}
               loading={i < 6 ? "eager" : "lazy"}
-              quality={72}
+              quality={90}
             />
             <span className="pointer-events-none absolute inset-0 bg-ink-950/0 group-hover:bg-ink-950/15 transition-colors duration-300" />
             <span className="pointer-events-none absolute bottom-3 right-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-ink-900 opacity-0 shadow-md transition-opacity duration-300 group-hover:opacity-100">
