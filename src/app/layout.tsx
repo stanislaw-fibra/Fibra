@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
 import { Inter, Instrument_Serif } from "next/font/google";
 import { AnalyticsScripts } from "@/components/consent/AnalyticsScripts";
+import { CookiebotLoader } from "@/components/consent/CookiebotLoader";
 import { SiteJsonLd } from "@/components/seo/SiteJsonLd";
 import { getCloudflareStreamCustomerCode } from "@/lib/cloudflare-stream";
 import "./globals.css";
-
-// Cookiebot CBID - z panelu manage.cookiebot.com (Bartosz, 2026-05-12).
-// Tryb data-blockingmode="auto" - Cookiebot sam blokuje znane trackery przed
-// uzyskaniem zgody, więc nie trzeba ręcznie gate'ować GA/FB Pixel.
-const COOKIEBOT_CBID = "f74cf9e3-5a07-4574-bc83-3e970cfa9d62";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -104,21 +100,6 @@ export default function RootLayout({
       className={`${inter.variable} ${instrument.variable} h-full scroll-smooth`}
     >
       <head>
-        {/* Cookiebot - MUSI być pierwszym skryptem w <head>, przed jakimkolwiek trackerem.
-            data-blockingmode="auto" automatycznie blokuje GA/FB Pixel/inne znane skrypty
-            dopóki użytkownik nie zaakceptuje przez baner.
-
-            UWAGA: używamy raw <script> zamiast next/script <Script>, bo Cookiebot
-            po załadowaniu PRZEPISUJE swój <script> (zmienia src na consentcdn,
-            dodaje type/charset), co generuje hydration mismatch z next/script.
-            `suppressHydrationWarning` tłumi ostrzeżenie React (mod jest oczekiwany). */}
-        <script
-          id="Cookiebot"
-          src="https://consent.cookiebot.com/uc.js"
-          data-cbid={COOKIEBOT_CBID}
-          data-blockingmode="auto"
-          suppressHydrationWarning
-        />
         {/* Preconnect do źródeł LCP (posterów wideo). Oszczędza ~300 ms TTFB dla pierwszych kafelków hero. */}
         <link rel="preconnect" href="https://videodelivery.net" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://videodelivery.net" />
@@ -145,8 +126,10 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[var(--color-paper)] text-ink-900">
         <SiteJsonLd />
         {children}
-        {/* Baner consent dostarcza Cookiebot (uc.js w <head>). AnalyticsScripts emituje
-            trackery, ale są blokowane przez Cookiebot do czasu uzyskania zgody. */}
+        {/* Cookiebot ładowany PO hydracji (CookiebotLoader, useEffect) - inaczej React
+            kasuje wstrzyknięty baner podczas hydracji. AnalyticsScripts emituje trackery
+            tagowane type="text/plain", aktywowane przez Cookiebot dopiero po zgodzie. */}
+        <CookiebotLoader />
         <AnalyticsScripts />
       </body>
     </html>
