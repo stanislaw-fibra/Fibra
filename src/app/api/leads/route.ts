@@ -10,6 +10,7 @@ import {
 import { isValidEmail } from "@/lib/email-validation";
 import { subscribeToNewsletter } from "@/lib/getresponse";
 import { honeypotTripped, tooFast, verifyTurnstile, rateLimited } from "@/lib/forms/anti-bot";
+import { RENTAL_AGENT } from "@/lib/rentals/zamyslow-rentals";
 
 export const runtime = "nodejs";
 
@@ -20,7 +21,8 @@ type LeadSource =
   | "sprzedaj_page"
   | "home_form"
   | "newsletter_footer"
-  | "b2b_page";
+  | "b2b_page"
+  | "rental_zamyslow";
 
 type LeadPayload = {
   source: LeadSource;
@@ -47,7 +49,8 @@ function isLeadSource(x: unknown): x is LeadSource {
     x === "sprzedaj_page" ||
     x === "home_form" ||
     x === "newsletter_footer" ||
-    x === "b2b_page"
+    x === "b2b_page" ||
+    x === "rental_zamyslow"
   );
 }
 
@@ -135,6 +138,12 @@ export async function POST(req: Request) {
     }
   }
 
+  // Wynajem: e-mail jest wymagany, bo cała mechanika opiera się na automatycznym
+  // mailu z linkiem do listy mieszkań (zapowiadanym telefonem przez Arkadiusza).
+  if (body.source === "rental_zamyslow" && !email) {
+    return NextResponse.json({ ok: false, error: "Missing email" }, { status: 400 });
+  }
+
   // E-mail jest opcjonalny w większości formularzy, ale jeśli ktoś go podał -
   // musi być poprawny. W newsletterze jest wymagany (sprawdzony wyżej).
   if (email && !isValidEmail(email)) {
@@ -212,11 +221,16 @@ export async function POST(req: Request) {
     const jobs: Promise<unknown>[] = [];
 
     // 1) Powiadomienie do biura - zawsze. Reply-To = e-mail klienta (jeśli jest),
-    //    żeby biuro mogło odpowiedzieć wprost do zgłaszającego.
+    //    żeby biuro mogło odpowiedzieć wprost do zgłaszającego. Dla wynajmu
+    //    dorzucamy bezpośrednio Arkadiusza - to on oddzwania do zgłaszających.
+    const officeRecipients =
+      body.source === "rental_zamyslow"
+        ? Array.from(new Set([...LEAD_NOTIFY_RECIPIENTS, RENTAL_AGENT.email]))
+        : LEAD_NOTIFY_RECIPIENTS;
     const office = leadOfficeNotification(emailData);
     jobs.push(
       sendEmail({
-        to: LEAD_NOTIFY_RECIPIENTS,
+        to: officeRecipients,
         subject: office.subject,
         html: office.html,
         text: office.text,

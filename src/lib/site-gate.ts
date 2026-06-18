@@ -35,6 +35,7 @@ const OPEN_PREFIXES = [
   "/wkrotce",
   "/kurs", // portal kursu + /kurs/login (ma własną bramkę dostępu)
   "/kurs-20-lekcji-inwestora", // strona sprzedaży kursu
+  "/wynajem-zamyslow", // najem 128F - link rozsyłany klientom, musi działać bez hasła
   "/panel", // panel zarządzania (własne logowanie)
   "/polityka-prywatnosci",
   "/regulamin",

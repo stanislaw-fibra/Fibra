@@ -1,5 +1,6 @@
 import "server-only";
 import type { LeadSource } from "@/lib/leads-client";
+import { RENTAL_AGENT } from "@/lib/rentals/zamyslow-rentals";
 import { emailShell, p, pMuted, button, divider, dataRows, esc } from "./render";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -53,6 +54,7 @@ const SOURCE_LABEL: Record<LeadSource, string> = {
   home_form: "Formularz na stronie głównej",
   newsletter_footer: "Zapis na newsletter",
   b2b_page: "Strona dla firm",
+  rental_zamyslow: "Wynajem Zamysłów (128F)",
 };
 
 // ── Potwierdzenie dla KLIENTA (copy per intencja) ──────────────────────────────
@@ -133,6 +135,34 @@ const CLIENT_COPY: Record<LeadSource, ClientCopy> = {
       p(`${greeting(d.full_name)} Dziękujemy za wiadomość. Wrócimy do Ciebie z konkretami dotyczącymi współpracy, zwykle w ciągu jednego dnia roboczego.`),
     textBody: (d) =>
       `${greetingText(d.full_name)}\n\nDziękujemy za wiadomość. Wrócimy do Ciebie z konkretami dotyczącymi współpracy, zwykle w ciągu jednego dnia roboczego.`,
+  },
+  rental_zamyslow: {
+    subject: "Mieszkania na wynajem - Zamysłów, Niedobczycka 128F",
+    heading: "Dziękujemy za zainteresowanie",
+    body: (d) => {
+      const url = `${SITE_URL}/wynajem-zamyslow`;
+      return (
+        p(`${greeting(d.full_name)} Dziękujemy za zainteresowanie mieszkaniami na wynajem przy ulicy Niedobczyckiej 128F w Rybniku (dzielnica Zamysłów).`) +
+        p("Pod tym linkiem znajdziesz aktualną listę lokali: metraż, liczbę pokoi, odstępne, kaucję, miejsce postojowe i to, które są jeszcze dostępne. Listę aktualizujemy na bieżąco.") +
+        button("Zobacz dostępne mieszkania", url) +
+        p(`Wkrótce zadzwoni do Ciebie ${esc(RENTAL_AGENT.name)}, żeby odpowiedzieć na pytania i, jeśli zechcesz, umówić oglądanie.`) +
+        divider() +
+        pMuted(
+          `Chcesz odezwać się od razu? Zadzwoń lub napisz SMS: <a href="tel:${RENTAL_AGENT.phoneTel}" style="color:#005a94;text-decoration:none;">${esc(RENTAL_AGENT.phoneDisplay)}</a>, e-mail: <a href="mailto:${RENTAL_AGENT.email}" style="color:#005a94;text-decoration:none;">${esc(RENTAL_AGENT.email)}</a>.`,
+        )
+      );
+    },
+    textBody: (d) => {
+      const url = `${SITE_URL}/wynajem-zamyslow`;
+      return `${greetingText(d.full_name)}
+
+Dziękujemy za zainteresowanie mieszkaniami na wynajem przy ulicy Niedobczyckiej 128F w Rybniku (dzielnica Zamysłów).
+
+Aktualną listę dostępnych lokali (metraż, pokoje, odstępne, kaucja, miejsce postojowe) znajdziesz tutaj:
+${url}
+
+Wkrótce zadzwoni do Ciebie ${RENTAL_AGENT.name}. Chcesz odezwać się od razu? Telefon i SMS: ${RENTAL_AGENT.phoneDisplay}, e-mail: ${RENTAL_AGENT.email}.`;
+    },
   },
   newsletter_footer: {
     subject: "Jesteś na liście",

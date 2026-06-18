@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       // Panel, bramka „wkrótce", portal kursu i strony robocze - poza indeksem.
-      disallow: ["/panel/", "/wkrotce", "/kurs/", "/jak-dzialamy", "/zamyslow-dostep"],
+      disallow: ["/panel/", "/wkrotce", "/kurs/", "/jak-dzialamy", "/zamyslow-dostep", "/wynajem-zamyslow"],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
     host: SITE_URL,
