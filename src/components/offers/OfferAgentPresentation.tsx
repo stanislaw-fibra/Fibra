@@ -289,7 +289,9 @@ export function OfferAgentPresentation({ videoId, photoUrl, name, variant = "ava
         aria-label={name ? `Odtwórz autoprezentację: ${name}` : "Odtwórz autoprezentację agenta"}
         className="group relative shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
       >
-        <AgentAvatar photoUrl={photoUrl} name={name} size="md" />
+        {/* Brak zdjęcia profilowego, ale jest wideo → pokaż kadr z autoprezentacji
+            zamiast inicjałów (uwaga Romana). photoUrl ma pierwszeństwo. */}
+        <AgentAvatar photoUrl={photoUrl ?? posterUrl ?? undefined} name={name} size="md" />
         {/* Przyciemnienie + duża ikona Play na hover - sygnał, że to klikalne wideo. */}
         <span className="absolute inset-0 flex items-center justify-center rounded-full bg-ink-950/15 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
           <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-ink-950 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]">

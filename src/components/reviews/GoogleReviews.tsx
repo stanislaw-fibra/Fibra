@@ -76,7 +76,7 @@ export function GoogleReviews({ className = "" }: { className?: string }) {
           </p>
           <h2 className="font-display fluid-display text-ink-950">Co mówią o nas klienci</h2>
           <p className="mt-5 text-[16px] md:text-[17px] text-ink-600 leading-relaxed">
-            Setki opinii zbieranych przez lata w Google, Airbnb i Booking.
+            Opinie naszych klientów, zbierane przez lata w wizytówce Google.
           </p>
         </div>
 

@@ -13,19 +13,19 @@
  * średnia i liczba nie skaczą z dnia na dzień.
  */
 export const REVIEWS = {
-  /** Ocena ogólna z widgetu (Google + Airbnb + Booking). */
-  rating: 4.7,
-  /** Łączna liczba opinii w widgecie. */
-  count: 526,
+  /** Ocena Google profilu „Grupa Fibra sp. z o.o." (place ChIJ1V-cD3FPEUcRZR3CFhiPUp8). */
+  rating: 4.8,
+  /** Liczba opinii Google Grupy Fibra. */
+  count: 186,
   /**
-   * Publiczna strona z pełnymi opiniami - cel przycisku w fallbacku (działa
-   * bez zgody na cookies). Na razie strona apartamentów, gdzie żyje ten widget.
+   * Pełne opinie Google Grupy Fibra - cel przycisku w fallbacku (działa bez zgody
+   * na cookies). Standardowy link „wszystkie opinie" dla Place ID wizytówki.
    */
-  reviewsUrl: "https://apartamentyfibra.pl/opinie",
+  reviewsUrl: "https://search.google.com/local/reviews?placeid=ChIJ1V-cD3FPEUcRZR3CFhiPUp8",
   /** Kotwica do sekcji opinii na tej stronie - cel paska na ofertach. */
   onSiteAnchor: "/o-fibrze#opinie",
-  /** ID widgetu z panelu Elfsight - sam ciąg po `elfsight-app-`. */
-  elfsightAppId: "bae5b0ef-4bad-4c0e-90b1-48dff44a53b1",
+  /** ID widgetu z panelu Elfsight - sam ciąg po `elfsight-app-` (widget Grupy Fibra). */
+  elfsightAppId: "2404317a-7b80-470f-a52b-ddb6726f38a8",
 } as const;
 
 /** Formatowanie liczb po polsku (przecinek dziesiętny): 4.9 -> „4,9". */

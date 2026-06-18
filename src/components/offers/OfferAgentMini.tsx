@@ -35,7 +35,7 @@ export function OfferAgentMini({
 
   return (
     <form
-      className="flex flex-col sm:flex-row sm:flex-wrap gap-3"
+      className="flex flex-col sm:flex-row sm:flex-wrap sm:items-start gap-3"
       onSubmit={async (e) => {
         e.preventDefault();
         if (sending) return;
