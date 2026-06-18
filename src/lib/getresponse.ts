@@ -195,6 +195,28 @@ async function ensureTagsOnExisting(
   }
 }
 
+/**
+ * Zapisuje istniejący kontakt do CYKLU autorespondera (dayOfCycle=0), gdy go tam
+ * nie ma. Potrzebne na ścieżce 409 (kontakt już był na liście) - inaczej ktoś, kto
+ * trafia na listę kursu drugi raz, nie dostanie streszczenia. Idempotentne.
+ */
+async function ensureDayZeroCycle(
+  cfg: GrConfig,
+  campaignId: string,
+  email: string,
+): Promise<void> {
+  const found = await findContact(cfg, campaignId, email);
+  if (!found) return;
+  try {
+    await grFetch(cfg, `/contacts/${found.contactId}`, {
+      method: "POST",
+      body: JSON.stringify({ dayOfCycle: "0" }),
+    });
+  } catch (e) {
+    console.error("[getresponse] ensureDayZeroCycle wyjątek:", e);
+  }
+}
+
 export interface SubscribeResult {
   ok: boolean;
   skipped?: boolean;
@@ -233,6 +255,14 @@ export async function subscribeToNewsletter(input: {
   const name = input.name?.trim() || undefined;
   const targetCampaign = input.campaignId?.trim() || cfg.campaignId;
 
+  // Czy zapisać kontakt do CYKLU autorespondera (dzień 0). KLUCZOWE: GetResponse
+  // NIE wciąga automatycznie do cyklu kontaktów dodanych przez API (formularze
+  // webowe tak - API nie). Bez tego kontakt ma dayOfCycle=null i autoresponder
+  // „dzień 0" NIGDY do niego nie idzie (mimo poprawnej listy i potwierdzenia).
+  // Włączamy tylko przy nadpisanej liście (= lista kursu z autoresponderem),
+  // żeby nie wciągać zapisów z innych formularzy w cykle listy domyślnej.
+  const enrollDayZero = Boolean(input.campaignId?.trim());
+
   try {
     const wantedTags = Array.from(
       new Set(
@@ -252,15 +282,21 @@ export async function subscribeToNewsletter(input: {
         name,
         campaign: { campaignId: targetCampaign },
         tags: tagIds,
+        // dayOfCycle=0 = wpięcie w cykl autorespondera „dzień 0". Przy double opt-in
+        // GR i tak wstrzymuje wiadomości do potwierdzenia, a po kliknięciu odpala
+        // dzień 0. Bez tego pola time-based autoresponder nie wyśle (dayOfCycle=null).
+        ...(enrollDayZero ? { dayOfCycle: "0" } : {}),
       }),
     });
 
     // 202 Accepted = dodany do kolejki (i ew. wysłany double opt-in).
     if (res.status === 202 || res.ok) return { ok: true };
 
-    // 409 = e-mail już na tej liście. Dokładamy tylko tag źródła.
+    // 409 = e-mail już na tej liście. Dokładamy tag źródła i (dla listy kursu)
+    // upewniamy się, że kontakt jest w cyklu autorespondera (dayOfCycle=0).
     if (res.status === 409) {
       await ensureTagsOnExisting(cfg, targetCampaign, email, tagIds);
+      if (enrollDayZero) await ensureDayZeroCycle(cfg, targetCampaign, email);
       return { ok: true };
     }
 
