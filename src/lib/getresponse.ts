@@ -142,12 +142,13 @@ async function resolveTagId(cfg: GrConfig, name: string): Promise<string | null>
 /** Znajduje istniejący kontakt na liście (po e-mailu) + jego aktualne tagId. */
 async function findContact(
   cfg: GrConfig,
+  campaignId: string,
   email: string,
 ): Promise<{ contactId: string; tagIds: string[] } | null> {
   try {
     const qs = new URLSearchParams({
       "query[email]": email,
-      "query[campaignId]": cfg.campaignId,
+      "query[campaignId]": campaignId,
       fields: "contactId,tags",
       perPage: "1",
     });
@@ -175,11 +176,12 @@ async function findContact(
  */
 async function ensureTagsOnExisting(
   cfg: GrConfig,
+  campaignId: string,
   email: string,
   newTagIds: string[],
 ): Promise<void> {
   if (!newTagIds.length) return;
-  const found = await findContact(cfg, email);
+  const found = await findContact(cfg, campaignId, email);
   if (!found) return;
   const union = Array.from(new Set([...found.tagIds, ...newTagIds]));
   if (union.length === found.tagIds.length) return; // nic nowego
@@ -211,9 +213,12 @@ export async function subscribeToNewsletter(input: {
   email: string;
   name?: string | null;
   source: NewsletterSource;
-  /** Dodatkowe tagi segmentujące (np. 'zrodlo-kurs' dla osób związanych z kursem),
-   *  poza BASE_TAG i tagiem źródła. Po nich wyzwalamy automatyzacje w GetResponse. */
+  /** Dodatkowe tagi segmentujące (np. 'zrodlo_kurs' dla osób związanych z kursem),
+   *  poza BASE_TAG i tagiem źródła. */
   extraTags?: string[];
+  /** Nadpisanie listy (campaignId) - np. osobna baza dla osób od kursu, na której
+   *  działa autoresponder „dzień 0" wysyłający streszczenie. Puste = lista domyślna. */
+  campaignId?: string;
 }): Promise<SubscribeResult> {
   const cfg = getConfig();
   if (!cfg) {
@@ -226,6 +231,7 @@ export async function subscribeToNewsletter(input: {
 
   const email = normalizeEmail(input.email);
   const name = input.name?.trim() || undefined;
+  const targetCampaign = input.campaignId?.trim() || cfg.campaignId;
 
   try {
     const wantedTags = Array.from(
@@ -244,7 +250,7 @@ export async function subscribeToNewsletter(input: {
       body: JSON.stringify({
         email,
         name,
-        campaign: { campaignId: cfg.campaignId },
+        campaign: { campaignId: targetCampaign },
         tags: tagIds,
       }),
     });
@@ -254,7 +260,7 @@ export async function subscribeToNewsletter(input: {
 
     // 409 = e-mail już na tej liście. Dokładamy tylko tag źródła.
     if (res.status === 409) {
-      await ensureTagsOnExisting(cfg, email, tagIds);
+      await ensureTagsOnExisting(cfg, targetCampaign, email, tagIds);
       return { ok: true };
     }
 

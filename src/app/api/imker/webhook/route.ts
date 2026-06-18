@@ -183,6 +183,8 @@ export async function POST(req: Request) {
         name: fullName,
         source: "newsletter_footer",
         extraTags: ["zrodlo_kurs"],
+        // Kupujący -> osobna lista kursu (autoresponder „dzień 0" wysyła streszczenie).
+        campaignId: process.env.GETRESPONSE_COURSE_CAMPAIGN_ID?.trim() || undefined,
       });
     } catch (e) {
       console.error("[imker] GetResponse subscribe nieudany (dostęp i tak zapisany):", e);

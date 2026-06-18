@@ -178,6 +178,10 @@ export async function POST(req: Request) {
         name: full_name,
         source: body.source,
         extraTags: body.course_context ? ["zrodlo_kurs"] : undefined,
+        // Osoby od kursu -> osobna lista, na której autoresponder „dzień 0" wysyła streszczenie.
+        campaignId: body.course_context
+          ? process.env.GETRESPONSE_COURSE_CAMPAIGN_ID?.trim() || undefined
+          : undefined,
       });
     } catch (e) {
       console.error("[leads] GetResponse subscribe nieudany (lead i tak zapisany):", e);
