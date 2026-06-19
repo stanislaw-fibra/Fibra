@@ -13,6 +13,7 @@ import {
   SITE_GATE_PATH,
   verifySiteGateToken,
 } from "@/lib/site-gate";
+import { isLaunched } from "@/lib/site-launch";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -21,8 +22,11 @@ export async function middleware(request: NextRequest) {
   // Chowa CAŁĄ stronę za wspólnym hasłem do publicznego startu. Wyjątki
   // (isOpenPath): kurs (sprzedaż/portal), strony prawne, panel, API, sama bramka.
   // PO PUBLICZNYM STARCIE: usuń ten jeden blok - reszta (kurs/panel/Zamysłów)
-  // zostaje bez zmian.
-  if (!isOpenPath(pathname)) {
+  // zostaje bez zmian. (Po dacie premiery blok i tak sam się dezaktywuje niżej.)
+  //
+  // AUTO-ZDJĘCIE: po godzinie premiery (SITE_LAUNCH_AT) bramka przepuszcza cały
+  // ruch bez hasła - strona staje się publiczna sama, bez crona i ręcznej akcji.
+  if (!isLaunched() && !isOpenPath(pathname)) {
     const token = request.cookies.get(SITE_GATE_COOKIE)?.value;
     if (!(await verifySiteGateToken(token))) {
       const redirect = new URL(SITE_GATE_PATH, request.url);

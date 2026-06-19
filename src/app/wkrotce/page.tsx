@@ -1,7 +1,19 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Logo } from "@/components/site/Logo";
 import { safeSiteGateNext } from "@/lib/site-gate";
+import { isLaunched, SITE_LAUNCH_ISO } from "@/lib/site-launch";
+import { Countdown } from "./Countdown";
 import { siteGateAction } from "./actions";
+
+const LAUNCH_LABEL = new Intl.DateTimeFormat("pl-PL", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Europe/Warsaw",
+}).format(new Date(SITE_LAUNCH_ISO));
 
 export const metadata: Metadata = {
   title: "Premiera już wkrótce - Fibra",
@@ -17,6 +29,11 @@ export default async function WkrotcePage({
   const next = safeSiteGateNext(sp.next);
   const hasError = sp.error === "1";
   const configError = sp.error === "config";
+
+  // Po premierze bramka jest zdjęta - nie pokazujemy już licznika, wpuszczamy.
+  if (isLaunched()) {
+    redirect(next);
+  }
 
   return (
     <div className="grain-on-dark relative min-h-screen bg-ink-950 text-white">
@@ -38,11 +55,19 @@ export default async function WkrotcePage({
               <em className="italic text-accent-400">już wkrótce</em>
             </h1>
             <p className="mx-auto mt-4 max-w-sm text-[15px] leading-relaxed text-ink-300">
-              Pracujemy nad nową stroną. Jeśli masz hasło dostępu, wpisz je
-              poniżej, żeby wejść.
+              Nowa strona Fibry rusza{" "}
+              <span className="text-white">{LAUNCH_LABEL}</span>. Odliczamy do
+              startu.
             </p>
 
-            <div className="mx-auto mt-8 max-w-[400px] rounded-2xl border border-white/10 bg-white/[0.02] p-6 text-left shadow-[var(--shadow-cinematic)] sm:p-7">
+            <div className="mt-9">
+              <Countdown next={next} />
+            </div>
+
+            <div className="mx-auto mt-12 max-w-[400px] rounded-2xl border border-white/10 bg-white/[0.02] p-6 text-left shadow-[var(--shadow-cinematic)] sm:p-7">
+              <p className="mb-5 text-center text-[12.5px] uppercase tracking-[0.18em] text-ink-400">
+                Masz wcześniejszy dostęp?
+              </p>
               {hasError && (
                 <p className="mb-5 rounded-lg border border-accent-400/30 bg-accent-400/10 px-4 py-3 text-[13.5px] text-accent-400">
                   Nieprawidłowe hasło. Sprawdź pisownię i spróbuj ponownie.
