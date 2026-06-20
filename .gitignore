@@ -44,3 +44,6 @@ supabase/.temp/
 
 # VIRGO: zapisany pełny eksport do seedu (nie commitujemy danych ofert)
 .virgo-seed/
+
+# Lokalny backup masterów kursu (nie commitować)
+.course-backup/
