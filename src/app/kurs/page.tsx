@@ -74,8 +74,8 @@ export default async function KursPage() {
             <p className="font-display text-[1.3rem] leading-none text-white">Fibra</p>
             <p>
               Masz problem z dostępem? Napisz na{" "}
-              <a className="text-ink-200 underline-offset-2 hover:underline" href="mailto:kontakt@fibranieruchomosci.pl">
-                kontakt@fibranieruchomosci.pl
+              <a className="text-ink-200 underline-offset-2 hover:underline" href="mailto:stanislaw.drozniak@fibra.pl">
+                stanislaw.drozniak@fibra.pl
               </a>
             </p>
           </div>

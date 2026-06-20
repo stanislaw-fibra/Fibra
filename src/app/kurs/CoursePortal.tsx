@@ -540,10 +540,10 @@ export function CoursePortal({ lessons, children }: Props) {
               Napisz, pomożemy od ręki.
             </p>
             <a
-              href="mailto:kontakt@fibranieruchomosci.pl"
+              href="mailto:stanislaw.drozniak@fibra.pl"
               className="mt-2.5 inline-block text-[12.5px] text-brand-300 underline-offset-2 hover:underline"
             >
-              kontakt@fibranieruchomosci.pl
+              stanislaw.drozniak@fibra.pl
             </a>
             <div className="mt-4 border-t border-white/8 pt-3">
               <a

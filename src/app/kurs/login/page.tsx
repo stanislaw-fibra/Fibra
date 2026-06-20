@@ -112,10 +112,10 @@ export default async function KursLoginPage({
             <p className="mt-5 text-center text-[12.5px] leading-relaxed text-ink-400">
               Problem z dostępem? Napisz na{" "}
               <a
-                href="mailto:kontakt@fibranieruchomosci.pl"
+                href="mailto:stanislaw.drozniak@fibra.pl"
                 className="text-brand-300 underline-offset-2 hover:underline"
               >
-                kontakt@fibranieruchomosci.pl
+                stanislaw.drozniak@fibra.pl
               </a>
             </p>
           </div>
