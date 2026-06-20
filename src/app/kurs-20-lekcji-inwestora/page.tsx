@@ -10,19 +10,21 @@ import { Logo } from "@/components/site/Logo";
 import bartoszBooks from "../../../public/kurs/bartosz-nosiadek.jpg";
 import bookMockup from "../../../public/kurs/bartosz-nosiadek-zarabianie-uczciwych-pieniedzy.png";
 import bookCta from "../../../public/kurs/ksiazka_cta.png";
+import { CourseCta } from "./CourseCta";
+import { ScarcityNote } from "./ScarcityNote";
+import { PRICE } from "./config";
 
 /* -------------------------------------------------------------------------
    DO UZUPEŁNIENIA przed publikacją:
    - HERO_VIDEO_ID: tymczasowa autoprezentacja (Cloudflare Stream) - Bartek
      podmieni na docelowy film.
-   - CHECKOUT_URL: produkt 21500 w Imkerze (czysta historia cen). Identyczny
-     ID jest też w webhooku: src/app/api/imker/webhook/route.ts
-     (COURSE_PRODUCT_ID).
+   CHECKOUT_URL, PRICE i pozostałe stałe kursu są w ./config.ts.
    Cena, opinie, value stack, zdjęcia, wideo o książce, link do koszyka są realne.
+
+   CTA: przyciski-zachęty z góry strony kotwiczą do sekcji zamówienia (#zamow)
+   przez <CourseCta mode="anchor">; przyciski realnego zakupu (sekcja zamówienia
+   i finał) przez <CourseCta mode="checkout"> wysyłają AddToCart (piksel + CAPI).
    ------------------------------------------------------------------------- */
-const CHECKOUT_URL = "https://bartosznosiadek.salescrm.pl/cart/add_product/21500";
-/** Stała cena kursu (nie promocja - nie przekreślamy). */
-const PRICE = "177 zł";
 
 /**
  * Bonus czasowy: do 15 lipca do kursu dorzucamy pakiet książki o wartości
@@ -38,6 +40,12 @@ const BONUS = {
   deadline: "15 lipca",
   /** Wartość przy zakupie osobno: 177 zł (kurs) + 297 zł (pakiet). */
   priceSeparate: "474 zł",
+  /**
+   * Ograniczony nakład drukowanej książki (scarcity zgodny z prawdą).
+   * stockLeft = null → komunikat „do wyczerpania nakładu" (bez liczby, nie wymaga
+   * aktualizacji). Wpisz liczbę tylko, gdy znasz realny stan i chcesz go pokazać.
+   */
+  stockLeft: null as number | null,
   /** Co wchodzi w pakiet książki (wartość 297 zł). */
   items: [
     "Drukowana książka „Zarabianie Uczciwych Pieniędzy”",
@@ -241,15 +249,16 @@ export default function Kurs20LekcjiPage() {
 
                 <Reveal delay={240}>
                   <div className="mt-9 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-                    <a
-                      href={CHECKOUT_URL}
+                    <CourseCta
+                      mode="anchor"
+                      section="hero"
                       className="inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 hover:bg-accent-400 text-white px-8 sm:px-10 py-4 text-[15px] md:text-[16px] font-medium shadow-[var(--shadow-card)] transition-colors active:scale-[0.98]"
                     >
                       Chcę kurs + pakiet książki gratis
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                         <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
-                    </a>
+                    </CourseCta>
                     <a
                       href="#program"
                       className="group inline-flex items-center justify-center gap-1.5 text-[15px] md:text-[16px] font-medium text-ink-700 hover:text-ink-950 transition-colors"
@@ -356,15 +365,16 @@ export default function Kurs20LekcjiPage() {
               </Reveal>
               <Reveal delay={240}>
                 <div className="mt-10">
-                  <a
-                    href={CHECKOUT_URL}
+                  <CourseCta
+                    mode="anchor"
+                    section="solution"
                     className="inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 hover:bg-accent-400 text-white px-8 sm:px-10 py-4 text-[15px] md:text-[16px] font-medium transition-colors active:scale-[0.98]"
                   >
-                    Kupuję dostęp ({PRICE})
+                    Zobacz, co dostajesz
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-                      <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M7 3v8M3 7l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                  </a>
+                  </CourseCta>
                 </div>
               </Reveal>
             </div>
@@ -427,15 +437,16 @@ export default function Kurs20LekcjiPage() {
 
             <Reveal delay={120}>
               <div className="mt-14 text-center">
-                <a
-                  href={CHECKOUT_URL}
+                <CourseCta
+                  mode="anchor"
+                  section="program"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 hover:bg-accent-400 text-white px-8 sm:px-10 py-4 text-[15px] md:text-[16px] font-medium transition-colors active:scale-[0.98]"
                 >
                   Chcę cały kurs + książkę gratis
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-                    <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M7 3v8M3 7l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                </a>
+                </CourseCta>
               </div>
             </Reveal>
           </div>
@@ -487,15 +498,16 @@ export default function Kurs20LekcjiPage() {
                     </ul>
                   </Reveal>
                   <Reveal delay={280}>
-                    <a
-                      href={CHECKOUT_URL}
+                    <CourseCta
+                      mode="anchor"
+                      section="free_lesson"
                       className="mt-9 inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 hover:bg-accent-400 text-white px-8 sm:px-10 py-4 text-[15px] md:text-[16px] font-medium transition-colors active:scale-[0.98]"
                     >
                       Chcę pozostałe 19 lekcji + książkę gratis
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-                        <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M7 3v8M3 7l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
-                    </a>
+                    </CourseCta>
                   </Reveal>
                 </div>
 
@@ -705,6 +717,12 @@ export default function Kurs20LekcjiPage() {
                   </p>
                 </Reveal>
 
+                <Reveal delay={200}>
+                  <div className="mt-7">
+                    <ScarcityNote tone="dark" stockLeft={BONUS.stockLeft} />
+                  </div>
+                </Reveal>
+
                 <Reveal delay={220}>
                   <ul className="mt-8 grid sm:grid-cols-2 gap-x-8 gap-y-3">
                     {BONUS.items.map((it, i) => (
@@ -872,15 +890,22 @@ export default function Kurs20LekcjiPage() {
                     ))}
                   </ul>
 
-                  <a
-                    href={CHECKOUT_URL}
-                    className="mt-7 w-full inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 hover:bg-accent-400 text-white px-8 py-4 text-[16px] font-medium transition-colors active:scale-[0.98]"
+                  {BONUS.active && (
+                    <div className="mt-6 flex justify-center">
+                      <ScarcityNote tone="light" stockLeft={BONUS.stockLeft} />
+                    </div>
+                  )}
+
+                  <CourseCta
+                    mode="checkout"
+                    section="order"
+                    className="mt-5 w-full inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 hover:bg-accent-400 text-white px-8 py-4 text-[16px] font-medium transition-colors active:scale-[0.98]"
                   >
                     Kupuję dostęp ({PRICE})
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                       <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                  </a>
+                  </CourseCta>
                   <p className="mt-3 text-center text-[12.5px] text-ink-500">
                     Dostęp od razu po zakupie · BLIK, Przelewy24, karta
                   </p>
@@ -1053,15 +1078,16 @@ export default function Kurs20LekcjiPage() {
             </Reveal>
             <Reveal delay={240}>
               <div className="mt-10">
-                <a
-                  href={CHECKOUT_URL}
+                <CourseCta
+                  mode="checkout"
+                  section="final"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 hover:bg-accent-400 text-white px-10 sm:px-14 py-5 text-[17px] md:text-[18px] font-medium transition-colors active:scale-[0.98]"
                 >
                   {BONUS.active ? "Chcę kurs + pakiet książki gratis" : "Chcę dostęp do kursu"}
                   <svg width="16" height="16" viewBox="0 0 14 14" fill="none" aria-hidden>
                     <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                </a>
+                </CourseCta>
                 <p className="mt-4 text-[13.5px] text-ink-500">
                   Dostęp od razu po zakupie · BLIK, Przelewy24, karta · 30 dni gwarancji
                 </p>
@@ -1116,7 +1142,7 @@ export default function Kurs20LekcjiPage() {
         </div>
       </footer>
 
-      <StickyCta checkoutUrl={CHECKOUT_URL} price={PRICE} />
+      <StickyCta />
     </>
   );
 }
