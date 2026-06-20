@@ -40,12 +40,6 @@ const BONUS = {
   deadline: "15 lipca",
   /** Wartość przy zakupie osobno: 177 zł (kurs) + 297 zł (pakiet). */
   priceSeparate: "474 zł",
-  /**
-   * Ograniczony nakład drukowanej książki (scarcity zgodny z prawdą).
-   * stockLeft = null → komunikat „do wyczerpania nakładu" (bez liczby, nie wymaga
-   * aktualizacji). Wpisz liczbę tylko, gdy znasz realny stan i chcesz go pokazać.
-   */
-  stockLeft: null as number | null,
   /** Co wchodzi w pakiet książki (wartość 297 zł). */
   items: [
     "Drukowana książka „Zarabianie Uczciwych Pieniędzy”",
@@ -280,7 +274,7 @@ export default function Kurs20LekcjiPage() {
                 {BONUS.active && (
                   <Reveal delay={360}>
                     <div className="mt-5">
-                      <ScarcityNote tone="light" stockLeft={BONUS.stockLeft} />
+                      <ScarcityNote tone="light" deadline={BONUS.deadline} />
                     </div>
                   </Reveal>
                 )}
@@ -727,7 +721,7 @@ export default function Kurs20LekcjiPage() {
 
                 <Reveal delay={200}>
                   <div className="mt-7">
-                    <ScarcityNote tone="dark" stockLeft={BONUS.stockLeft} />
+                    <ScarcityNote tone="dark" deadline={BONUS.deadline} />
                   </div>
                 </Reveal>
 
@@ -900,7 +894,7 @@ export default function Kurs20LekcjiPage() {
 
                   {BONUS.active && (
                     <div className="mt-6 flex justify-center">
-                      <ScarcityNote tone="light" stockLeft={BONUS.stockLeft} />
+                      <ScarcityNote tone="light" deadline={BONUS.deadline} />
                     </div>
                   )}
 
@@ -1087,7 +1081,7 @@ export default function Kurs20LekcjiPage() {
             {BONUS.active && (
               <Reveal delay={220}>
                 <div className="mt-10 flex justify-center">
-                  <ScarcityNote tone="light" stockLeft={BONUS.stockLeft} />
+                  <ScarcityNote tone="light" deadline={BONUS.deadline} />
                 </div>
               </Reveal>
             )}

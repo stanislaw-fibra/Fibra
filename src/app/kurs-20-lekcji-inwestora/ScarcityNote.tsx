@@ -1,26 +1,20 @@
 /**
- * Komunikat ograniczonej dostępności pakietu książki. Zgodny z prawdą: drukowany
- * nakład jest ograniczony, więc pakiet dołączamy do wyczerpania egzemplarzy.
+ * Komunikat ograniczonej oferty bonusu (pakiet książki gratis). Mówi wprost, że to
+ * OFERTA jest ograniczona - czasowo (do `deadline`) lub do wyczerpania nakładu
+ * drukowanej książki. Nie jest to disclaimer „możesz nie dostać książki" - kto
+ * zamawia w trakcie oferty, dostaje pakiet.
  *
- * Domyślnie bez liczby (komunikat jakościowy „do wyczerpania nakładu" - zawsze
- * prawdziwy, nie wymaga aktualizacji). Liczbę (`stockLeft`) podawaj tylko, jeśli
- * znasz realny stan i chcesz go pokazać.
- *
- * Dwa warianty kolorystyczne pod tło: "dark" (sekcja bonusu) i "light" (cennik).
+ * Dwa warianty kolorystyczne pod tło: "dark" (sekcja bonusu) i "light" (reszta).
  */
 
 type Props = {
   tone?: "dark" | "light";
-  stockLeft?: number | null;
+  /** Termin obowiązywania bonusu, np. "15 lipca" (BONUS.deadline). */
+  deadline: string;
   className?: string;
 };
 
-export function ScarcityNote({ tone = "light", stockLeft = null, className = "" }: Props) {
-  const detail =
-    typeof stockLeft === "number"
-      ? `Drukowaną książkę dorzucamy do każdego zamówienia. Zostało jeszcze ${stockLeft} egzemplarzy.`
-      : "Drukowaną książkę dorzucamy do każdego zamówienia, póki starcza egzemplarzy.";
-
+export function ScarcityNote({ tone = "light", deadline, className = "" }: Props) {
   const box =
     tone === "dark"
       ? "border-accent-400/35 bg-accent-500/10 text-accent-100"
@@ -37,7 +31,8 @@ export function ScarcityNote({ tone = "light", stockLeft = null, className = "" 
         <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent-500" />
       </span>
       <span>
-        <strong className="font-semibold">Bonus tylko do wyczerpania nakładu.</strong> {detail}
+        <strong className="font-semibold">Oferta ograniczona.</strong> Pakiet książki
+        gratis tylko do {deadline} lub do wyczerpania nakładu.
       </span>
     </div>
   );
