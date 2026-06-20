@@ -32,7 +32,7 @@ export function ScarcityNote({ tone = "light", deadline, className = "" }: Props
       </span>
       <span>
         <strong className="font-semibold">Oferta ograniczona.</strong> Pakiet książki
-        gratis tylko do {deadline} lub do wyczerpania nakładu.
+        gratis tylko do {deadline} lub do wyczerpania nakładu drukowanej książki.
       </span>
     </div>
   );
