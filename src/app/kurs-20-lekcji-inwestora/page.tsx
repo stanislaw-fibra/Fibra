@@ -276,6 +276,14 @@ export default function Kurs20LekcjiPage() {
                     Dostęp od razu po zakupie · BLIK, Przelewy24, karta
                   </p>
                 </Reveal>
+
+                {BONUS.active && (
+                  <Reveal delay={360}>
+                    <div className="mt-5">
+                      <ScarcityNote tone="light" stockLeft={BONUS.stockLeft} />
+                    </div>
+                  </Reveal>
+                )}
               </div>
 
               <Reveal delay={200}>
@@ -1076,8 +1084,15 @@ export default function Kurs20LekcjiPage() {
                 Dostęp od razu po zakupie. Jeśli kurs Ci nie pomoże, masz 30 dni na zwrot.
               </p>
             </Reveal>
+            {BONUS.active && (
+              <Reveal delay={220}>
+                <div className="mt-10 flex justify-center">
+                  <ScarcityNote tone="light" stockLeft={BONUS.stockLeft} />
+                </div>
+              </Reveal>
+            )}
             <Reveal delay={240}>
-              <div className="mt-10">
+              <div className="mt-6">
                 <CourseCta
                   mode="checkout"
                   section="final"

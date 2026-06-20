@@ -18,8 +18,8 @@ type Props = {
 export function ScarcityNote({ tone = "light", stockLeft = null, className = "" }: Props) {
   const detail =
     typeof stockLeft === "number"
-      ? `Z nakładu zostało jeszcze ${stockLeft} egzemplarzy książki.`
-      : "Pakiet książki dołączamy do wyczerpania nakładu.";
+      ? `Drukowaną książkę dorzucamy do każdego zamówienia. Zostało jeszcze ${stockLeft} egzemplarzy.`
+      : "Drukowaną książkę dorzucamy do każdego zamówienia, póki starcza egzemplarzy.";
 
   const box =
     tone === "dark"
@@ -37,7 +37,7 @@ export function ScarcityNote({ tone = "light", stockLeft = null, className = "" 
         <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent-500" />
       </span>
       <span>
-        <strong className="font-semibold">Ograniczony nakład.</strong> {detail}
+        <strong className="font-semibold">Bonus tylko do wyczerpania nakładu.</strong> {detail}
       </span>
     </div>
   );
