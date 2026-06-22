@@ -22,6 +22,12 @@ const GRAPH_VERSION = "v21.0";
 export type CapiUserData = {
   email?: string | null;
   phone?: string | null;
+  /** Imię - hashowane (fn). Podnosi „jakość dopasowania zdarzeń". */
+  first_name?: string | null;
+  /** Nazwisko - hashowane (ln). */
+  last_name?: string | null;
+  /** Stabilny identyfikator klienta (np. e-mail zamówienia) - hashowany (external_id). */
+  external_id?: string | null;
   client_ip_address?: string | null;
   client_user_agent?: string | null;
   /** Cookie _fbp (przeglądarkowy identyfikator piksela). */
@@ -56,6 +62,17 @@ function hashPhone(phone: string): string {
   return sha256(digits);
 }
 
+/** Imię/nazwisko wg Meta: trim, lowercase, bez znaków spoza liter, potem SHA-256. */
+function hashName(name: string): string {
+  const norm = name.trim().toLowerCase().replace(/[^a-ząćęłńóśźż]/gi, "");
+  return sha256(norm);
+}
+
+/** Dowolny stabilny identyfikator (np. e-mail): trim, lowercase, SHA-256. */
+function hashExternalId(value: string): string {
+  return sha256(value.trim().toLowerCase());
+}
+
 /** ID zbioru danych - własny env lub piksel (Meta zwykle ma to samo ID). */
 export function getDatasetId(): string | null {
   return (
@@ -88,6 +105,9 @@ export async function sendCapiEvents(events: CapiEvent[]): Promise<CapiResult> {
     const ud: Record<string, unknown> = {};
     if (e.user_data.email) ud.em = [hashEmail(e.user_data.email)];
     if (e.user_data.phone) ud.ph = [hashPhone(e.user_data.phone)];
+    if (e.user_data.first_name) ud.fn = [hashName(e.user_data.first_name)];
+    if (e.user_data.last_name) ud.ln = [hashName(e.user_data.last_name)];
+    if (e.user_data.external_id) ud.external_id = [hashExternalId(e.user_data.external_id)];
     if (e.user_data.client_ip_address) ud.client_ip_address = e.user_data.client_ip_address;
     if (e.user_data.client_user_agent) ud.client_user_agent = e.user_data.client_user_agent;
     if (e.user_data.fbp) ud.fbp = e.user_data.fbp;

@@ -51,6 +51,38 @@ function getCookie(name: string): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+/**
+ * Identyfikator kliknięcia reklamy z bieżącego URL (świeży) lub z cookie
+ * `fibra_fbclid` utrwalonego na wejściu (AnalyticsScripts). Tylko po zgodzie
+ * marketingowej - cookie i tak powstaje dopiero po zgodzie.
+ */
+function getFbclid(): string | null {
+  if (typeof window === "undefined") return null;
+  const fromUrl = new URLSearchParams(window.location.search).get("fbclid");
+  return fromUrl || getCookie("fibra_fbclid");
+}
+
+/**
+ * Dokleja `fbclid` do linku koszyka na salescrm.pl. To inna domena niż fibra.pl,
+ * więc cookie _fbc złapane u nas jest tam nieczytelne - jedyny przenośny most to
+ * sam fbclid w URL. Piksel Meta na salescrm.pl odczyta go natywnie i ustawi tam
+ * _fbc, dzięki czemu zdarzenie Zakup ma się jak podpiąć pod reklamę.
+ *
+ * Zwraca URL bez zmian, gdy brak zgody marketingowej lub brak fbclid.
+ */
+export function checkoutUrlWithClickId(baseUrl: string): string {
+  if (!hasMarketingConsent()) return baseUrl;
+  const fbclid = getFbclid();
+  if (!fbclid) return baseUrl;
+  try {
+    const url = new URL(baseUrl);
+    url.searchParams.set("fbclid", fbclid);
+    return url.toString();
+  } catch {
+    return baseUrl;
+  }
+}
+
 function newEventId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();

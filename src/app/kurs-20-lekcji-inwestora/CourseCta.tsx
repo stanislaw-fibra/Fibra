@@ -4,6 +4,7 @@ import { CHECKOUT_URL, ORDER_ANCHOR } from "./config";
 import {
   trackCourseCheckout,
   trackCourseInterest,
+  checkoutUrlWithClickId,
   type CtaSection,
 } from "@/lib/course-tracking";
 
@@ -27,7 +28,14 @@ export function CourseCta({ mode, section, className, children }: Props) {
       <a
         href={CHECKOUT_URL}
         className={className}
-        onClick={() => trackCourseCheckout(section)}
+        onClick={(e) => {
+          // SSR renderuje czysty CHECKOUT_URL (bez ryzyka hydration mismatch);
+          // dopiero przy kliknięciu doklejamy fbclid do linku na salescrm.pl,
+          // żeby zakup dało się podpiąć pod reklamę. Nawigacja czyta href po tym
+          // synchronicznym handlerze, więc podmiana zdąży zadziałać.
+          e.currentTarget.href = checkoutUrlWithClickId(CHECKOUT_URL);
+          trackCourseCheckout(section);
+        }}
       >
         {children}
       </a>

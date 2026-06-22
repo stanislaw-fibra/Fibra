@@ -16,7 +16,7 @@ export const runtime = "nodejs";
  * (ALLOWED_EVENTS) - to ogranicza zaśmiecanie zbioru danych przez osoby trzecie.
  */
 
-const ALLOWED_EVENTS = new Set(["AddToCart", "InitiateCheckout", "ViewContent"]);
+const ALLOWED_EVENTS = new Set(["PageView", "AddToCart", "InitiateCheckout", "ViewContent"]);
 
 type Body = {
   event_name?: string;

@@ -60,7 +60,23 @@ t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 fbq('init', ${JSON.stringify(fbPixelId)});
-fbq('track', 'PageView');
+// fbclid z URL -> utrwalamy _fbc (format Meta: fb.1.<ts>.<fbclid>) i kopię
+// w cookie pierwszej strony (fibra_fbclid), żeby doklejać go do koszyka na
+// salescrm.pl. Ten skrypt odpala Cookiebot dopiero po zgodzie marketingowej,
+// więc zapis tych cookies jest z definicji za zgodą.
+(function(){try{
+  var cid=new URLSearchParams(location.search).get('fbclid');
+  if(cid){
+    if(!/(?:^|; )_fbc=/.test(document.cookie)){
+      document.cookie='_fbc=fb.1.'+Date.now()+'.'+cid+'; path=/; max-age=7776000; samesite=Lax';
+    }
+    document.cookie='fibra_fbclid='+cid+'; path=/; max-age=7776000; samesite=Lax';
+  }
+}catch(e){}})();
+// Wspólny event_id dla piksela i CAPI -> Meta deduplikuje PageView.
+// MetaPixelPageView (klient) odczyta go i dośle PageView serwerowo z fbc/IP/UA.
+window.__fbPageViewId=(self.crypto&&crypto.randomUUID)?crypto.randomUUID():('pv-'+Date.now()+'-'+Math.round(Math.random()*1e9));
+fbq('track', 'PageView', {}, {eventID: window.__fbPageViewId});
           `.trim()}
         </Script>
       ) : null}

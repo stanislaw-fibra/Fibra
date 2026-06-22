@@ -55,6 +55,7 @@ const SOURCE_LABEL: Record<LeadSource, string> = {
   newsletter_footer: "Zapis na newsletter",
   b2b_page: "Strona dla firm",
   rental_zamyslow: "Wynajem Zamysłów (128F)",
+  investor_zamyslow: "Inwestycja Zamysłów (lead inwestorski)",
 };
 
 // ── Potwierdzenie dla KLIENTA (copy per intencja) ──────────────────────────────
@@ -163,6 +164,16 @@ ${url}
 
 Wkrótce zadzwoni do Ciebie ${RENTAL_AGENT.name}. Chcesz odezwać się od razu? Telefon i SMS: ${RENTAL_AGENT.phoneDisplay}, e-mail: ${RENTAL_AGENT.email}.`;
     },
+  },
+  investor_zamyslow: {
+    subject: "Inwestycja Zamysłów - odezwiemy się",
+    heading: "Dziękujemy za zainteresowanie",
+    body: (d) =>
+      p(`${greeting(d.full_name)} Mamy Twoje zgłoszenie w sprawie inwestycji na Osiedlu Zamysłów w Rybniku.`) +
+      p("Oddzwonimy, żeby spokojnie przejść przez liczby: ceny, szacowaną rentowność najmu i to, które mieszkanie ma sens przy Twoim budżecie. Zwykle kontaktujemy się w ciągu kilku godzin w dni robocze.") +
+      pMuted("Jeśli chcesz coś dopowiedzieć wcześniej, po prostu odpowiedz na tę wiadomość."),
+    textBody: (d) =>
+      `${greetingText(d.full_name)}\n\nMamy Twoje zgłoszenie w sprawie inwestycji na Osiedlu Zamysłów w Rybniku. Oddzwonimy, żeby przejść przez liczby: ceny, szacowaną rentowność najmu i dobór mieszkania do budżetu. Zwykle kontaktujemy się w ciągu kilku godzin w dni robocze.`,
   },
   newsletter_footer: {
     subject: "Jesteś na liście",

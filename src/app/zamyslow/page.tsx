@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
 import { Footer } from "@/components/site/Footer";
 import { Nav } from "@/components/site/Nav";
-import { ZamyslowExperience } from "@/components/investments/zamyslow/ZamyslowExperience";
+import { InvestorHero } from "@/components/investments/zamyslow/investor/InvestorHero";
+import { TrustSection } from "@/components/investments/zamyslow/investor/TrustSection";
+import { WhyRybnik } from "@/components/investments/zamyslow/investor/WhyRybnik";
+import { ReturnsSection } from "@/components/investments/zamyslow/investor/ReturnsSection";
+import { WhichApartment } from "@/components/investments/zamyslow/investor/WhichApartment";
+import { InvestorCta } from "@/components/investments/zamyslow/investor/InvestorCta";
 
 export const metadata: Metadata = {
-  title: "Osiedle Zamysłów - Inwestycja premium | Fibra Nieruchomości",
+  title: "Zainwestuj w Rybniku - Osiedle Zamysłów | Fibra Nieruchomości",
   description:
-    "Poznaj Osiedle Zamysłów: interaktywny podgląd pięter, rzuty mieszkań i aktualne statusy lokali.",
+    "Mieszkanie na wynajem na Osiedlu Zamysłów w Rybniku. Komu zaufać, dlaczego Rybnik, szacowana rentowność najmu i wybór mieszkania - wszystko, co inwestor chce wiedzieć.",
+  robots: { index: false, follow: false },
 };
 
 export default function ZamyslowPage() {
@@ -14,7 +20,12 @@ export default function ZamyslowPage() {
     <>
       <Nav />
       <main className="flex-1 pt-[72px]">
-        <ZamyslowExperience />
+        <InvestorHero />
+        <TrustSection />
+        <WhyRybnik />
+        <ReturnsSection />
+        <WhichApartment />
+        <InvestorCta />
       </main>
       <Footer />
     </>

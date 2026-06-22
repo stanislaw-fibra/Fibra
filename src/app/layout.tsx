@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Instrument_Serif } from "next/font/google";
 import { AnalyticsScripts } from "@/components/consent/AnalyticsScripts";
+import { MetaPixelPageView } from "@/components/consent/MetaPixelPageView";
 import { CookiebotLoader } from "@/components/consent/CookiebotLoader";
 import { SiteJsonLd } from "@/components/seo/SiteJsonLd";
 import { getCloudflareStreamCustomerCode } from "@/lib/cloudflare-stream";
@@ -131,6 +132,7 @@ export default function RootLayout({
             tagowane type="text/plain", aktywowane przez Cookiebot dopiero po zgodzie. */}
         <CookiebotLoader />
         <AnalyticsScripts />
+        <MetaPixelPageView />
       </body>
     </html>
   );

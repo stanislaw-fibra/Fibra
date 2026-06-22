@@ -29,7 +29,8 @@ export type NewsletterSource =
   | "home_form"
   | "newsletter_footer"
   | "b2b_page"
-  | "rental_zamyslow";
+  | "rental_zamyslow"
+  | "investor_zamyslow";
 
 /**
  * Tag źródła = z jakiego formularza przyszedł kontakt. Po tym segmentujemy
@@ -49,6 +50,7 @@ const SOURCE_TAG: Record<NewsletterSource, string> = {
   home_form: "zrodlo_strona_glowna",
   b2b_page: "zrodlo_dla_firm",
   rental_zamyslow: "zrodlo_wynajem",
+  investor_zamyslow: "zrodlo_inwestor",
 };
 
 /** GetResponse: nazwa tagu tylko [A-Za-z0-9_]. Zamieniamy resztę na '_'. */

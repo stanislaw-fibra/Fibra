@@ -27,6 +27,8 @@ export const ZAMYSLOW_GATE_PATH = "/zamyslow-dostep";
  */
 export const ZAMYSLOW_GATED_PREFIXES = [
   "/zamyslow",
+  "/osiedle-zamyslow",
+  "/czy-inwestycja-w-mieszkanie-jest-dla-mnie",
   "/przewodnik-inwestora",
   "/zarzadzanie-najmem",
   "/galeria-inwestycji",

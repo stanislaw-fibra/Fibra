@@ -22,7 +22,8 @@ type LeadSource =
   | "home_form"
   | "newsletter_footer"
   | "b2b_page"
-  | "rental_zamyslow";
+  | "rental_zamyslow"
+  | "investor_zamyslow";
 
 type LeadPayload = {
   source: LeadSource;
@@ -50,7 +51,8 @@ function isLeadSource(x: unknown): x is LeadSource {
     x === "home_form" ||
     x === "newsletter_footer" ||
     x === "b2b_page" ||
-    x === "rental_zamyslow"
+    x === "rental_zamyslow" ||
+    x === "investor_zamyslow"
   );
 }
 

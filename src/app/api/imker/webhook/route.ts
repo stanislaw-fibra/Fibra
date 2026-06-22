@@ -4,6 +4,7 @@ import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/resend";
 import { courseAccessEmail } from "@/lib/email/templates";
 import { subscribeToNewsletter } from "@/lib/getresponse";
+import { sendCapiEvents, isCapiConfigured } from "@/lib/facebook-capi";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -188,6 +189,52 @@ export async function POST(req: Request) {
       });
     } catch (e) {
       console.error("[imker] GetResponse subscribe nieudany (dostęp i tak zapisany):", e);
+    }
+  }
+
+  // Zdarzenie Purchase do Meta (Conversion API). To najmocniejszy sygnał - niesie
+  // zahaszowany e-mail kupującego (+ imię/nazwisko), więc Meta podepnie zakup pod
+  // reklamę nawet bez fbc (koszyk jest na innej domenie - salescrm.pl). Dedup z
+  // ewentualnym pikselem salescrm po event_id = identyfikator zamówienia.
+  //
+  // OPT-IN przez env FB_CAPI_SERVER_PURCHASE=1: domyślnie WYŁĄCZONE, bo serwerowy
+  // Purchase wysyła zahaszowany e-mail do Meta - ustaw dopiero, gdy masz podstawę
+  // prawną (zgoda marketingowa / uzasadniony interes potwierdzony z prawnikiem).
+  if (process.env.FB_CAPI_SERVER_PURCHASE?.trim() === "1" && isCapiConfigured()) {
+    try {
+      const firstName =
+        (order.first_name ?? order.customer?.name)?.toString().trim() || null;
+      const lastName =
+        (order.last_name ?? order.customer?.surname)?.toString().trim() || null;
+      const result = await sendCapiEvents([
+        {
+          event_name: "Purchase",
+          // Idempotencja + dedup z pikselem salescrm (jeśli istnieje).
+          event_id: order.order_identifier
+            ? `purchase-${order.order_identifier}`
+            : undefined,
+          action_source: "website",
+          user_data: {
+            email,
+            first_name: firstName,
+            last_name: lastName,
+            external_id: email,
+          },
+          custom_data: {
+            value: 177,
+            currency: "PLN",
+            content_ids: [String(COURSE_PRODUCT_ID)],
+            content_type: "product",
+            content_name: "20 Lekcji Inwestora",
+            order_id: order.order_identifier ?? undefined,
+          },
+        },
+      ]);
+      if (!result.ok && !result.skipped) {
+        console.error("[imker] CAPI Purchase nieudany:", result.error);
+      }
+    } catch (e) {
+      console.error("[imker] Wyjątek przy CAPI Purchase (dostęp i tak zapisany):", e);
     }
   }
 
