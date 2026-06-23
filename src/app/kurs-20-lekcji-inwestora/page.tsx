@@ -74,10 +74,12 @@ export const metadata: Metadata = {
 };
 
 const PROBLEMS = [
-  "Boisz się, że trafisz na najemcę, którego nie da się eksmitować?",
-  "Nie wiesz, czy to dobry moment, czy właśnie pęka bańka?",
-  "Obawiasz się, że źle policzysz rentowność i kupisz mieszkanie, które nie zarabia?",
-  "Boisz się, że kupisz mieszkanie z ładnego folderu dewelopera, które potem trudno wynająć?",
+  "Masz odłożony kapitał i wolisz, żeby pracował, zamiast leżeć na lokacie?",
+  "Zastanawiasz się, czy na wynajmie mieszkań da się dziś zarobić i w jaki sposób?",
+  "Chcesz policzyć, ile naprawdę zostaje w kieszeni po kosztach, podatku i miesiącach bez najemcy?",
+  "Nie wiesz, kiedy jest dobry moment na zakup, a kiedy lepiej poczekać?",
+  "Boisz się, że kupisz ładne mieszkanie, którego potem trudno wynająć?",
+  "Boisz się trudnego najemcy, którego ciężko się pozbyć?",
 ];
 
 type Module = { n: string; title: string; lead: string; topics: string[] };
@@ -221,10 +223,13 @@ export default function Kurs20LekcjiPage() {
             <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-12 lg:gap-16 lg:items-center">
               <div>
                 <Reveal>
-                  <p className="eyebrow inline-flex items-center gap-3 mb-7">
-                    <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
-                    Praktyczny kurs inwestowania w&nbsp;mieszkania na wynajem
-                  </p>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50/70 px-4 py-1.5 mb-7 text-[13px] font-medium text-brand-700">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
+                      <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+                      <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    30 dni gwarancji zwrotu, zero ryzyka
+                  </span>
                 </Reveal>
                 <Reveal delay={80}>
                   <h1
@@ -254,10 +259,10 @@ export default function Kurs20LekcjiPage() {
                       </svg>
                     </CourseCta>
                     <a
-                      href="#program"
+                      href="#darmowa-lekcja"
                       className="group inline-flex items-center justify-center gap-1.5 text-[15px] md:text-[16px] font-medium text-ink-700 hover:text-ink-950 transition-colors"
                     >
-                      Zobacz program
+                      Zobacz darmową lekcję
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden className="transition-transform group-hover:translate-y-0.5">
                         <path d="M7 3v8M3 7l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
@@ -310,7 +315,7 @@ export default function Kurs20LekcjiPage() {
                   className="font-display text-ink-950 tracking-tight leading-[1.05] text-balance"
                   style={{ fontSize: "clamp(1.75rem, 4vw, 3rem)" }}
                 >
-                  Pierwsze mieszkanie na wynajem to nie miejsce na drogie błędy.
+                  W nieruchomościach jeden błąd potrafi skasować zysk z kilku dobrych decyzji.
                 </h2>
               </Reveal>
             </div>
@@ -331,9 +336,11 @@ export default function Kurs20LekcjiPage() {
             </div>
 
             <Reveal delay={120}>
-              <p className="mt-14 mx-auto max-w-2xl text-center text-[17px] md:text-[19px] text-ink-700 leading-[1.65] text-pretty">
-                Nie obiecuję, że staniesz się milionerem w 30 dni. Ale pokażę Ci, jak liczyć,
-                sprawdzać i wynajmować tak, żeby nie tracić na błędach, które kosztują najwięcej.
+              <p className="mt-14 mx-auto max-w-3xl text-center text-[17px] md:text-[19px] text-ink-700 leading-[1.65] text-pretty">
+                Na nieruchomościach zarabiam od 20 lat. Całą tę wiedzę i praktykę przelałem w ten
+                kurs, a w pakiecie dokładam książkę i szkolenie, w których dzielę się resztą. Razem
+                daje Ci to komplet, żeby zacząć inwestować w mieszkania na wynajem, a jeśli już
+                inwestujesz, robić to lepiej i skuteczniej.
               </p>
             </Reveal>
           </div>
@@ -365,7 +372,37 @@ export default function Kurs20LekcjiPage() {
                   i ograniczysz pustostan.
                 </p>
               </Reveal>
+              <Reveal delay={200}>
+                <p className="mt-5 text-[15.5px] md:text-[17px] leading-[1.7] text-ink-700 text-pretty">
+                  Nieważne, czy kupujesz pierwsze mieszkanie, masz już jedno czy dwa, czy dopiero
+                  planujesz wejść w nieruchomości. Kurs i książka uzupełniają się tak, że gdy
+                  będziesz liczyć konkretną inwestycję, będziesz wiedział więcej niż druga strona
+                  stołu. Gdybym taki kurs miał na początku swojej drogi z inwestowaniem,
+                  oszczędziłby mi wielu kosztownych błędów.
+                </p>
+              </Reveal>
               <Reveal delay={240}>
+                <ul className="mt-8 flex flex-wrap justify-center gap-2.5 md:gap-3">
+                  {[
+                    "Zaczynasz w nieruchomościach",
+                    "Masz już jedno-dwa mieszkania",
+                    "Dopiero planujesz",
+                  ].map((who) => (
+                    <li
+                      key={who}
+                      className="inline-flex items-center gap-2 rounded-full border border-ink-200/70 bg-paper-warm px-4 py-2 text-[14px] text-ink-700"
+                    >
+                      <span className="text-brand-600" aria-hidden>
+                        <svg width="15" height="15" viewBox="0 0 18 18" fill="none">
+                          <path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </span>
+                      {who}
+                    </li>
+                  ))}
+                </ul>
+              </Reveal>
+              <Reveal delay={300}>
                 <div className="mt-10">
                   <CourseCta
                     mode="anchor"
@@ -879,6 +916,7 @@ export default function Kurs20LekcjiPage() {
                   <ul className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2.5 text-[13.5px] text-ink-700">
                     {[
                       "Dostęp na stałe",
+                      "30 dni gwarancji zwrotu",
                       ...(BONUS.active ? ["Pakiet książki gratis", "Wysyłka gratis"] : []),
                     ].map((b) => (
                       <li key={b} className="inline-flex items-center gap-2">
@@ -921,7 +959,8 @@ export default function Kurs20LekcjiPage() {
                 najemcy, <span className="text-ink-900 font-medium">jednego</span> miesiąca
                 pustostanu albo <span className="text-ink-900 font-medium">jednego</span>{" "}
                 nietrafionego zakupu. Każdy z nich potrafi kosztować wielokrotność ceny kursu. Te 20
-                lekcji ma Ci pomóc tego uniknąć.
+                lekcji ma Ci pomóc tego uniknąć. A jeśli uznasz, że nic Ci nie dały, masz 30 dni na
+                zwrot, więc nie ryzykujesz.
               </p>
             </Reveal>
           </div>
