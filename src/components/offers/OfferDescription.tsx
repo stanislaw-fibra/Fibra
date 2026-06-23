@@ -172,7 +172,54 @@ function sanitizeInlineHtml(line: string): string {
     if (!/^(b|strong|i|em|u)$/.test(tag)) return "";
     return slash === "/" ? `</${tag}>` : `<${tag}>`;
   });
-  return out;
+  // KLUCZOWE dla hydratacji: domknij niezbalansowane tagi. Opisy z Galactiki bywają
+  // boldowane „przez" granice bloków (np. `<strong>` otwarty w jednej linii, `</strong>`
+  // w innej). Po podziale na bloki/linie w pojedynczym fragmencie zostaje wtedy sierota
+  // (otwarcie bez domknięcia lub odwrotnie). Wstrzyknięta przez dangerouslySetInnerHTML
+  // do <span> niezbalansowana HTML „wycieka" na rodzeństwo - przeglądarka naprawia ją
+  // inaczej niż string z serwera, co dawało błąd hydratacji (serwer renderował <strong>
+  // tam, gdzie klient <span>). Tu każdy fragment domykamy osobno.
+  return balanceInlineTags(out);
+}
+
+/**
+ * Domyka inline-tagi (b/strong/i/em/u) w obrębie jednego fragmentu, tak by HTML był
+ * zawsze poprawnie zagnieżdżony. Wejście już dobrze sformowane zwraca BEZ zmian.
+ * Osierocone domknięcia (`</strong>` bez otwarcia) są pomijane; nadmiarowe otwarcia
+ * domykane na końcu (pusty `<strong></strong>` jest nieszkodliwy - nic nie renderuje).
+ * Działa na stringu już po `sanitizeInlineHtml` (tylko whitelistowane tagi, bez atrybutów).
+ */
+function balanceInlineTags(html: string): string {
+  const stack: string[] = [];
+  const out: string[] = [];
+  const re = /<(\/?)(b|strong|i|em|u)>|([^<]+)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    if (m[3] != null) {
+      out.push(m[3]); // tekst
+      continue;
+    }
+    const closing = m[1] === "/";
+    const tag = m[2].toLowerCase();
+    if (!closing) {
+      stack.push(tag);
+      out.push(`<${tag}>`);
+    } else {
+      const idx = stack.lastIndexOf(tag);
+      if (idx === -1) continue; // osierocone domknięcie - pomijamy
+      // Domknij od wierzchołka do dopasowanego (zachowanie zagnieżdżeń),
+      // a tagi „nad" dopasowanym otwórz ponownie po jego zamknięciu.
+      for (let k = stack.length - 1; k >= idx; k--) out.push(`</${stack[k]}>`);
+      const reopen = stack.slice(idx + 1);
+      stack.length = idx;
+      for (const t of reopen) {
+        stack.push(t);
+        out.push(`<${t}>`);
+      }
+    }
+  }
+  for (let k = stack.length - 1; k >= 0; k--) out.push(`</${stack[k]}>`);
+  return out.join("");
 }
 
 function renderLine(line: string, key: number, isFirst: boolean) {

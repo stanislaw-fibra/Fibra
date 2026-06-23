@@ -7,6 +7,10 @@
     {
       "path": "/api/import?source=virgo&importType=full&reconcile=1",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/warm-images",
+      "schedule": "30 5 * * *"
     }
   ]
 }

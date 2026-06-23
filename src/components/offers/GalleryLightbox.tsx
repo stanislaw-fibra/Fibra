@@ -271,7 +271,12 @@ export function GalleryLightboxProvider({
                 // sięgał POD wysuwany Safari UI - góra zdjęcia była przykryta zakładkami i niedostępna.
                 isMobileLandscape
                   ? "h-[100svh] w-screen max-w-none"
-                  : "max-h-[min(92dvh,920px)] w-full max-w-[min(1240px,calc(100vw-2rem))]",
+                  // Portret: definitywna wysokość w `svh` (najmniejszy viewport - gwarantuje, że
+                  // CAŁY dialog, łącznie z paskiem miniatur na dole, mieści się nad paskiem
+                  // przeglądarki / systemu i nie jest obcięty). Kolumna flex rozdziela przestrzeń:
+                  // obraz dostaje `flex-1`, miniatury `shrink-0` na dole. Wcześniej `min-h-[78dvh]`
+                  // na slajdzie wypychał miniatury poza `max-h` dialogu - stąd „obcięty podgląd".
+                  : "flex flex-col h-[88svh] max-h-[920px] w-full max-w-[min(1240px,calc(100vw-2rem))]",
               ].join(" ")}
               initial={{ opacity: 0, scale: 0.98, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -279,7 +284,12 @@ export function GalleryLightboxProvider({
               transition={{ duration: 0.22, ease }}
             >
               <div
-                className="pointer-events-auto relative flex w-full max-w-full flex-col items-center"
+                className={[
+                  "pointer-events-auto relative flex w-full max-w-full flex-col items-center",
+                  // Portret: wypełnij wysokość dialogu, żeby flex-1 na obrazie i shrink-0 na
+                  // miniaturach działały (inaczej kolumna kolapsuje do wysokości treści).
+                  isMobileLandscape ? "" : "h-full min-h-0",
+                ].join(" ")}
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Górny pasek w landscape: cienka strefa „glassmorphism" z gradientem czerni,
@@ -360,7 +370,9 @@ export function GalleryLightboxProvider({
                     "relative w-full flex items-center justify-center select-none",
                     isMobileLandscape
                       ? "mt-0 h-[100svh]"
-                      : "mt-12 min-h-[min(78dvh,760px)]",
+                      // Portret: obszar obrazu zabiera całą pozostałą przestrzeń kolumny
+                      // (po odjęciu licznika i paska miniatur). `min-h-0` pozwala mu się kurczyć.
+                      : "mt-9 flex-1 min-h-0",
                   ].join(" ")}
                   onTouchStart={onTouchStart}
                   onTouchEnd={onTouchEnd}
@@ -397,11 +409,30 @@ export function GalleryLightboxProvider({
                           width={1600}
                           height={1200}
                           sizes={isMobileLandscape ? "100vw" : "(min-width: 1280px) 1240px, 95vw"}
+                          // Pełny podgląd - trzymamy wysoką jakość (klient zgłaszał wcześniej,
+                          // że zdjęcia wyglądały słabo). Szybkość rozwiązujemy wygrzewaniem cache,
+                          // nie kosztem jakości.
                           quality={90}
                           priority={isActive}
                           fetchPriority={isActive ? "high" : "auto"}
+                          // Spinner to TYLKO tło - chowa go `markLoaded`, ale widoczność samego
+                          // zdjęcia NIE zależy od stanu „loaded". Przeglądarka maluje obraz, gdy
+                          // go zdekoduje, a wtedy zakrywa wycentrowany spinner pod spodem. Dzięki
+                          // temu unikamy zacinającego się spinnera nad pustym kadrem, gdy zdarzenie
+                          // `load`/`onLoad` nie odpali (np. wariant już w cache lub wolny optimizer).
+                          // markLoaded i tak próbujemy ustawić: natywny listener + sprawdzenie
+                          // `complete` od razu (cache), z `onLoad` jako dodatkowym sygnałem.
+                          ref={(el) => {
+                            if (!el) return;
+                            if (el.complete && el.naturalWidth > 0) {
+                              markLoaded(i);
+                              return;
+                            }
+                            const done = () => markLoaded(i);
+                            el.addEventListener("load", done, { once: true });
+                            el.addEventListener("error", done, { once: true });
+                          }}
                           onLoad={() => markLoaded(i)}
-                          onError={() => markLoaded(i)}
                           unoptimized={false}
                           className={[
                             isMobileLandscape
@@ -411,9 +442,8 @@ export function GalleryLightboxProvider({
                               // zakładki Safari, częściowo ucięte zdjęcia"). Premium UX: obraz
                               // dominuje ekran, ale zostaje w widocznej, dotykalnej strefie.
                               ? "h-[100svh] w-screen object-cover rounded-none"
-                              : "w-auto max-h-[min(78dvh,760px)] max-w-full object-contain rounded-[var(--radius-md)] shadow-[0_24px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
-                            isLoaded ? "opacity-100" : "opacity-0",
-                            "transition-opacity duration-200 ease-out",
+                              : "w-auto max-h-full max-w-full object-contain rounded-[var(--radius-md)] shadow-[0_24px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
+                            "relative z-[1]",
                           ].join(" ")}
                           draggable={false}
                         />
@@ -423,7 +453,7 @@ export function GalleryLightboxProvider({
                 </div>
 
                 {!isMobileLandscape && (
-                  <p className="mt-4 text-center text-[11px] uppercase tracking-[0.22em] text-white/45 sm:hidden tabular-nums">
+                  <p className="mt-3 shrink-0 text-center text-[11px] uppercase tracking-[0.22em] text-white/45 sm:hidden tabular-nums">
                     {open + 1} / {images.length}
                   </p>
                 )}
@@ -431,7 +461,7 @@ export function GalleryLightboxProvider({
                 {images.length > 1 && !isMobileLandscape && (
                   <div
                     ref={thumbsRef}
-                    className="mt-5 flex max-w-full gap-2 overflow-x-auto pb-1 pt-1 [scrollbar-width:thin]"
+                    className="mt-3 shrink-0 flex max-w-full gap-2 overflow-x-auto pt-1 pb-[max(0.25rem,env(safe-area-inset-bottom,0px))] [scrollbar-width:thin]"
                   >
                     {images.map((src, i) => (
                       <button
