@@ -29,7 +29,7 @@ export const RENTAL_AGENT = {
   email: "arkadiusz.jezusek@fibra.pl",
 } as const;
 
-export type RentalStatus = "available" | "reserved";
+export type RentalStatus = "available" | "reserved" | "rented";
 
 export interface RentalUnit {
   /** „parter", „I piętro" itd. (uzupełniane w dół, gdy w wierszu puste). */
@@ -52,8 +52,10 @@ export interface RentalUnit {
   gardenBalcony: string;
   /** Status dostępności wyliczony z kolumny „Rezerwacja". */
   status: RentalStatus;
-  /** Surowa etykieta z arkusza, np. „dostępne" / „REZERWACJA". */
+  /** Surowa etykieta z arkusza, np. „dostępne" / „WYNAJĘTE". */
   statusLabel: string;
+  /** Dopisek dla lokali dostępnych z terminem, np. „od września" (inaczej ""). */
+  availableNote: string;
   /** Uwagi, np. „mieszkanie urządzone pod klucz". */
   notes: string;
 }
@@ -68,7 +70,7 @@ export interface RentalListing {
 // Adres opublikowanego arkusza w formacie CSV (zakładka 128F). Można nadpisać
 // zmienną środowiskową, gdyby arkusz został kiedyś przepięty.
 const DEFAULT_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTafETUUfgK1978tAVIw4AZfoHgXCn4U0ZJo2ffj_BWIN_I8fc358Zh62H4opfJy6D-stwfcAoGA6r-/pub?gid=1347894889&single=true&output=csv";
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbaBaBAaK3Icqo2wt3jx7IAqr935oe6fJFJPJx2qXhZfIdhAJ-RorR8doRTOiVBgMQJ8hTVzbGeGWI/pub?output=csv";
 
 function csvUrl(): string {
   return process.env.RENTALS_SHEET_CSV_URL?.trim() || DEFAULT_CSV_URL;
@@ -225,7 +227,19 @@ export async function getZamyslowRentals(): Promise<RentalListing | null> {
 
     const area = get(row, cArea);
     const statusLabel = get(row, cStatus);
-    const status: RentalStatus = /rezerw/i.test(statusLabel) ? "reserved" : "available";
+    // „WYNAJĘTE" → zajęte, „REZERWACJA" → zarezerwowane, reszta → dostępne.
+    // Dla „dostępne od września" wyciągamy dopisek z terminem.
+    let status: RentalStatus;
+    let availableNote = "";
+    if (/wynaj/i.test(statusLabel)) {
+      status = "rented";
+    } else if (/rezerw/i.test(statusLabel)) {
+      status = "reserved";
+    } else {
+      status = "available";
+      const m = statusLabel.match(/dost[eę]pne\s+(.+)/i);
+      if (m) availableNote = m[1].trim();
+    }
 
     units.push({
       floor: lastFloor,
@@ -239,6 +253,7 @@ export async function getZamyslowRentals(): Promise<RentalListing | null> {
       gardenBalcony: get(row, cGarden),
       status,
       statusLabel,
+      availableNote,
       notes: get(row, cNotes),
     });
   }

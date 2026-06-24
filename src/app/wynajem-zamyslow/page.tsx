@@ -50,8 +50,10 @@ const TERMS = [
 ];
 
 const TOURS = [
-  { area: "27,72 m²", matterport: "https://spacer3d.fibranieruchomosci.pl/show/?m=WcaxrJEP7aJ&mpu=439", youtube: "https://www.youtube.com/watch?v=ryvZICuTlm4&t=1s" },
-  { area: "33,43 m²", matterport: "https://spacer3d.fibranieruchomosci.pl/show/?m=awAXJmk6ChP&mpu=439", youtube: "https://www.youtube.com/watch?v=y_lN-lSDF6M" },
+  { area: "Parter, 35,15 m²", matterport: "https://spacer3d.fibranieruchomosci.pl/show/?m=HRz67Zsa9PR", youtube: "https://www.youtube.com/watch?v=vJLKSJY8Wn4" },
+  { area: "27,72 m²", matterport: "https://spacer3d.fibranieruchomosci.pl/show/?m=S72qKRNS5gD", youtube: "https://www.youtube.com/watch?v=_kwZopdEIYE" },
+  { area: "29,65 m²", matterport: "https://spacer3d.fibranieruchomosci.pl/show/?m=ff7htrSvnG1", youtube: "https://www.youtube.com/watch?v=8YTBwn4MwIk" },
+  { area: "33,43 m²", matterport: "https://spacer3d.fibranieruchomosci.pl/show/?m=NUvomZZ1zJN", youtube: "https://www.youtube.com/watch?v=n0XiDkj-H60" },
   { area: "41,09 m²", matterport: "https://spacer3d.fibranieruchomosci.pl/show/?m=r7WCvFsviJq&mpu=439", youtube: "https://www.youtube.com/watch?v=1flD1x8C0jA" },
   { area: "52,27 m²", matterport: "https://spacer3d.fibranieruchomosci.pl/show/?m=ndifDntYvvU&mpu=439", youtube: "https://www.youtube.com/watch?v=BlutTZEi1UQ&t=3s" },
   { area: "Parter, 50,12 m²", matterport: "https://spacer3d.fibranieruchomosci.pl/show/?m=vhfYrTbt5oC&mpu=439", youtube: "https://www.youtube.com/watch?v=_czfnG-sWdA&t=8s" },

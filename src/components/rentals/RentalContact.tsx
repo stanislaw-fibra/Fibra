@@ -199,7 +199,7 @@ export function RentalContact({ agent }: { agent: RentalAgent }) {
                         sending ? "cursor-wait bg-ink-900/70" : "bg-ink-900 hover:bg-brand-500",
                       ].join(" ")}
                     >
-                      {sending ? "Wysyłanie…" : "Wyślij i odbierz listę →"}
+                      {sending ? "Wysyłanie…" : "Wyślij →"}
                     </button>
                   </div>
                 </>
