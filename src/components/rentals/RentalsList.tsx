@@ -16,9 +16,11 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "rent-desc", label: "Odstępne: malejąco" },
 ];
 
-// Wspólny szablon kolumn dla nagłówka i wierszy (desktop).
+// Wspólny szablon kolumn dla nagłówka i wierszy (desktop). Same `fr` (bez `auto`),
+// żeby każdy wiersz - mimo że jest osobnym gridem - miał IDENTYCZNE krawędzie kolumn
+// i wszystko trzymało wspólny pion (auto na statusie rozjeżdżało resztę).
 const COLS =
-  "md:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,0.8fr)_minmax(0,1.5fr)_minmax(0,auto)]";
+  "md:grid-cols-[minmax(0,1.5fr)_minmax(0,0.85fr)_minmax(0,1fr)_minmax(0,0.85fr)_minmax(0,1.6fr)_minmax(0,1.15fr)]";
 
 /** „2 600,00 zł" -> „2 600 zł" (urywa nadmiarowe grosze przy pełnych kwotach). */
 function prettyMoney(s: string): string {
