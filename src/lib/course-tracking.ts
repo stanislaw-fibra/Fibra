@@ -148,6 +148,7 @@ export function trackCourseCheckout(section: CtaSection): void {
     event_source_url: window.location.href,
     fbp: getCookie("_fbp"),
     fbc: getCookie("_fbc"),
+    external_id: getCookie("fibra_uid"),
     custom_data: customData,
   });
 }

@@ -59,11 +59,31 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', ${JSON.stringify(fbPixelId)});
-// fbclid z URL -> utrwalamy _fbc (format Meta: fb.1.<ts>.<fbclid>) i kopię
-// w cookie pierwszej strony (fibra_fbclid), żeby doklejać go do koszyka na
-// salescrm.pl. Ten skrypt odpala Cookiebot dopiero po zgodzie marketingowej,
-// więc zapis tych cookies jest z definicji za zgodą.
+// UWAGA: w tym inline-skrypcie unikamy operatora logicznego AND zapisanego dwoma
+// ampersandami oraz nawiasow ostrokatnych. React zamienia te znaki na sekwencje
+// unicode w tresci skryptu, co zlamaloby JS. Stad zagniezdzone if-y zamiast tego
+// operatora i nawiasy kwadratowe w komentarzach.
+//
+// Staly, wlasny identyfikator uzytkownika (first-party cookie) jako external_id.
+// Wg Menedzera zdarzen to parametr o najwiekszym wplywie na jakosc dopasowania
+// PageView (mediana +15,5% dodatkowych konwersji). Trafia do piksela (advanced
+// matching) i do CAPI (MetaPixelPageView/course-tracking czytaja to samo cookie).
+function __fbRnd(p){
+  var c=null; try{ c=self.crypto; }catch(e){}
+  if(c){ try{ if(c.randomUUID) return c.randomUUID(); }catch(e){} }
+  return p+Date.now()+'-'+Math.round(Math.random()*1e9);
+}
+var __uid;
+(function(){try{
+  var um=document.cookie.match(/(?:^|; )fibra_uid=([^;]*)/);
+  __uid=um?decodeURIComponent(um[1]):__fbRnd('u-');
+  if(!um)document.cookie='fibra_uid='+__uid+'; path=/; max-age=63072000; samesite=Lax';
+}catch(e){}})();
+fbq('init', ${JSON.stringify(fbPixelId)}, __uid?{external_id:__uid}:{});
+// fbclid z URL: utrwalamy _fbc (format Meta: fb.1.[ts].[fbclid]) i kopie w cookie
+// pierwszej strony (fibra_fbclid), zeby doklejac go do koszyka na salescrm.pl.
+// Skrypt odpala Cookiebot dopiero po zgodzie marketingowej, wiec zapis cookies
+// jest z definicji za zgoda.
 (function(){try{
   var cid=new URLSearchParams(location.search).get('fbclid');
   if(cid){
@@ -73,9 +93,9 @@ fbq('init', ${JSON.stringify(fbPixelId)});
     document.cookie='fibra_fbclid='+cid+'; path=/; max-age=7776000; samesite=Lax';
   }
 }catch(e){}})();
-// Wspólny event_id dla piksela i CAPI -> Meta deduplikuje PageView.
-// MetaPixelPageView (klient) odczyta go i dośle PageView serwerowo z fbc/IP/UA.
-window.__fbPageViewId=(self.crypto&&crypto.randomUUID)?crypto.randomUUID():('pv-'+Date.now()+'-'+Math.round(Math.random()*1e9));
+// Wspolny event_id dla piksela i CAPI: Meta deduplikuje PageView.
+// MetaPixelPageView (klient) odczyta go i dosle PageView serwerowo z fbc/IP/UA.
+window.__fbPageViewId=__fbRnd('pv-');
 fbq('track', 'PageView', {}, {eventID: window.__fbPageViewId});
           `.trim()}
         </Script>

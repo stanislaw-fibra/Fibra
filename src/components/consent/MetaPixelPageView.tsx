@@ -49,6 +49,7 @@ export function MetaPixelPageView() {
         event_source_url: window.location.href,
         fbp: getCookie("_fbp"),
         fbc: getCookie("_fbc"),
+        external_id: getCookie("fibra_uid"),
       };
       try {
         const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });

@@ -24,6 +24,8 @@ type Body = {
   event_source_url?: string;
   fbp?: string | null;
   fbc?: string | null;
+  /** Własny, stały identyfikator użytkownika (cookie fibra_uid) -> external_id. */
+  external_id?: string | null;
   custom_data?: Record<string, unknown>;
 };
 
@@ -57,6 +59,7 @@ export async function POST(req: Request) {
       client_user_agent: userAgent,
       fbp: typeof body.fbp === "string" ? body.fbp : null,
       fbc: typeof body.fbc === "string" ? body.fbc : null,
+      external_id: typeof body.external_id === "string" ? body.external_id : null,
     },
     custom_data:
       body.custom_data && typeof body.custom_data === "object" ? body.custom_data : undefined,
