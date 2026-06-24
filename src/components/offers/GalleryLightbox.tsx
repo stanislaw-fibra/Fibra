@@ -14,6 +14,7 @@ import {
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useModalHistoryClose } from "@/lib/use-modal-history-close";
+import { GalleryPreloader } from "./GalleryPreloader";
 
 type LightboxApi = {
   images: string[];
@@ -431,6 +432,11 @@ export function GalleryLightboxProvider({
                             const done = () => markLoaded(i);
                             el.addEventListener("load", done, { once: true });
                             el.addEventListener("error", done, { once: true });
+                            // Bulletproof na wyścig z cache: gdy wariant jest już w cache
+                            // przeglądarki (np. po preloadzie przez GalleryPreloader), `load`
+                            // potrafi nie odpalić. `decode()` rozwiązuje się, gdy obraz jest
+                            // gotowy do pokazania - też z cache - więc spinner zawsze zniknie.
+                            el.decode?.().then(done).catch(() => {});
                           }}
                           onLoad={() => markLoaded(i)}
                           unoptimized={false}
@@ -503,6 +509,9 @@ export function GalleryLightboxProvider({
   return (
     <LightboxContext.Provider value={api}>
       {children}
+      {/* Cichy preload zdjęć galerii do cache przeglądarki (gdy user ogląda film),
+          żeby po otwarciu lightboxa nie było „kółka". Patrz GalleryPreloader. */}
+      <GalleryPreloader images={images} />
       {portal ? createPortal(portal, document.body) : null}
     </LightboxContext.Provider>
   );
