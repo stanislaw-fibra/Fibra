@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { RentalsList } from "@/components/rentals/RentalsList";
 import { RentalContact } from "@/components/rentals/RentalContact";
+import { RentalsGallery } from "@/components/rentals/RentalsGallery";
 import { getZamyslowRentals, RENTAL_AGENT } from "@/lib/rentals/zamyslow-rentals";
 
 // Lista odświeżana z arkusza co 5 minut (ISR). Arkadiusz aktualizuje arkusz,
@@ -60,6 +62,20 @@ const TOURS = [
   { area: "Parter, 67 m²", matterport: "https://spacer3d.fibranieruchomosci.pl/show/?m=2YETsr3W6kF&mpu=439", youtube: "https://www.youtube.com/watch?v=ExCZ72GZWCo" },
 ];
 
+// Zdjęcia: stałe, kuratorskie, serwowane z public/ przez Vercel + next/image
+// (nie zajmują limitu Supabase). Najpierw osiedle, potem wnętrza.
+const GALLERY = [
+  { src: "/wynajem-zamyslow/hero.jpg", alt: "Osiedle przy Niedobczyckiej 128F o zmierzchu" },
+  ...[1, 2, 3, 4, 5, 6].map((n) => ({
+    src: `/wynajem-zamyslow/osiedle/0${n}.jpg`,
+    alt: "Budynek na osiedlu Zamysłów, Niedobczycka 128F",
+  })),
+  ...Array.from({ length: 12 }, (_, i) => i + 1).map((n) => ({
+    src: `/wynajem-zamyslow/wnetrza/${String(n).padStart(2, "0")}.jpg`,
+    alt: "Wnętrze mieszkania na wynajem, Niedobczycka 128F",
+  })),
+];
+
 export default async function Page() {
   const listing = await getZamyslowRentals();
 
@@ -69,7 +85,17 @@ export default async function Page() {
       <main className="flex-1 pt-[72px]">
         {/* ── Hero ───────────────────────────────────────────────── */}
         <section className="relative overflow-hidden bg-ink-950 text-ink-100">
-          <div className="absolute inset-0 grad-radial-hero opacity-80" />
+          <Image
+            src="/wynajem-zamyslow/hero.jpg"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+          {/* Przyciemnienie pod tekst: mocniej z lewej (tekst) i u dołu (fakty/CTA). */}
+          <div className="absolute inset-0 bg-gradient-to-r from-ink-950 via-ink-950/85 to-ink-950/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/20 to-transparent" />
           <div className="container-xl relative py-20 md:py-28">
             <p className="eyebrow eyebrow-on-dark flex items-center gap-3">
               <span className="inline-block h-px w-8 bg-accent-400" />
@@ -163,8 +189,24 @@ export default async function Page() {
           </div>
         </section>
 
-        {/* ── Spacery 3D + filmy ────────────────────────────────── */}
+        {/* ── Galeria osiedla i wnętrz ──────────────────────────── */}
         <section className="bg-paper py-20 md:py-28">
+          <div className="container-xl">
+            <div className="max-w-3xl">
+              <p className="eyebrow">Zobacz na żywo</p>
+              <h2 className="mt-4 font-display fluid-h2 text-ink-900">Osiedle i wnętrza</h2>
+              <p className="mt-4 text-[15px] leading-relaxed text-ink-600">
+                Zdjęcia budynku przy Niedobczyckiej 128F oraz przykładowych mieszkań. Kliknij, żeby powiększyć.
+              </p>
+            </div>
+            <div className="mt-10">
+              <RentalsGallery images={GALLERY} />
+            </div>
+          </div>
+        </section>
+
+        {/* ── Spacery 3D + filmy ────────────────────────────────── */}
+        <section className="bg-paper-warm py-20 md:py-28">
           <div className="container-xl">
             <div className="max-w-3xl">
               <p className="eyebrow">Zobacz wnętrza</p>
@@ -205,7 +247,7 @@ export default async function Page() {
         </section>
 
         {/* ── Warunki najmu ─────────────────────────────────────── */}
-        <section className="bg-paper-warm py-20 md:py-28">
+        <section className="bg-paper py-20 md:py-28">
           <div className="container-xl">
             <div className="grid gap-12 lg:grid-cols-12">
               <div className="lg:col-span-4">
