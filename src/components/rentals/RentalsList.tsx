@@ -34,14 +34,14 @@ function rentToNumber(s: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-type StatusTone = "available" | "soon" | "muted";
+type StatusTone = "available" | "soon" | "reserved" | "muted";
 
 function capitalize(s: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
 function statusMeta(u: RentalUnit): { label: string; tone: StatusTone } {
-  if (u.status === "reserved") return { label: "Zarezerwowane", tone: "muted" };
+  if (u.status === "reserved") return { label: "Zarezerwowane", tone: "reserved" };
   if (u.status === "rented") return { label: "Wynajęte", tone: "muted" };
   if (u.availableNote) return { label: capitalize(u.availableNote), tone: "soon" };
   return { label: "Dostępne", tone: "available" };
@@ -157,14 +157,16 @@ function FilterTab({
 }
 
 function UnitRow({ unit: u }: { unit: RentalUnit }) {
-  const taken = u.status !== "available";
+  // Tylko „Wynajęte" wyszarzamy (lokal definitywnie zajęty). „Zarezerwowane"
+  // zostawiamy w pełni widoczne - rezerwacja bywa niewiążąca i może przepaść.
+  const dimmed = u.status === "rented";
   const s = statusMeta(u);
   const [open, setOpen] = useState(false);
 
   const hasDetails = Boolean(u.deposit || u.parking || u.gardenBalcony || u.notes);
 
   return (
-    <div className={taken ? "opacity-70" : "transition-colors md:hover:bg-paper-warm/40"}>
+    <div className={dimmed ? "opacity-70" : "transition-colors md:hover:bg-paper-warm/40"}>
       {/* ── Mobile: esencja + szczegóły po tapnięciu ────────────── */}
       <div className="md:hidden">
         <button
@@ -321,6 +323,7 @@ function StatusPill({ label, tone }: { label: string; tone: StatusTone }) {
   const styles: Record<StatusTone, { box: string; dot: string }> = {
     available: { box: "bg-brand-50 text-brand-600", dot: "bg-brand-500" },
     soon: { box: "bg-accent-50 text-accent-600", dot: "bg-accent-400" },
+    reserved: { box: "bg-amber-50 text-amber-700", dot: "bg-amber-500" },
     muted: { box: "bg-ink-100 text-ink-500", dot: "bg-ink-400" },
   };
   const st = styles[tone];
