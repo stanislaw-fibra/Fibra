@@ -168,11 +168,15 @@ export async function getZamyslowRentals(): Promise<RentalListing | null> {
 
   const rows = parseCsv(text);
 
-  // (A) Zakotwiczenie: pierwszy wiersz, który ma „numer lokalu" ORAZ „rezerwacja".
-  // Kolumnę „Rezerwacja" ma wyłącznie tabela publiczna - tabela wewnętrzna nie.
+  // (A) Zakotwiczenie: pierwszy wiersz z „numer lokalu" ORAZ kolumną statusu
+  // („Status"; akceptujemy też starą nazwę „Rezerwacja"). Tę kolumnę ma wyłącznie
+  // tabela publiczna - tabela wewnętrzna nie.
   const headerIndex = rows.findIndex((r) => {
     const cells = r.map(norm);
-    return cells.includes("numer lokalu") && cells.includes("rezerwacja");
+    return (
+      cells.includes("numer lokalu") &&
+      (cells.includes("status") || cells.includes("rezerwacja"))
+    );
   });
   if (headerIndex === -1) {
     console.error("[rentals] Nie znaleziono nagłówka tabeli publicznej.");
@@ -203,7 +207,8 @@ export async function getZamyslowRentals(): Promise<RentalListing | null> {
   const cDeposit = col("kaucja");
   const cRooms = col("ilość pokoi");
   const cGarden = col("ogród/balkon");
-  const cStatus = col("rezerwacja");
+  // Kolumna statusu: nowa nazwa „Status", ze zgodnością wsteczną dla „Rezerwacja".
+  const cStatus = col("status") !== -1 ? col("status") : col("rezerwacja");
   const cNotes = col("uwagi");
 
   if (cUnit === -1 || cArea === -1 || cStatus === -1) {

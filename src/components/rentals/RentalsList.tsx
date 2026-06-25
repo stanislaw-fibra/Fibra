@@ -34,7 +34,7 @@ function rentToNumber(s: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-type StatusTone = "available" | "soon" | "reserved" | "muted";
+type StatusTone = "available" | "soon" | "reserved" | "rented";
 
 function capitalize(s: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
@@ -42,7 +42,7 @@ function capitalize(s: string): string {
 
 function statusMeta(u: RentalUnit): { label: string; tone: StatusTone } {
   if (u.status === "reserved") return { label: "Zarezerwowane", tone: "reserved" };
-  if (u.status === "rented") return { label: "Wynajęte", tone: "muted" };
+  if (u.status === "rented") return { label: "Wynajęte", tone: "rented" };
   if (u.availableNote) return { label: capitalize(u.availableNote), tone: "soon" };
   return { label: "Dostępne", tone: "available" };
 }
@@ -321,10 +321,10 @@ function DetailLine({ icon, accent, children }: { icon: ReactNode; accent?: bool
 
 function StatusPill({ label, tone }: { label: string; tone: StatusTone }) {
   const styles: Record<StatusTone, { box: string; dot: string }> = {
-    available: { box: "bg-brand-50 text-brand-600", dot: "bg-brand-500" },
+    available: { box: "bg-emerald-50 text-emerald-700", dot: "bg-emerald-500" },
     soon: { box: "bg-accent-50 text-accent-600", dot: "bg-accent-400" },
-    reserved: { box: "bg-amber-50 text-amber-700", dot: "bg-amber-500" },
-    muted: { box: "bg-ink-100 text-ink-500", dot: "bg-ink-400" },
+    reserved: { box: "bg-ink-100 text-ink-500", dot: "bg-ink-400" },
+    rented: { box: "bg-red-50 text-red-700", dot: "bg-red-600" },
   };
   const st = styles[tone];
   return (
