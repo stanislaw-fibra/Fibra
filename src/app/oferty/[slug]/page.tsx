@@ -108,7 +108,19 @@ export default async function OfferPage({
   }
 
   const all = await getAllOffers();
-  const others = all.filter((o) => o.slug !== slug).slice(0, 4);
+  // Dobór ofert „które mogą Cię zainteresować": najpierw ten sam typ
+  // (działka → działki, dom → domy, mieszkanie → mieszkania), a gdy brakuje
+  // do 4 — uzupełniamy najnowszymi z pozostałych typów. Penthouse i apartament
+  // traktujemy jak jedną rodzinę „mieszkań".
+  const kindFamily = (k: Offer["kind"]) =>
+    k === "penthouse" ? "apartament" : k;
+  const offerFamily = kindFamily(offer.kind);
+  const rest = all.filter((o) => o.slug !== slug);
+  const sameKind = rest.filter((o) => kindFamily(o.kind) === offerFamily);
+  const others = [
+    ...sameKind,
+    ...rest.filter((o) => kindFamily(o.kind) !== offerFamily),
+  ].slice(0, 4);
   const gallery = offer.gallery?.length ? offer.gallery : [];
   const fullDesc = offer.fullDescription?.trim();
   const heroStreamId = offer.streamIdLong ?? offer.streamId;
