@@ -49,7 +49,6 @@ export async function generateMetadata({
   if (!offer) return { title: "Oferta niedostępna" };
 
   const canonical = `/oferty/${offer.slug ?? slug}`;
-  const ogImage = offer.gallery?.find(Boolean);
   const transakcja = offer.listingType === "wynajem" ? "na wynajem" : "na sprzedaż";
   const keywords = [
     offer.kindLabel,
@@ -64,6 +63,9 @@ export async function generateMetadata({
     description: offer.excerpt,
     keywords,
     alternates: { canonical },
+    // og:image / twitter:image pochodzą z konwencji plikowej
+    // (`opengraph-image.tsx` / `twitter-image.tsx` w tym segmencie) - markowa
+    // karta 1200x630 zamiast surowego kadru z galerii.
     openGraph: {
       type: "website",
       locale: "pl_PL",
@@ -71,13 +73,11 @@ export async function generateMetadata({
       siteName: "Fibra Nieruchomości",
       title: offer.title,
       description: offer.excerpt,
-      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
     },
     twitter: {
       card: "summary_large_image",
       title: offer.title,
       description: offer.excerpt,
-      ...(ogImage ? { images: [ogImage] } : {}),
     },
   };
 }
