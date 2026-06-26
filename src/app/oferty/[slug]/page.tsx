@@ -254,6 +254,7 @@ export default async function OfferPage({
                     floorPlanPdfs={offer.floorPlanPdfs}
                     gallery={gallery.length ? gallery : undefined}
                     youtubeUrl={offer.youtubeUrl}
+                    youtubeInHero={!heroStreamId && Boolean(offer.youtubeUrl)}
                   />
                 </Reveal>
 

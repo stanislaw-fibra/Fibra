@@ -62,6 +62,14 @@ type Props = {
   floorPlanPdfs?: { url: string; label?: string }[];
   gallery?: string[];
   youtubeUrl?: string;
+  /**
+   * Film YouTube jest już głównym materiałem hero (oferta bez pionowego Stream -
+   * `OfferHeroMedia` renderuje wtedy embed YouTube). W takim wypadku nie powielamy
+   * go jako kafelka tutaj. Dotyczy zwłaszcza działek: nie mają rzutu ani spaceru,
+   * więc film byłby jedynym kafelkiem - rozciągniętym na całą szerokość duplikatem
+   * tego samego nagrania, które user widzi obok. Zgłoszone przez Romana.
+   */
+  youtubeInHero?: boolean;
 };
 
 export function OfferQuickMedia({
@@ -74,6 +82,7 @@ export function OfferQuickMedia({
   floorPlanPdfs,
   gallery,
   youtubeUrl: youtubeUrlProp,
+  youtubeInHero = false,
 }: Props) {
   const labelId = useId();
   const [open, setOpen] = useState<ModalKind | null>(null);
@@ -134,7 +143,7 @@ export function OfferQuickMedia({
   const hasFloorImage = floorImages.length > 0;
   const hasFloorPdf = floorPdfsResolved.length > 0;
   const hasFloor = hasFloorImage || hasFloorPdf;
-  const hasYoutube = Boolean(youtubeEmbed);
+  const hasYoutube = Boolean(youtubeEmbed) && !youtubeInHero;
 
   // „Zobacz film z nieruchomości" działa dla domów i mieszkań. Dla gruntów
   // (działek) i lokali to nadużycie - zostawiamy neutralne „Zobacz film".
