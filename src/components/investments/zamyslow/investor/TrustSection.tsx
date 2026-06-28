@@ -35,16 +35,18 @@ export function TrustSection() {
   return (
     <section ref={ref} className="bg-paper py-24 md:py-32">
       <div className="container-xl">
-        <div className="max-w-[52ch]">
-          <p className="eyebrow flex items-center gap-3">
-            <span className="inline-block h-px w-8 bg-brand-500" />
-            Czy mogę zaufać?
-          </p>
-          <h2 className="mt-6 font-display fluid-h2 text-ink-950">
-            Zanim zaufasz pieniędzmi,{" "}
-            <em className="italic text-brand-600">sprawdź, kto za tym stoi.</em>
-          </h2>
-          <p className="mt-6 text-[16px] leading-relaxed text-ink-600">
+        <div className="grid gap-x-14 gap-y-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+          <div>
+            <p className="eyebrow flex items-center gap-3">
+              <span className="inline-block h-px w-8 bg-brand-500" />
+              Czy mogę zaufać?
+            </p>
+            <h2 className="mt-6 font-display fluid-h2 text-ink-950">
+              Zanim zaufasz pieniędzmi,{" "}
+              <em className="italic text-brand-600">sprawdź, kto za tym stoi.</em>
+            </h2>
+          </div>
+          <p className="max-w-[48ch] text-[17px] leading-relaxed text-ink-600 lg:pb-1.5">
             Inwestycja w mieszkanie to nie zakup impulsowy. Masz prawo wiedzieć,
             z kim siadasz do umowy i na czym opieramy to, co mówimy.
           </p>

@@ -12,6 +12,37 @@ export type FloorPolygons = {
   right: string;
 };
 
+export type FloorPlanRoom = { name: string; areaM2: number };
+
+/**
+ * Klikalna strefa mieszkania na interaktywnym rzucie piętra.
+ * `d` to ścieżka polygonu (czyste linie z Figmy) w układzie `floorPlan.viewBox`.
+ * `label` to środek ciężkości polygonu (układ viewBox) - tam siada stała plakietka
+ * z numerem/metrażem/pokojami. `rooms`/`area`/`roomsList` pochodzą z architektonicznego
+ * PDF-a (źródło prawdy). `href` na razie kieruje do przykładowej oferty.
+ */
+export type FloorPlanUnit = {
+  id: string;
+  d: string;
+  href: string;
+  areaM2: number;
+  rooms: number;
+  status: UnitStatus;
+  roomsList: FloorPlanRoom[];
+  label: { x: number; y: number };
+};
+
+/**
+ * Interaktywny rzut piętra: lekki obraz (webp) + nałożone klikalne strefy mieszkań.
+ * Współrzędne stref żyją w `viewBox` (naturalny układ obrazu 1x), a SVG siada na
+ * obrazie 1:1 (oba object-contain / xMidYMid meet o tym samym aspekcie).
+ */
+export type FloorPlan = {
+  image: string;
+  viewBox: { width: number; height: number };
+  units: FloorPlanUnit[];
+};
+
 export type ZamyslowFloor = {
   id: string;
   label: string;
@@ -19,6 +50,7 @@ export type ZamyslowFloor = {
   architecturePlan?: string;
   polygons: FloorPolygons;
   units: ZamyslowUnit[];
+  floorPlan?: FloorPlan;
 };
 
 // Współrzędne polygonów w układzie wizualizacji (viewBox 0 0 3309 1847),
@@ -83,13 +115,112 @@ export const zamyslowData: ZamyslowData = {
           "M1519 1116.5L2236 978L2234.5 1061.5L2083 1106L1800 1187.5L1659.5 1220L1519 1259.5L1519 1116.5Z",
       },
       units: [
-        { id: "M7", areaM2: 52.9, rooms: 3, status: "Dostępne" },
-        { id: "M8", areaM2: 47.3, rooms: 2, status: "Dostępne" },
-        { id: "M9", areaM2: 63.5, rooms: 3, status: "Dostępne" },
-        { id: "M10", areaM2: 44.9, rooms: 2, status: "Dostępne" },
-        { id: "M11", areaM2: 57.8, rooms: 3, status: "Dostępne" },
-        { id: "M12", areaM2: 69.1, rooms: 4, status: "Dostępne" },
+        { id: "M7", areaM2: 31.21, rooms: 2, status: "Dostępne" },
+        { id: "M8", areaM2: 49.58, rooms: 3, status: "Dostępne" },
+        { id: "M9", areaM2: 27.7, rooms: 2, status: "Dostępne" },
+        { id: "M10", areaM2: 28.95, rooms: 2, status: "Dostępne" },
+        { id: "M11", areaM2: 55.52, rooms: 3, status: "Dostępne" },
+        { id: "M12", areaM2: 40.83, rooms: 3, status: "Dostępne" },
       ],
+      // Interaktywny rzut 1. piętra - jedyne piętro z gotowym rzutem (prototyp).
+      // Obraz transparentny, w orientacji jak w Figmie (artboard obrócony -90°).
+      // Kontury stref to CZYSTE kształty z Figmy (proste linie), obrócone o 180°
+      // (artboard -90° + obrót obrazu -90° = 180°) i dopasowane do pozycji mieszkań
+      // w układzie viewBox 775x370. Przypisanie etykiet M7-M12 wg rozmiaru kształtów
+      // z Figmy - tymczasowe, podmienimy razem z linkami do ofert.
+      floorPlan: {
+        image: "/investments/zamyslow/floorplans/floor-1-plan-775x370.webp",
+        viewBox: { width: 775, height: 370 },
+        units: [
+          {
+            id: "M7",
+            href: "/oferty/nowe-garaz-podziemny-ogrod-urzadzone-pod-klucz-FIB-MW-4173",
+            d: "M336 346L336 261L282 261L282 235L282 205L139 205L139 346Z",
+            areaM2: 31.21,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 229, y: 281 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 20.43 },
+              { name: "Sypialnia", areaM2: 7.08 },
+              { name: "Łazienka", areaM2: 3.7 },
+            ],
+          },
+          {
+            id: "M8",
+            href: "/oferty/nowa-kawalerka-premium-klimatyzacja-winda-FIB-MW-4172",
+            d: "M220 195L220 110L116 110L116 25L24 25L24 342L130 342L130 195Z",
+            areaM2: 49.58,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 94, y: 181 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 27.04 },
+              { name: "Pokój", areaM2: 7.28 },
+              { name: "Sypialnia", areaM2: 10.53 },
+              { name: "Łazienka", areaM2: 4.73 },
+            ],
+          },
+          {
+            id: "M9",
+            href: "/oferty/nowy-apartamentowiec-wyposazone-pod-klucz-FIB-MW-4171",
+            d: "M335 154L335 24L127 24L127 102L228 102L228 154Z",
+            areaM2: 27.7,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 244, y: 80 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 16.66 },
+              { name: "Sypialnia", areaM2: 7.48 },
+              { name: "Łazienka", areaM2: 3.56 },
+            ],
+          },
+          {
+            id: "M10",
+            href: "/oferty/tylko-185-000-zl-2-pokoje-balkon-1-pietro-FIB-MS-4168",
+            d: "M615 144L615 25L430 25L431 154L521 154L521 144Z",
+            areaM2: 28.95,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 521, y: 87 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 17.66 },
+              { name: "Sypialnia", areaM2: 7.16 },
+              { name: "Łazienka", areaM2: 4.13 },
+            ],
+          },
+          {
+            id: "M11",
+            href: "/oferty/tu-chce-sie-wracac-apartament-z-balkonem-FIB-MW-4164",
+            d: "M751 346L751 25L625 25L625 153L530 153L530 197L625 197L625 346Z",
+            areaM2: 55.52,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 678, y: 185 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 27.94 },
+              { name: "Pokój", areaM2: 10.24 },
+              { name: "Sypialnia", areaM2: 12.38 },
+              { name: "Łazienka", areaM2: 4.96 },
+            ],
+          },
+          {
+            id: "M12",
+            href: "/oferty/premium-3-pokoje-2-miejsca-parkingowe-nowe-budown-FIB-MS-4158",
+            d: "M615 345L615 205L429 205L429 262L347 262L347 345Z",
+            areaM2: 40.83,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 494, y: 281 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 19.14 },
+              { name: "Pokój", areaM2: 8.61 },
+              { name: "Sypialnia", areaM2: 8.13 },
+              { name: "Łazienka", areaM2: 4.95 },
+            ],
+          },
+        ],
+      },
     },
     {
       id: "floor-2",

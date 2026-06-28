@@ -17,6 +17,7 @@ import {
   type UnitStatus,
   type ZamyslowFloor,
 } from "@/lib/investments/zamyslow-data";
+import { FloorPlanView } from "./FloorPlanView";
 
 const statusStyles: Record<UnitStatus, string> = {
   Dostępne: "bg-emerald-50 text-emerald-700 ring-emerald-200",
@@ -109,12 +110,11 @@ export function ZamyslowBuilding() {
     py.set(0);
   };
 
+  // Klik w piętro NIE przerzuca już strony niżej - zostajemy w scenie i otwieramy
+  // interaktywny rzut piętra w tym samym kadrze (premium experience).
   const selectFloor = (id: string) => {
     setSelectedId(id);
     resetParallax();
-    requestAnimationFrame(() => {
-      detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
   };
 
   const clearSelection = () => setSelectedId(null);
@@ -240,6 +240,21 @@ export function ZamyslowBuilding() {
               </svg>
             </motion.div>
           </motion.div>
+
+          {/* Interaktywny rzut wybranego piętra - otwiera się w tym samym kadrze.
+              Winda w środku pozwala przełączać WSZYSTKIE piętra bez wychodzenia. */}
+          <AnimatePresence>
+            {selected && (
+              <FloorPlanView
+                key="floorplan"
+                floors={floors}
+                selectedId={selected.id}
+                onSelect={selectFloor}
+                building={zamyslowData.images.building}
+                onBack={clearSelection}
+              />
+            )}
+          </AnimatePresence>
 
           {/* Kurtyny - reżyserowane wejście */}
           {!reduceMotion && (
