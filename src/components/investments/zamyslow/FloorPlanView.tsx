@@ -43,17 +43,12 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
   const [portrait, setPortrait] = useState(false);
   const planRef = useRef<HTMLDivElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Typ OSTATNIEJ interakcji (mouse/touch/pen) - decyduje per-klik, czy działać
-  // jak na desktopie (hover + od razu oferta), czy jak na dotyku (1. tap = box).
-  const lastPointerType = useRef<string>("mouse");
 
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
+    // Realny dotyk/pen => UI w tryb dotykowy (instrukcja „Kliknij", CTA pełnego ekranu).
     const update = (e: PointerEvent) => {
-      if (!e.pointerType) return;
-      lastPointerType.current = e.pointerType;
-      // Realny dotyk/pen => trwale przełączamy UI w tryb dotykowy (instrukcja, CTA).
       if (e.pointerType === "touch" || e.pointerType === "pen") setIsTouch(true);
     };
     window.addEventListener("pointerdown", update, true);
@@ -206,16 +201,12 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
     router.push(unit.href);
   };
 
-  // Decyzja per-interakcja (nie globalny heurystyk): mysz => od razu oferta;
-  // dotyk/pen => 1. tap pokazuje box, 2. tap (lub przycisk w boxie) => oferta.
+  // Klucz: decyduje STAN boxa, nie typ urządzenia. Box otwarty dla tego mieszkania
+  // => oferta; box zamknięty => najpierw go pokaż. Na desktopie hover otwiera box
+  // PRZED klikiem (więc 1 klik = oferta); na dotyku 1. tap otwiera, 2. tap => oferta.
   const onUnitClick = (unit: FloorPlanUnit) => {
-    const touch = lastPointerType.current !== "mouse";
-    if (touch) {
-      if (activeId === unit.id) navigate(unit);
-      else showUnit(unit);
-    } else {
-      navigate(unit);
-    }
+    if (activeId === unit.id) navigate(unit);
+    else showUnit(unit);
   };
 
   const view = (
@@ -337,7 +328,7 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
             <motion.div
               key={`plan-${selectedId}`}
               ref={planRef}
-              onClick={() => lastPointerType.current !== "mouse" && setActiveId(null)}
+              onClick={() => setActiveId(null)}
               className="relative max-h-full max-w-full rounded-[var(--radius-xl)] bg-paper shadow-2xl shadow-black/40 ring-1 ring-black/5"
               style={{ aspectRatio: `${vbW} / ${vbH}` }}
               initial={{ opacity: 0, scale: 1.04 }}
@@ -366,10 +357,8 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
                       role="button"
                       tabIndex={0}
                       aria-label={`Mieszkanie ${unit.id}, ${fmt(unit.areaM2, 2)} m², ${unit.rooms} ${roomsWord(unit.rooms)}`}
-                      onMouseEnter={() => lastPointerType.current === "mouse" && showUnit(unit)}
-                      onMouseLeave={() => lastPointerType.current === "mouse" && scheduleHide()}
-                      onFocus={() => showUnit(unit)}
-                      onBlur={() => lastPointerType.current === "mouse" && scheduleHide()}
+                      onPointerEnter={(e) => e.pointerType === "mouse" && showUnit(unit)}
+                      onPointerLeave={(e) => e.pointerType === "mouse" && scheduleHide()}
                       onClick={(e) => {
                         e.stopPropagation();
                         onUnitClick(unit);
