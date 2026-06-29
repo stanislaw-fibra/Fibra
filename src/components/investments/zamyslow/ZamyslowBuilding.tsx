@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   AnimatePresence,
   MotionConfig,
@@ -20,9 +21,15 @@ import {
 import { FloorPlanView } from "./FloorPlanView";
 
 const statusStyles: Record<UnitStatus, string> = {
-  Dostępne: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  Rezerwacja: "bg-amber-50 text-amber-700 ring-amber-200",
-  Sprzedane: "bg-ink-100 text-ink-500 ring-ink-200",
+  Dostępne: "bg-emerald-50 text-emerald-700",
+  Rezerwacja: "bg-amber-50 text-amber-700",
+  Sprzedane: "bg-ink-100 text-ink-500",
+};
+
+const statusDot: Record<UnitStatus, string> = {
+  Dostępne: "bg-emerald-500",
+  Rezerwacja: "bg-amber-500",
+  Sprzedane: "bg-ink-400",
 };
 
 const formatArea = (value: number) => `${String(value).replace(".", ",")} m²`;
@@ -86,6 +93,7 @@ export function ZamyslowBuilding() {
 
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [expandedUnit, setExpandedUnit] = useState<string | null>(null);
   const detailRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
 
@@ -114,10 +122,14 @@ export function ZamyslowBuilding() {
   // interaktywny rzut piętra w tym samym kadrze (premium experience).
   const selectFloor = (id: string) => {
     setSelectedId(id);
+    setExpandedUnit(null);
     resetParallax();
   };
 
-  const clearSelection = () => setSelectedId(null);
+  const clearSelection = () => {
+    setSelectedId(null);
+    setExpandedUnit(null);
+  };
 
   const zoomOrigin = selected
     ? `${centers[selected.id].x}% ${centers[selected.id].y}%`
@@ -385,15 +397,8 @@ export function ZamyslowBuilding() {
 
             {/* Szczegóły wybranego piętra */}
             <div ref={detailRef} className="scroll-mt-24">
-              <AnimatePresence mode="wait">
-                {selected ? (
-                  <motion.div
-                    key={selected.id}
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 8 }}
-                    transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                  >
+              {selected ? (
+                <div>
                     <div className="flex items-baseline justify-between gap-3 border-b border-ink-200/70 pb-5">
                       <h2 className="font-display text-2xl text-ink-950 md:text-3xl">
                         {selected.label}
@@ -403,72 +408,136 @@ export function ZamyslowBuilding() {
                       </span>
                     </div>
 
-                    <div className="mt-7 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-                      <div>
-                        <p className="eyebrow mb-3">Układ piętra</p>
-                        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[var(--radius-lg)] bg-ink-100 ring-1 ring-ink-200/70">
-                          <Image
-                            src={zamyslowData.images.unitLayout3d}
-                            alt={`${selected.label} - układ piętra`}
-                            fill
-                            sizes="(min-width: 1024px) 40vw, 100vw"
-                            className="object-cover"
-                          />
-                          <span className="absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1 text-xs text-white">
-                            Rzut piętra już wkrótce
-                          </span>
-                        </div>
-                      </div>
+                    <div className="mt-6">
+                      <p className="eyebrow mb-4">Mieszkania na tym piętrze</p>
+                      <div className="overflow-hidden rounded-[var(--radius-lg)] border border-ink-200/80 bg-white shadow-[var(--shadow-card)]">
+                        <ul className="divide-y divide-ink-200/70">
+                          {selected.units.map((unit) => {
+                            const plan = selected.floorPlan?.units.find(
+                              (u) => u.id === unit.id,
+                            );
+                            const expandable = Boolean(plan?.roomsList?.length);
+                            const isOpen = expandedUnit === unit.id;
+                            return (
+                              <li key={unit.id}>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    expandable &&
+                                    setExpandedUnit(isOpen ? null : unit.id)
+                                  }
+                                  aria-expanded={expandable ? isOpen : undefined}
+                                  className={[
+                                    "flex w-full items-center gap-3 px-5 py-4 text-left transition-colors sm:gap-4",
+                                    expandable
+                                      ? "hover:bg-paper-warm/50"
+                                      : "cursor-default",
+                                  ].join(" ")}
+                                >
+                                  <span className="w-10 shrink-0 font-display text-[19px] leading-none text-ink-950">
+                                    {unit.id}
+                                  </span>
+                                  <span className="min-w-0 flex-1 text-[14px] text-ink-500">
+                                    <span className="font-medium text-ink-900">
+                                      {formatArea(unit.areaM2)}
+                                    </span>
+                                    <span className="text-ink-400">
+                                      {" "}
+                                      · {unit.rooms}{" "}
+                                      {unit.rooms === 1 ? "pokój" : "pokoje"}
+                                    </span>
+                                  </span>
+                                  <span
+                                    className={[
+                                      "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold",
+                                      statusStyles[unit.status],
+                                    ].join(" ")}
+                                  >
+                                    <span
+                                      className={`h-1.5 w-1.5 rounded-full ${statusDot[unit.status]}`}
+                                    />
+                                    {unit.status}
+                                  </span>
+                                  {expandable && (
+                                    <svg
+                                      width="16"
+                                      height="16"
+                                      viewBox="0 0 16 16"
+                                      fill="none"
+                                      aria-hidden
+                                      className={[
+                                        "shrink-0 text-ink-400 transition-transform duration-300",
+                                        isOpen ? "rotate-180" : "",
+                                      ].join(" ")}
+                                    >
+                                      <path
+                                        d="M4 6l4 4 4-4"
+                                        stroke="currentColor"
+                                        strokeWidth="1.6"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                  )}
+                                </button>
 
-                      <div>
-                        <p className="eyebrow mb-3">Mieszkania na tym piętrze</p>
-                        <ul className="grid gap-2.5 sm:grid-cols-2">
-                          {selected.units.map((unit) => (
-                            <li
-                              key={unit.id}
-                              className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-ink-200/70 bg-white px-4 py-3 transition-colors hover:border-ink-300"
-                            >
-                              <div>
-                                <p className="text-sm font-semibold text-ink-950">
-                                  {unit.id}
-                                </p>
-                                <p className="text-xs text-ink-500">
-                                  {unit.rooms} {unit.rooms === 1 ? "pokój" : "pokoje"} ·{" "}
-                                  {formatArea(unit.areaM2)}
-                                </p>
-                              </div>
-                              <span
-                                className={[
-                                  "shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ring-1",
-                                  statusStyles[unit.status],
-                                ].join(" ")}
-                              >
-                                {unit.status}
-                              </span>
-                            </li>
-                          ))}
+                                <AnimatePresence initial={false}>
+                                  {isOpen && plan?.roomsList && (
+                                    <motion.div
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: "auto", opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                                      className="overflow-hidden"
+                                    >
+                                      <div className="bg-paper-warm/40 px-5 pb-5 pt-1">
+                                        <p className="eyebrow mb-3 text-ink-400">
+                                          Rozkład pomieszczeń
+                                        </p>
+                                        <ul className="space-y-2">
+                                          {plan.roomsList.map((room) => (
+                                            <li
+                                              key={room.name}
+                                              className="flex items-baseline justify-between gap-3 text-[14px]"
+                                            >
+                                              <span className="text-ink-600">
+                                                {room.name}
+                                              </span>
+                                              <span className="shrink-0 tabular-nums font-medium text-ink-900">
+                                                {formatArea(room.areaM2)}
+                                              </span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                        <Link
+                                          href={plan.href}
+                                          className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-ink-900 px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-brand-600"
+                                        >
+                                          Zobacz ofertę
+                                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                                            <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                                          </svg>
+                                        </Link>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </li>
+                            );
+                          })}
                         </ul>
                       </div>
                     </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="empty"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="flex min-h-[260px] flex-col items-center justify-center rounded-[var(--radius-lg)] border border-dashed border-ink-200 bg-white/40 px-6 py-12 text-center"
-                  >
-                    <p className="font-display text-xl text-ink-800">
-                      Wybierz piętro
-                    </p>
-                    <p className="mt-2 max-w-xs text-sm text-ink-500">
-                      Kliknij kondygnację na wizualizacji lub wybierz z listy obok, aby
-                      zobaczyć dostępne mieszkania.
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                </div>
+              ) : (
+                <div className="flex min-h-[260px] flex-col items-center justify-center rounded-[var(--radius-lg)] border border-dashed border-ink-200 bg-white/40 px-6 py-12 text-center">
+                  <p className="font-display text-xl text-ink-800">Wybierz piętro</p>
+                  <p className="mt-2 max-w-xs text-sm text-ink-500">
+                    Kliknij kondygnację na wizualizacji lub wybierz z listy obok, aby
+                    zobaczyć dostępne mieszkania.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
