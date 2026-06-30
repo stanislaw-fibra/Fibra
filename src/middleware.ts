@@ -104,9 +104,14 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isLogin = request.nextUrl.pathname === "/panel/login";
+  const panelPath = request.nextUrl.pathname;
+  const isLogin = panelPath === "/panel/login";
+  // Trasy resetu hasła muszą być dostępne BEZ sesji: /confirm sam dopiero ustawia
+  // sesję recovery, a formularz „podaj e-mail" siłą rzeczy odwiedza wylogowany.
+  const isResetFlow =
+    panelPath === "/panel/reset-password" || panelPath.startsWith("/panel/reset-password/");
 
-  if (!user && !isLogin) {
+  if (!user && !isLogin && !isResetFlow) {
     const redirect = new URL("/panel/login", request.url);
     redirect.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(redirect);

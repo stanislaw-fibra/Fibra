@@ -46,6 +46,14 @@ export default async function PanelLoginPage({ searchParams }: Props) {
           >
             Zaloguj
           </button>
+          <p className="text-center text-[13px]">
+            <Link
+              href="/panel/reset-password"
+              className="text-ink-400 hover:text-accent-400 transition-colors"
+            >
+              Nie pamiętasz hasła?
+            </Link>
+          </p>
         </form>
 
         <p className="mt-10 text-center text-[13px] text-ink-500">
