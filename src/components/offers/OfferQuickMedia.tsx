@@ -130,14 +130,26 @@ export function OfferQuickMedia({
 
   // Miniatura spaceru z publicznego endpointu Matterport - jak miniaturka YouTube,
   // żeby kafelek pokazywał realny podgląd przestrzeni, a nie tylko ikonę.
-  const matterportThumb = useMemo(() => {
+  const matterportThumbId = useMemo(() => {
     const raw = virtualTourUrl?.trim();
     if (!raw) return null;
-    const id = matterportModelId(raw);
-    if (!id) return null;
-    // `?width` znacząco zmniejsza wagę miniatury (~38 KB zamiast ~355 KB).
-    return `https://my.matterport.com/api/v1/player/models/${encodeURIComponent(id)}/thumb?width=480`;
+    return matterportModelId(raw);
   }, [virtualTourUrl]);
+
+  // Zejście awaryjne miniatury spaceru: część modeli zwraca z CDN Matterporta
+  // HTTP 410 dla wariantu z `?width=` (resize bywa „zgniły"), choć pełna miniatura
+  // bez resize ładuje się normalnie. Krok 0 = lekki resize (~38 KB), krok 1 =
+  // pełna miniatura (~350 KB, niezawodna), krok 2 = ikona (obsłużona przy renderze).
+  const [tourThumbStep, setTourThumbStep] = useState<0 | 1 | 2>(0);
+  useEffect(() => {
+    setTourThumbStep(0);
+  }, [matterportThumbId]);
+
+  const matterportThumb = useMemo(() => {
+    if (!matterportThumbId || tourThumbStep === 2) return null;
+    const base = `https://my.matterport.com/api/v1/player/models/${encodeURIComponent(matterportThumbId)}/thumb`;
+    return tourThumbStep === 0 ? `${base}?width=480` : base;
+  }, [matterportThumbId, tourThumbStep]);
 
   const hasTour = Boolean(virtualTourUrl?.trim());
   const hasFloorImage = floorImages.length > 0;
@@ -471,7 +483,14 @@ export function OfferQuickMedia({
           <button type="button" onClick={() => setOpen("tour")} className={tileBase} aria-label="Otwórz wirtualny spacer 3D">
             {matterportThumb ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={matterportThumb} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" draggable={false} />
+              <img
+                src={matterportThumb}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+                loading="lazy"
+                draggable={false}
+                onError={() => setTourThumbStep((s) => (s < 2 ? ((s + 1) as 0 | 1 | 2) : s))}
+              />
             ) : (
               <span className="absolute inset-0 flex items-center justify-center bg-ink-950 text-white">
                 <svg width="20" height="20" viewBox="0 0 16 16" fill="none" aria-hidden>
