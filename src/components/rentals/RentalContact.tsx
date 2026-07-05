@@ -4,7 +4,19 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { submitLead } from "@/lib/leads-client";
+import { TrackedPhoneLink } from "@/components/rentals/TrackedPhoneLink";
 import { useFormGuards, GUARD_NOT_READY_MESSAGE } from "@/components/forms/FormGuards";
+
+// GA4 / Meta Pixel - typujemy minimalnie, żeby nie wymagać deklaracji globalnych.
+type Gtag = (cmd: "event", name: string, params?: Record<string, unknown>) => void;
+type FbqFn = (cmd: "track" | "trackCustom", name: string, params?: Record<string, unknown>) => void;
+
+declare global {
+  interface Window {
+    gtag?: Gtag;
+    fbq?: FbqFn;
+  }
+}
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -60,7 +72,7 @@ export function RentalContact({ agent }: { agent: RentalAgent }) {
             </div>
 
             <div className="mt-6 flex flex-col gap-3">
-              <a href={`tel:${agent.phoneTel}`} className="group flex items-center gap-4 text-white">
+              <TrackedPhoneLink phone={agent.phoneTel} location="kontakt" className="group flex items-center gap-4 text-white">
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/5 transition-colors duration-300 group-hover:bg-accent-400 group-hover:text-ink-950">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 2.08 4.18 2 2 0 0 1 4.07 2H7a2 2 0 0 1 2 1.72c.13.9.35 1.78.66 2.62a2 2 0 0 1-.45 2.11L7.9 9.77a16 16 0 0 0 6 6l1.32-1.32a2 2 0 0 1 2.11-.45c.84.3 1.72.53 2.62.66A2 2 0 0 1 22 16.92Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -70,7 +82,7 @@ export function RentalContact({ agent }: { agent: RentalAgent }) {
                   <span className="block text-[13px] text-white/40">Zadzwoń</span>
                   <span className="text-[16px]">{agent.phoneDisplay}</span>
                 </span>
-              </a>
+              </TrackedPhoneLink>
               <a href={smsHref} className="group flex items-center gap-4 text-white">
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/5 transition-colors duration-300 group-hover:bg-accent-400 group-hover:text-ink-950">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -130,6 +142,11 @@ export function RentalContact({ agent }: { agent: RentalAgent }) {
                     ...getGuardData(),
                   });
 
+                  if (typeof window !== "undefined") {
+                    // GA4: zdarzenie do oznaczenia jako konwersja i importu do Google Ads.
+                    window.gtag?.("event", "generate_lead", { source: "rental_zamyslow" });
+                    window.fbq?.("track", "Lead", { source: "rental_zamyslow" });
+                  }
                   setSent(true);
                 } catch (err) {
                   setError(err instanceof Error ? err.message : "Nie udało się wysłać. Spróbuj ponownie.");

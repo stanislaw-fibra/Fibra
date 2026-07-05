@@ -5,6 +5,7 @@ import { Footer } from "@/components/site/Footer";
 import { RentalsList } from "@/components/rentals/RentalsList";
 import { RentalContact } from "@/components/rentals/RentalContact";
 import { RentalsGallery } from "@/components/rentals/RentalsGallery";
+import { TrackedPhoneLink } from "@/components/rentals/TrackedPhoneLink";
 import { getZamyslowRentals, RENTAL_AGENT } from "@/lib/rentals/zamyslow-rentals";
 
 // Lista odświeżana z arkusza co 5 minut (ISR). Arkadiusz aktualizuje arkusz,
@@ -126,12 +127,13 @@ export default async function Page() {
                 Zobacz mieszkania
                 {listing ? <span className="text-ink-500">· {listing.available} dostępnych</span> : null}
               </a>
-              <a
-                href={`tel:${RENTAL_AGENT.phoneTel}`}
+              <TrackedPhoneLink
+                phone={RENTAL_AGENT.phoneTel}
+                location="hero"
                 className="inline-flex items-center gap-2 rounded-full border border-white/25 px-7 py-3.5 text-[14px] font-medium text-white transition-colors duration-300 hover:border-white/60"
               >
                 Zadzwoń: {RENTAL_AGENT.phoneDisplay}
-              </a>
+              </TrackedPhoneLink>
             </div>
           </div>
         </section>
@@ -178,9 +180,9 @@ export default async function Page() {
                 <div className="rounded-[var(--radius-lg)] border border-ink-200/80 bg-white p-8 text-center">
                   <p className="text-[15px] text-ink-600">
                     Lista chwilowo niedostępna.{" "}
-                    <a href={`tel:${RENTAL_AGENT.phoneTel}`} className="font-medium text-brand-600 hover:text-brand-500">
+                    <TrackedPhoneLink phone={RENTAL_AGENT.phoneTel} location="lista-fallback" className="font-medium text-brand-600 hover:text-brand-500">
                       Zadzwoń: {RENTAL_AGENT.phoneDisplay}
-                    </a>
+                    </TrackedPhoneLink>
                     , a podamy aktualną dostępność.
                   </p>
                 </div>
