@@ -2,17 +2,6 @@
 
 import type { ComponentPropsWithoutRef } from "react";
 
-// GA4 / Meta Pixel - typujemy minimalnie, żeby nie wymagać deklaracji globalnych.
-type Gtag = (cmd: "event", name: string, params?: Record<string, unknown>) => void;
-type FbqFn = (cmd: "track" | "trackCustom", name: string, params?: Record<string, unknown>) => void;
-
-declare global {
-  interface Window {
-    gtag?: Gtag;
-    fbq?: FbqFn;
-  }
-}
-
 /**
  * Link telefoniczny, który przy kliknięciu wysyła zdarzenie do GA4
  * (import konwersji „Kliknięcie w telefon" w Google Ads) oraz do Meta Pixel.

@@ -6,19 +6,6 @@ import { submitLead } from "@/lib/leads-client";
 import { EMAIL_ERROR_MESSAGE, isValidEmail } from "@/lib/email-validation";
 import { useFormGuards, GUARD_NOT_READY_MESSAGE } from "@/components/forms/FormGuards";
 
-// GA4 / Meta Pixel - typujemy minimalnie, żeby nie wymagać deklaracji globalnych.
-type Gtag = (cmd: "event", name: string, params?: Record<string, unknown>) => void;
-type FbqFn = ((cmd: "track" | "trackCustom", name: string, params?: Record<string, unknown>) => void) & {
-  callMethod?: unknown;
-};
-
-declare global {
-  interface Window {
-    gtag?: Gtag;
-    fbq?: FbqFn;
-  }
-}
-
 type Variant = "compact" | "full";
 
 /**

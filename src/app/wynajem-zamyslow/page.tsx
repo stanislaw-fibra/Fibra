@@ -6,6 +6,7 @@ import { RentalsList } from "@/components/rentals/RentalsList";
 import { RentalContact } from "@/components/rentals/RentalContact";
 import { RentalsGallery } from "@/components/rentals/RentalsGallery";
 import { TrackedPhoneLink } from "@/components/rentals/TrackedPhoneLink";
+import { RentalStickyCta } from "@/components/rentals/RentalStickyCta";
 import { getZamyslowRentals, RENTAL_AGENT } from "@/lib/rentals/zamyslow-rentals";
 
 // Lista odświeżana z arkusza co 5 minut (ISR). Arkadiusz aktualizuje arkusz,
@@ -279,6 +280,7 @@ export default async function Page() {
         {/* ── Kontakt + formularz ──────────────────────────────── */}
         <RentalContact agent={{ ...RENTAL_AGENT }} />
       </main>
+      <RentalStickyCta phone={RENTAL_AGENT.phoneTel} phoneDisplay={RENTAL_AGENT.phoneDisplay} />
       <Footer />
     </>
   );
