@@ -3,6 +3,7 @@ import { Inter, Instrument_Serif } from "next/font/google";
 import { AnalyticsScripts } from "@/components/consent/AnalyticsScripts";
 import { MetaPixelPageView } from "@/components/consent/MetaPixelPageView";
 import { CookiebotLoader } from "@/components/consent/CookiebotLoader";
+import { AttributionCapture } from "@/components/analytics/AttributionCapture";
 import { SiteJsonLd } from "@/components/seo/SiteJsonLd";
 import { getCloudflareStreamCustomerCode } from "@/lib/cloudflare-stream";
 import "./globals.css";
@@ -126,6 +127,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-[var(--color-paper)] text-ink-900">
         <SiteJsonLd />
+        <AttributionCapture />
         {children}
         {/* Cookiebot ładowany PO hydracji (CookiebotLoader, useEffect) - inaczej React
             kasuje wstrzyknięty baner podczas hydracji. AnalyticsScripts emituje trackery

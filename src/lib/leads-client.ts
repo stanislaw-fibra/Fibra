@@ -1,3 +1,5 @@
+import { captureAttributionFromUrl, getAttribution } from "@/lib/attribution";
+
 export type LeadSource =
   | "offer_page"
   | "offer_page_mini"
@@ -28,10 +30,16 @@ export type SubmitLeadInput = {
 };
 
 export async function submitLead(input: SubmitLeadInput): Promise<void> {
+  // Dokładamy atrybucję (gclid/utm) do KAŻDEGO leada niezależnie od formularza.
+  // captureAttributionFromUrl na wszelki wypadek łapie parametry z bieżącego URL
+  // (gdy ktoś wysyła na tej samej stronie, na którą wszedł z reklamy).
+  captureAttributionFromUrl();
+  const body = { ...input, ...getAttribution() };
+
   const res = await fetch("/api/leads", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(input),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     let msg = "Lead submission failed";

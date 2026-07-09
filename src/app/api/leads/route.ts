@@ -40,6 +40,11 @@ type LeadPayload = {
   hp?: string | null;
   ts?: number | null;
   turnstile_token?: string | null;
+  // Atrybucja marketingowa (dokładana automatycznie przez submitLead z localStorage).
+  gclid?: string | null;
+  utm_source?: string | null;
+  utm_medium?: string | null;
+  utm_campaign?: string | null;
 };
 
 function isLeadSource(x: unknown): x is LeadSource {
@@ -60,6 +65,32 @@ function cleanText(v: unknown): string | null {
   if (typeof v !== "string") return null;
   const t = v.trim();
   return t.length ? t : null;
+}
+
+/** Krótkie pole atrybucji (gclid/utm) - jak cleanText, ale z limitem długości. */
+function cleanAttr(v: unknown): string | null {
+  const t = cleanText(v);
+  return t ? t.slice(0, 512) : null;
+}
+
+/**
+ * Normalizacja telefonu do formatu E.164 dla numerów PL (np. "792 491 196"
+ * albo "792491196" -> "+48792491196"). Numery już międzynarodowe (z "+")
+ * czyścimy tylko ze spacji/myślników. Nietypowe formaty zostawiamy jak są -
+ * lepiej zapisać oryginał niż zepsuć numer zagraniczny.
+ */
+function normalizePhonePl(raw: string | null): string | null {
+  if (!raw) return raw;
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("+")) {
+    return "+" + trimmed.slice(1).replace(/\D/g, "");
+  }
+  let digits = trimmed.replace(/\D/g, "");
+  if (digits.startsWith("0048")) digits = digits.slice(2); // 0048... -> 48...
+  if (digits.length === 11 && digits.startsWith("48")) return "+" + digits;
+  if (digits.length === 10 && digits.startsWith("0")) digits = digits.slice(1); // krajowe 0-prefix
+  if (digits.length === 9) return "+48" + digits;
+  return trimmed; // nieznany format - nie ryzykujemy, zostawiamy oryginał
 }
 
 function sha256Hex(input: string): string {
@@ -125,9 +156,15 @@ export async function POST(req: Request) {
   const offer_id = cleanText(body.offer_id) ?? null;
   const galactica_offer_id = cleanText(body.galactica_offer_id) ?? null;
   const email = cleanText(body.email) ?? null;
-  const phone = cleanText(body.phone) ?? null;
+  const phone = normalizePhonePl(cleanText(body.phone));
   const message = cleanText(body.message) ?? null;
   const newsletter_consent = Boolean(body.newsletter_consent);
+
+  // Atrybucja marketingowa (gclid + utm) - do offline conversion w Google Ads i źródła w CRM.
+  const gclid = cleanAttr(body.gclid);
+  const utm_source = cleanAttr(body.utm_source);
+  const utm_medium = cleanAttr(body.utm_medium);
+  const utm_campaign = cleanAttr(body.utm_campaign);
 
   // Walidacja per źródło.
   if (body.source === "newsletter_footer") {
@@ -171,6 +208,10 @@ export async function POST(req: Request) {
     newsletter_consent,
     user_agent: userAgent,
     ip_hash,
+    gclid,
+    utm_source,
+    utm_medium,
+    utm_campaign,
   });
 
   if (error) {
