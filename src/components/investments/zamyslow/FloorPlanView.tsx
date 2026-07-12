@@ -183,11 +183,12 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
       hideTimer.current = null;
     }
   };
-  // Krótka zwłoka przy chowaniu = „mostek" między mieszkaniem a kartą (można dojechać
-  // myszką do przycisku „Zobacz ofertę" bez znikania boxa).
+  // Krótka zwłoka przy chowaniu = tłumi migotanie na krawędziach polygonu; box i tak
+  // pozostaje, dopóki kursor jest nad mieszkaniem (pointerenter/leave nie odpalają
+  // przy ruchu WEWNĄTRZ elementu).
   const scheduleHide = () => {
     cancelHide();
-    hideTimer.current = setTimeout(() => setActiveId(null), 220);
+    hideTimer.current = setTimeout(() => setActiveId(null), 90);
   };
   const showUnit = (unit: FloorPlanUnit) => {
     cancelHide();
@@ -201,13 +202,9 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
     router.push(unit.href);
   };
 
-  // Klucz: decyduje STAN boxa, nie typ urządzenia. Box otwarty dla tego mieszkania
-  // => oferta; box zamknięty => najpierw go pokaż. Na desktopie hover otwiera box
-  // PRZED klikiem (więc 1 klik = oferta); na dotyku 1. tap otwiera, 2. tap => oferta.
-  const onUnitClick = (unit: FloorPlanUnit) => {
-    if (activeId === unit.id) navigate(unit);
-    else showUnit(unit);
-  };
+  // Jeden klik/tap = od razu oferta (klient: „jak ktoś klika - to klika").
+  // Box szczegółów to tylko podgląd po najechaniu (desktop, hover) - nie blokuje.
+  const onUnitClick = (unit: FloorPlanUnit) => navigate(unit);
 
   const view = (
     <div
@@ -404,7 +401,7 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
                       }}
                     >
                       <span
-                        className="block font-display font-semibold text-ink-950"
+                        className="block font-sans font-bold tabular-nums tracking-tight text-ink-950"
                         style={{ fontSize: `${lbl.num}px` }}
                       >
                         {unit.id}
@@ -510,8 +507,8 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
               {!plan
                 ? "Wybierz piętro z windy obok"
                 : isTouch
-                  ? "Kliknij mieszkanie, aby zobaczyć szczegóły"
-                  : "Najedź na mieszkanie, aby zobaczyć szczegóły"}
+                  ? "Kliknij mieszkanie, aby otworzyć ofertę"
+                  : "Najedź, by zobaczyć szczegóły · kliknij, by otworzyć ofertę"}
             </span>
           </div>
         )}
@@ -530,9 +527,6 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
                 unit={active}
                 anchor={anchor}
                 loading={navigatingId === active.id}
-                onOpen={() => navigate(active)}
-                onPointerEnter={() => !isTouch && cancelHide()}
-                onPointerLeave={() => !isTouch && scheduleHide()}
               />
             )}
           </AnimatePresence>,
@@ -550,16 +544,10 @@ function DetailCard({
   unit,
   anchor,
   loading,
-  onOpen,
-  onPointerEnter,
-  onPointerLeave,
 }: {
   unit: FloorPlanUnit;
   anchor: { x: number; y: number };
   loading: boolean;
-  onOpen: () => void;
-  onPointerEnter: () => void;
-  onPointerLeave: () => void;
 }) {
   const vw = typeof window !== "undefined" ? window.innerWidth : 1280;
   const vh = typeof window !== "undefined" ? window.innerHeight : 800;
@@ -574,15 +562,14 @@ function DetailCard({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.12 }}
-      onClick={(e) => e.stopPropagation()}
-      onMouseEnter={onPointerEnter}
-      onMouseLeave={onPointerLeave}
-      className="fixed z-[200] w-[230px] max-w-[82vw] overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-ink-950/95 text-white shadow-2xl shadow-black/60 backdrop-blur-md"
+      // pointer-events-none = box nigdy nie przechwytuje kursora, więc najechanie na
+      // niego nie „wypycha" kursora z mieszkania (koniec migotania). Box to podgląd.
+      className="pointer-events-none fixed z-[200] w-[230px] max-w-[82vw] overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-ink-950/95 text-white shadow-2xl shadow-black/60 backdrop-blur-md"
       style={{ left: anchor.x, top: anchor.y, transform: `${xT} ${yT}` }}
     >
       <div className="px-4 pt-3.5">
         <div className="flex items-center justify-between">
-          <span className="font-display text-lg">{unit.id}</span>
+          <span className="font-sans text-[17px] font-semibold tracking-tight">{unit.id}</span>
           <span className="inline-flex items-center gap-1.5 text-[11px] text-white/70">
             <span className={`h-1.5 w-1.5 rounded-full ${statusDot[unit.status]}`} />
             {unit.status}
@@ -604,30 +591,20 @@ function DetailCard({
         </ul>
       </div>
 
-      <div className="px-3 pb-3 pt-1">
-        <button
-          type="button"
-          disabled={loading}
-          onClick={(e) => {
-            e.stopPropagation();
-            onOpen();
-          }}
-          className="flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] bg-white px-3 py-2 text-[13px] font-semibold text-ink-900 transition-colors hover:bg-brand-50 disabled:opacity-90"
-        >
-          {loading ? (
-            <>
-              <Spinner className="text-ink-900" />
-              Ładowanie…
-            </>
-          ) : (
-            <>
-              Zobacz ofertę
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </>
-          )}
-        </button>
+      <div className="flex items-center justify-center gap-1.5 border-t border-white/10 bg-white/[0.04] px-3 py-2.5 text-[12.5px] font-medium text-white/85">
+        {loading ? (
+          <>
+            <Spinner className="text-white" />
+            Otwieram ofertę…
+          </>
+        ) : (
+          <>
+            Kliknij, aby zobaczyć ofertę
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+              <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </>
+        )}
       </div>
     </motion.div>
   );

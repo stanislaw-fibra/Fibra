@@ -434,7 +434,7 @@ export function ZamyslowBuilding() {
                                       : "cursor-default",
                                   ].join(" ")}
                                 >
-                                  <span className="w-10 shrink-0 font-display text-[19px] leading-none text-ink-950">
+                                  <span className="w-11 shrink-0 font-sans text-[16px] font-bold tabular-nums tracking-tight text-ink-950">
                                     {unit.id}
                                   </span>
                                   <span className="min-w-0 flex-1 text-[14px] text-ink-500">

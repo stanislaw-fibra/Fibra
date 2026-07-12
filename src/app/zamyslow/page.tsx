@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Footer } from "@/components/site/Footer";
-import { Nav } from "@/components/site/Nav";
+import { ZamyslowNav } from "@/components/investments/zamyslow/ZamyslowNav";
 import { InvestorHero } from "@/components/investments/zamyslow/investor/InvestorHero";
 import { TrustSection } from "@/components/investments/zamyslow/investor/TrustSection";
 import { WhyRybnik } from "@/components/investments/zamyslow/investor/WhyRybnik";
 import { ReturnsSection } from "@/components/investments/zamyslow/investor/ReturnsSection";
 import { WhichApartment } from "@/components/investments/zamyslow/investor/WhichApartment";
+import { ZamyslowApartmentsList } from "@/components/investments/zamyslow/ZamyslowApartmentsList";
 import { InvestorCta } from "@/components/investments/zamyslow/investor/InvestorCta";
 
 export const metadata: Metadata = {
@@ -18,13 +19,14 @@ export const metadata: Metadata = {
 export default function ZamyslowPage() {
   return (
     <>
-      <Nav />
+      <ZamyslowNav />
       <main className="flex-1 pt-[72px]">
         <InvestorHero />
         <TrustSection />
         <WhyRybnik />
         <ReturnsSection />
         <WhichApartment />
+        <ZamyslowApartmentsList />
         <InvestorCta />
       </main>
       <Footer />
