@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { offerPublishedAt } from "@/lib/offers";
 import type { Offer } from "@/lib/offers";
 
 export type ViewMode = "video" | "gallery";
@@ -362,12 +363,12 @@ export function applyFilters(offers: Offer[], f: Filters): Offer[] {
       sorted.sort((a, b) => ((b.areaUsableM2 || b.area) || -1) - ((a.areaUsableM2 || a.area) || -1));
       break;
     default: {
-      // „Najnowsze" = data dodania oferty w Galactice (sourceCreatedAt), tak jak na oficjalnej
-      // stronie. Oferty bez tej daty (stare rekordy FTP/developerka) idą na koniec - NIE na
-      // updatedAt (czas sync-u jest „dzisiejszy" i wypchnąłby je błędnie na górę).
+      // „Najnowsze" = PÓŹNIEJSZA z (createdAt u nas, DataWprowadzenia z Galactiki) - patrz
+      // `offerPublishedAt`. Oferta świeżo dodana u nas idzie na górę, nawet gdy jej data z CRM
+      // jest starsza. Bez obu dat -> koniec listy; tie-break po updatedAt.
       sorted.sort((a, b) => {
-        const ka = a.sourceCreatedAt || "";
-        const kb = b.sourceCreatedAt || "";
+        const ka = offerPublishedAt(a);
+        const kb = offerPublishedAt(b);
         if (ka !== kb) return kb.localeCompare(ka);
         return (b.updatedAt || "").localeCompare(a.updatedAt || "");
       });

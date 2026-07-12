@@ -80,8 +80,14 @@ export interface Offer {
   /** Data ostatniej aktualizacji (ISO) - czas ostatniego sync-u z importu. */
   updatedAt?: string;
   /**
+   * Data pojawienia się oferty w NASZEJ bazie (ISO, `offers.created_at`). Ustawiana raz
+   * przy insertcie i nietknięta przez sync - czyli „kiedy oferta trafiła na fibra.pl".
+   */
+  createdAt?: string;
+  /**
    * Data DODANIA oferty w Galactice/VIRGO (ISO, z `raw_params.DataWprowadzenia`).
-   * To po niej sortujemy „Najnowsze" - tak jak oficjalna strona Galactiki.
+   * Sortowanie „Najnowsze" bierze PÓŹNIEJSZĄ z (createdAt, sourceCreatedAt) - patrz
+   * `offerPublishedAt` - żeby oferta świeżo dodana u nas nie ginęła pod starą datą z CRM.
    */
   sourceCreatedAt?: string;
   /** Agent przypisany do oferty (z Galactiki / panelu). */
@@ -96,6 +102,22 @@ export interface Offer {
   /** Cloudflare Stream ID autoprezentacji agenta (kolumna `agents.cloudflare_video_id`).
    *  Gdy ustawione - na stronie oferty awatar agenta dostaje przycisk Play → popup z filmem. */
   agentVideoId?: string;
+}
+
+/**
+ * „Data publikacji" oferty do sortowania „Najnowsze" = PÓŹNIEJSZA z dwóch dat:
+ *  - `createdAt` (kiedy oferta trafiła do naszej bazy / na fibra.pl),
+ *  - `sourceCreatedAt` (`DataWprowadzenia` z Galactiki).
+ *
+ * Po co max: oferta dodana u nas dziś, ale z wcześniejszą datą z CRM (bo agent założył
+ * ją w Galactice tydzień temu), inaczej ginęłaby pod ofertami o świeższej dacie CRM.
+ * Świeżo dodana u nas ma najświeższy `createdAt`, więc słusznie ląduje na górze.
+ * Zwraca ISO albo "" (brak obu dat) - te bez daty lądują na końcu listy.
+ */
+export function offerPublishedAt(o: Pick<Offer, "createdAt" | "sourceCreatedAt">): string {
+  const a = o.createdAt || "";
+  const b = o.sourceCreatedAt || "";
+  return a > b ? a : b;
 }
 
 /**

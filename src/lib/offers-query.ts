@@ -1,6 +1,7 @@
 import "server-only";
 
 import { injectBlockBreaks } from "@/lib/description-blocks";
+import { offerPublishedAt } from "@/lib/offers";
 import type { Offer, OfferKind } from "@/lib/offers";
 import { getSupabaseAnon } from "@/lib/supabase/server-anon";
 
@@ -21,6 +22,7 @@ const OFFER_SELECT = `
   floor_plan_pdf_url,
   youtube_url,
   updated_at,
+  created_at,
   price,
   currency,
   area_total,
@@ -168,6 +170,7 @@ type OfferRow = {
   floor_plan_pdf_url: string | null;
   youtube_url?: string | null;
   updated_at: string | null;
+  created_at: string | null;
   price: string | number | null;
   currency: string | null;
   area_total: string | number | null;
@@ -618,6 +621,7 @@ export function mapOfferRow(row: OfferRow): Offer {
     youtubeUrl: resolveYoutubeUrl(row.youtube_url ?? null),
     hasShortVideo: Boolean(shortId),
     updatedAt: row.updated_at ?? undefined,
+    createdAt: row.created_at ?? undefined,
     sourceCreatedAt: pickSourceCreatedAt(row.raw_params),
   };
 }
@@ -871,11 +875,11 @@ async function fetchOfferRow(
  * głównej, wstępny render /oferty); na /oferty klient i tak może przesortować innym kluczem.
  */
 function compareByNewest(a: Offer, b: Offer): number {
-  // Oferty Z realną datą dodania idą pierwsze (malejąco). Te BEZ niej (stare rekordy
-  // FTP/developerka bez DataWprowadzenia) lądują na końcu - NIE używamy dla nich updated_at
-  // (czas sync-u jest „dzisiejszy" i błędnie wypchnąłby je na samą górę „najnowszych").
-  const ka = a.sourceCreatedAt || "";
-  const kb = b.sourceCreatedAt || "";
+  // Klucz = PÓŹNIEJSZA z (createdAt u nas, DataWprowadzenia z Galactiki) - patrz
+  // `offerPublishedAt`. Dzięki temu oferta świeżo dodana u nas idzie na górę, nawet gdy
+  // jej data z CRM jest starsza. Oferty bez obu dat lądują na końcu; tie-break po updated_at.
+  const ka = offerPublishedAt(a);
+  const kb = offerPublishedAt(b);
   if (ka !== kb) return kb.localeCompare(ka);
   return (b.updatedAt || "").localeCompare(a.updatedAt || "");
 }
