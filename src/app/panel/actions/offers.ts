@@ -479,6 +479,49 @@ export async function deleteOfferImageAction(formData: FormData) {
   return;
 }
 
+/**
+ * Zapisuje nową kolejność zdjęć galerii. Przyjmuje pełną listę ID w docelowej
+ * kolejności (`ordered_ids` = ID rozdzielone przecinkami) i przepisuje `order_index`
+ * na 0..n. Zdjęcie na pozycji 0 zostaje `is_primary` (miniatura karty/oferty), reszta
+ * traci ten flag - tak samo jak przy uploadzie (order_index 0 = główne).
+ *
+ * Po co: Roman prosił o możliwość przestawiania kolejności zdjęć w panelu. UI robi to
+ * przeciąganiem (framer-motion Reorder), a tu utrwalamy wynik jednym zapisem.
+ */
+export async function reorderOfferImagesAction(formData: FormData) {
+  const offerId = strOrNull(formData.get("offer_id"));
+  if (!offerId) return;
+  await requireOfferAccess(offerId);
+  const admin = createSupabaseAdmin();
+
+  const raw = strOrNull(formData.get("ordered_ids"));
+  const orderedIds = (raw ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  if (orderedIds.length === 0) return;
+
+  // Bezpieczeństwo: bierzemy pod uwagę tylko ID, które faktycznie należą do tej oferty.
+  const { data: own } = await admin
+    .from("offer_images")
+    .select("id")
+    .eq("offer_id", offerId);
+  const validIds = new Set((own ?? []).map((r) => r.id as string));
+  const finalOrder = orderedIds.filter((id) => validIds.has(id));
+  if (finalOrder.length === 0) return;
+
+  // Przepisujemy order_index i is_primary sekwencyjnie (galeria to zwykle kilka-
+  // kilkanaście zdjęć, więc bez potrzeby optymalizacji wsadowej).
+  for (let i = 0; i < finalOrder.length; i++) {
+    await admin
+      .from("offer_images")
+      .update({ order_index: i, is_primary: i === 0 })
+      .eq("id", finalOrder[i])
+      .eq("offer_id", offerId);
+  }
+
+  revalidatePath(`/panel/oferty/${offerId}`);
+  await revalidateOfferPublicPath(admin, offerId);
+  return;
+}
+
 const FLOORPLANS_BUCKET = "offer-floorplans";
 
 export async function uploadOfferFloorPlanImageAction(formData: FormData) {
@@ -721,6 +764,71 @@ export async function markGalleryImageAsFloorPlanAction(formData: FormData) {
   await revalidateOfferPublicPath(admin, offerId);
   // Bez redirect() - odświeżenie w miejscu zostawia widok przy oznaczonym zdjęciu,
   // zamiast skakać na górę edytowanej oferty. Zielony „Rzut ✓" to wystarczający sygnał.
+  return;
+}
+
+/**
+ * Cofa „Oznacz jako rzut" dla zdjęcia z galerii - zdjęcie wraca do bycia zwykłym
+ * zdjęciem oferty, plik w buckecie offer-images zostaje nietknięty.
+ *
+ * Po co: Roman oznaczył zdjęcie jako rzut przez pomyłkę i nie mógł tego cofnąć w
+ * miejscu (dało się tylko usunąć całe zdjęcie albo skasować wpis w osobnej sekcji
+ * „Rzut"). Ten toggle usuwa TYLKO wiersz `offer_floorplans` wskazujący na to zdjęcie.
+ *
+ * Bezpieczeństwo pliku: rzuty z galerii mają `storage_path = null` i URL z bucketu
+ * offer-images, więc kasujemy jedynie referencję - oryginał zostaje w galerii. Dla
+ * pewności NIE dotykamy Storage w tej akcji.
+ */
+export async function unmarkGalleryImageAsFloorPlanAction(formData: FormData) {
+  const offerId = strOrNull(formData.get("offer_id"));
+  if (!offerId) return;
+  await requireOfferAccess(offerId);
+  const admin = createSupabaseAdmin();
+  const imageId = strOrNull(formData.get("image_id"));
+  if (!imageId) return;
+
+  const { data: img } = await admin
+    .from("offer_images")
+    .select("image_url")
+    .eq("id", imageId)
+    .eq("offer_id", offerId)
+    .maybeSingle();
+  const imageUrl = img?.image_url?.trim();
+  if (!imageUrl) {
+    revalidatePath(`/panel/oferty/${offerId}`);
+    return;
+  }
+
+  // Kasujemy tylko wpisy-rzuty wskazujące na to zdjęcie (referencja, storage_path null).
+  await admin
+    .from("offer_floorplans")
+    .delete()
+    .eq("offer_id", offerId)
+    .eq("kind", "image")
+    .eq("url", imageUrl);
+
+  // Odśwież „primary" floor_plan_image_url: jeśli wskazywał na to zdjęcie, ustaw kolejny
+  // rzut-obraz (najniższy order) albo null.
+  const { data: off } = await admin
+    .from("offers")
+    .select("floor_plan_image_url")
+    .eq("id", offerId)
+    .maybeSingle();
+  if (off?.floor_plan_image_url?.trim() === imageUrl) {
+    const { data: rest } = await admin
+      .from("offer_floorplans")
+      .select("url,order_index")
+      .eq("offer_id", offerId)
+      .eq("kind", "image")
+      .order("order_index", { ascending: true })
+      .limit(1);
+    const nextUrl = rest?.[0]?.url?.trim() || null;
+    await admin.from("offers").update({ floor_plan_image_url: nextUrl }).eq("id", offerId);
+  }
+
+  revalidatePath(`/panel/oferty/${offerId}`);
+  await revalidateOfferPublicPath(admin, offerId);
+  // Bez redirect() - jak przy oznaczaniu, zostawiamy widok w miejscu.
   return;
 }
 

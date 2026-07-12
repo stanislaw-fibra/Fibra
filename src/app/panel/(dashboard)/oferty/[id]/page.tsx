@@ -1,14 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  deleteOfferImageAction,
-  markGalleryImageAsFloorPlanAction,
-  updateOfferAction,
-} from "@/app/panel/actions/offers";
+import { updateOfferAction } from "@/app/panel/actions/offers";
 import { OfferFilmSection } from "@/app/panel/_components/OfferFilmSection";
 import { OfferFormFields } from "@/app/panel/_components/OfferFormFields";
 import { OfferFloorPlanUploadForm } from "@/app/panel/_components/OfferFloorPlanUploadForm";
+import { OfferGalleryManager } from "@/app/panel/_components/OfferGalleryManager";
 import { OfferImageUploadForm } from "@/app/panel/_components/OfferImageUploadForm";
 import { PanelEditShell } from "@/app/panel/_components/PanelEditShell";
 import { cloudflareStreamIframeUrl } from "@/lib/cloudflare-stream";
@@ -253,50 +249,11 @@ export default async function PanelOfferEditPage({ params }: Props) {
 
           <OfferImageUploadForm offerId={row.id} galacticaOfferId={row.galactica_offer_id} />
 
-          {sortedImages.length === 0 ? (
-            <p className="text-[13px] text-ink-300">Brak zdjęć.</p>
-          ) : (
-            <ul className="grid sm:grid-cols-2 gap-4">
-              {sortedImages.map((im) => (
-                <li key={im.id} className="rounded-lg border border-white/10 overflow-hidden bg-ink-900/50">
-                  <div className="relative aspect-[4/3] bg-ink-800">
-                    <Image src={im.image_url} alt="" fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" unoptimized />
-                  </div>
-                  <div className="flex items-center justify-between gap-2 px-3 py-2 text-[12px] text-ink-300">
-                    <span>
-                      #{im.order_index}
-                      {im.is_primary ? " · główne" : ""}
-                      {floorplanImageUrls.has(im.image_url?.trim()) ? " · rzut" : ""}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      {floorplanImageUrls.has(im.image_url?.trim()) ? (
-                        <span className="text-emerald-300">Rzut ✓</span>
-                      ) : (
-                        <form action={markGalleryImageAsFloorPlanAction}>
-                          <input type="hidden" name="image_id" value={im.id} />
-                          <input type="hidden" name="offer_id" value={row.id} />
-                          <button
-                            type="submit"
-                            className="text-brand-300 hover:text-brand-200 transition-colors"
-                            title="Przenieś to zdjęcie do kafelka „Rzut 3D” na stronie oferty"
-                          >
-                            Oznacz jako rzut
-                          </button>
-                        </form>
-                      )}
-                      <form action={deleteOfferImageAction}>
-                        <input type="hidden" name="image_id" value={im.id} />
-                        <input type="hidden" name="offer_id" value={row.id} />
-                        <button type="submit" className="text-accent-400 hover:text-accent-300 transition-colors">
-                          Usuń
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+          <OfferGalleryManager
+            offerId={row.id}
+            images={sortedImages.map((im) => ({ id: im.id, image_url: im.image_url }))}
+            floorplanImageUrls={Array.from(floorplanImageUrls)}
+          />
         </section>
 
         <section className="rounded-[var(--radius-md)] border border-white/10 bg-white/[0.04] p-6 md:p-8 mt-10">
