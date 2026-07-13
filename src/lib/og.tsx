@@ -35,6 +35,44 @@ type OgOptions = NonNullable<ConstructorParameters<typeof ImageResponse>[1]>;
 type OgFonts = NonNullable<OgOptions["fonts"]>;
 
 let fontsPromise: Promise<OgFonts> | null = null;
+let logoOnDarkPromise: Promise<string> | null = null;
+
+/**
+ * Markowe logo Fibra (znak + wordmark) jako data-URI SVG w wersji na CIEMNE tło.
+ * Oryginał ma granatowy wordmark (`#005b94`), który zniknąłby na navy - zamieniamy
+ * granat na biel, zostawiając pomarańczowe akcenty znaku. Renderowane przez
+ * `<img>` w satori (deterministyczny wektor, bez sieci). Cache na proces.
+ */
+export function loadBrandLogoOnDark(): Promise<string> {
+  if (!logoOnDarkPromise) {
+    const file = join(process.cwd(), "public", "Fibra - logo firmy.svg");
+    logoOnDarkPromise = readFile(file, "utf8").then((svg) => {
+      const onDark = svg.replace(/#005b94/gi, "#ffffff");
+      return `data:image/svg+xml;utf8,${encodeURIComponent(onDark)}`;
+    });
+  }
+  return logoOnDarkPromise;
+}
+
+/** Proporcja logo (viewBox 249.13 x 75.05) - do policzenia wysokości z szerokości. */
+export const BRAND_LOGO_RATIO = 249.13 / 75.05;
+
+/**
+ * Wczytuje lokalny plik obrazu z repo (ścieżka względem `process.cwd()`) i zwraca
+ * data-URI. Do markowych kart z zakotwiczonym, zawsze ładnym zdjęciem (np. hero
+ * osiedla) - deterministyczne, bez sieci. Zwraca `null`, gdy pliku brak.
+ */
+export async function loadLocalImageDataUri(
+  relPath: string,
+  mime = "image/jpeg",
+): Promise<string | null> {
+  try {
+    const buf = await readFile(join(process.cwd(), relPath));
+    return `data:${mime};base64,${buf.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
 
 /** Wczytuje (raz, z cache) fonty marki do `ImageResponse`. */
 export function loadOgFonts(): Promise<OgFonts> {
