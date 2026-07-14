@@ -88,6 +88,7 @@ export function OfferQuickMedia({
   const [open, setOpen] = useState<ModalKind | null>(null);
   const [mounted, setMounted] = useState(false);
   const [floorIdx, setFloorIdx] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   const floorImages = useMemo(() => {
     const fromDb = (floorPlanImages ?? []).map((x) => x?.trim()).filter(Boolean) as string[];
@@ -181,6 +182,45 @@ export function OfferQuickMedia({
     window.open(first, "_blank", "noopener,noreferrer");
   }, [floorPdfsResolved]);
 
+  // Otwarcie rzutu = ta sama logika co kafelek (PDF-only → PDF, oba → wybór formatu,
+  // sam obraz → podgląd). Wyciągnięte, bo używa tego też deep-link `#rzut`.
+  const openFloor = useCallback(() => {
+    if (hasFloorPdf && !hasFloorImage) {
+      openPdf();
+      return;
+    }
+    if (hasFloorPdf && hasFloorImage) {
+      setOpen("floor-choice");
+      return;
+    }
+    setOpen("floor");
+  }, [hasFloorPdf, hasFloorImage, openPdf]);
+
+  // Deep-link do konkretnego materiału (do dzielenia się samym rzutem/spacerem):
+  // `#spacer`, `#rzut`, `#film`. Link zostaje krótki - to tylko końcówka adresu oferty.
+  const shareHash =
+    open === "tour"
+      ? "spacer"
+      : open === "floor" || open === "floor-choice"
+        ? "rzut"
+        : open === "youtube"
+          ? "film"
+          : null;
+
+  const copyShareLink = useCallback(() => {
+    if (!shareHash || typeof window === "undefined") return;
+    const url = `${window.location.origin}${window.location.pathname}#${shareHash}`;
+    const done = () => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    };
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(done).catch(done);
+    } else {
+      done();
+    }
+  }, [shareHash]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -212,6 +252,26 @@ export function OfferQuickMedia({
     if (open !== "floor") return;
     setFloorIdx(0);
   }, [open]);
+
+  // „Skopiowano" gaśnie, gdy zmieniamy/zamykamy modal.
+  useEffect(() => {
+    setCopied(false);
+  }, [open]);
+
+  // Deep-link: `#spacer` / `#rzut` / `#film` w adresie otwiera dany materiał od razu
+  // (ktoś kliknie link i widzi sam rzut/spacer). Reaguje też na zmianę hasha bez reloadu.
+  useEffect(() => {
+    if (!mounted) return;
+    const applyHash = () => {
+      const h = window.location.hash.replace(/^#/, "").toLowerCase();
+      if (h === "spacer" && hasTour) setOpen("tour");
+      else if (h === "rzut" && hasFloor) openFloor();
+      else if (h === "film" && hasYoutube) setOpen("youtube");
+    };
+    applyHash();
+    window.addEventListener("hashchange", applyHash);
+    return () => window.removeEventListener("hashchange", applyHash);
+  }, [mounted, hasTour, hasFloor, hasYoutube, openFloor]);
 
   const modal =
     mounted && typeof document !== "undefined"
@@ -262,16 +322,43 @@ export function OfferQuickMedia({
                       </p>
                       <p className="mt-0.5 text-[12px] sm:text-[13px] text-ink-600 line-clamp-2">{offerTitle}</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={close}
-                      className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-ink-200 bg-paper text-ink-700 transition-colors hover:border-ink-900 hover:bg-ink-950 hover:text-white"
-                      aria-label="Zamknij panel"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                        <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                    </button>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {shareHash ? (
+                        <button
+                          type="button"
+                          onClick={copyShareLink}
+                          className="inline-flex h-10 items-center gap-1.5 rounded-full border border-ink-200 bg-paper px-3.5 text-[12.5px] font-medium text-ink-700 transition-colors hover:border-ink-900 hover:text-ink-950"
+                          aria-label="Skopiuj link do tego materiału"
+                        >
+                          {copied ? (
+                            <>
+                              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden className="text-brand-600">
+                                <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                              <span className="hidden sm:inline">Skopiowano</span>
+                            </>
+                          ) : (
+                            <>
+                              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden>
+                                <path d="M6.5 9.5a2.5 2.5 0 0 0 3.6.1l2-2a2.5 2.5 0 1 0-3.5-3.6l-.8.8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M9.5 6.5a2.5 2.5 0 0 0-3.6-.1l-2 2a2.5 2.5 0 1 0 3.5 3.6l.8-.8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                              <span className="hidden sm:inline">Kopiuj link</span>
+                            </>
+                          )}
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={close}
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-200 bg-paper text-ink-700 transition-colors hover:border-ink-900 hover:bg-ink-950 hover:text-white"
+                        aria-label="Zamknij panel"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                          <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="min-h-0 flex-1 overflow-hidden p-3 sm:p-5 md:p-6">
@@ -510,17 +597,7 @@ export function OfferQuickMedia({
         {hasFloor ? (
           <button
             type="button"
-            onClick={() => {
-              if (hasFloorPdf && !hasFloorImage) {
-                openPdf();
-                return;
-              }
-              if (hasFloorPdf && hasFloorImage) {
-                setOpen("floor-choice");
-                return;
-              }
-              setOpen("floor");
-            }}
+            onClick={openFloor}
             className={tileBase}
             aria-label="Zobacz rzut / układ pomieszczeń"
           >
