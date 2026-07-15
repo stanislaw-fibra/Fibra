@@ -156,7 +156,10 @@ export function pickFloorPlanImageFromGallery(gallery: string[] | undefined): st
   }
 
   const patterns = [
-    /rzut/i,
+    // `rzut` jako osobne słowo (lookbehind na literę), inaczej łapało polskie
+    // „Zrzut ekranu" (screenshot) i podstawiało go jako rzut. Spójne z importerem
+    // (RZUT_FILENAME_RE w virgo-mapper). Uwaga Romana, FIB-DS-4127.
+    /(?<!\p{L})rzut/iu,
     /uklad|układ/i,
     /floor[_-]?plan/i,
     /layout[_-]?(mieszkan|apartment|flat|lokal)/i,

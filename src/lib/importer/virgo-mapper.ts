@@ -37,7 +37,16 @@ function sanitizeFilename(name: string): string {
 // Nazwa pliku jednoznacznie wskazująca na rzut/plan - łapiemy też zdjęcia, którym
 // Galactica nie ustawiła `typ=Rzut` (jak robi OtoDom). Wąsko, żeby nie brać zdjęć
 // pokoi: „rzut z wymiarami", „rzut parteru", „układ pomieszczeń", „kondygnacja".
-const RZUT_FILENAME_RE = /rzut|wymiar|uk[lł]ad|kondygnacj/i;
+//
+// `rzut` MUSI być osobnym słowem (lookbehind na literę), inaczej łapaliśmy polskie
+// „Zrzut ekranu" (screenshot) - w środku siedzi ciąg „rzut" - i pierwsze lepsze
+// zdjęcie oferty wskakiwało jako rzut (zgłoszone przez Romana, FIB-DS-4127). Uwaga:
+// separatorem w nazwach plików bywa `_`, który dla `\b` jest znakiem słowa, więc `\b`
+// gubiłoby „parter_rzut" - stąd negatywny lookbehind na dowolną literę, nie `\b`.
+// To NIE wyklucza screenshotów na twardo: „Zrzut ekranu" nadal trafi do rzutu, jeśli
+// Galactica otaguje go `typ=Rzut` (osobny sygnał `isRzutTyp`) albo nazwa niesie realne
+// słowo rzutu (np. „zrzut - rzut parteru").
+const RZUT_FILENAME_RE = /(?<!\p{L})rzut|wymiar|uk[lł]ad|kondygnacj/iu;
 
 function attr(node: VirgoOfferNode, name: string): string | null {
   const v = node[`@_${name}`];
