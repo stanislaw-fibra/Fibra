@@ -159,7 +159,7 @@ function GalleryRow({
               <button
                 type="submit"
                 className="text-brand-300 hover:text-brand-200 transition-colors"
-                title="Przenieś to zdjęcie do kafelka „Rzut 3D” na stronie oferty"
+                title="Przenieś to zdjęcie do kafelka „Rzut” na stronie oferty"
               >
                 Oznacz jako rzut
               </button>

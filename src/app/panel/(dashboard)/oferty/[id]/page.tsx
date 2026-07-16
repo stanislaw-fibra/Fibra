@@ -244,7 +244,7 @@ export default async function PanelOfferEditPage({ params }: Props) {
           <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-300 mb-2">Zdjęcia oferty</h2>
           <p className="text-[13px] text-ink-300 mb-6">
             Galeria na stronie www. Jeśli któreś zdjęcie to rzut, kliknij pod nim „Oznacz jako rzut” -
-            pojawi się w kafelku „Rzut 3D” na stronie oferty (bez ponownego wgrywania pliku).
+            pojawi się w kafelku „Rzut” na stronie oferty (bez ponownego wgrywania pliku).
           </p>
 
           <OfferImageUploadForm offerId={row.id} galacticaOfferId={row.galactica_offer_id} />
@@ -260,7 +260,7 @@ export default async function PanelOfferEditPage({ params }: Props) {
           <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-300 mb-2">Rzut (zdjęcie / PDF)</h2>
           <p className="text-[13px] text-ink-300 mb-6">
             Wystarczy upuścić plik na pole - zostanie zapisany od razu, bez dodatkowego kliknięcia.
-            Pliki dodane tutaj pojawią się w przycisku „Rzut 3D” na publicznej stronie oferty.
+            Pliki dodane tutaj pojawią się w przycisku „Rzut” na publicznej stronie oferty.
           </p>
           <OfferFloorPlanUploadForm
             offerId={row.id}

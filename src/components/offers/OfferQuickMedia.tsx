@@ -314,11 +314,9 @@ export function OfferQuickMedia({
                       >
                         {open === "tour"
                           ? "Spacer 3D"
-                          : open === "floor"
-                            ? "Rzut 3D"
-                            : open === "floor-choice"
-                              ? "Rzut"
-                              : "Film z nieruchomości"}
+                          : open === "floor" || open === "floor-choice"
+                            ? "Rzut"
+                            : "Film z nieruchomości"}
                       </p>
                       <p className="mt-0.5 text-[12px] sm:text-[13px] text-ink-600 line-clamp-2">{offerTitle}</p>
                     </div>
@@ -402,7 +400,7 @@ export function OfferQuickMedia({
                           {/* eslint-disable-next-line @next/next/no-img-element -- dowolny URL z galerii / CRM */}
                           <img
                             src={resolvedFloorUrl}
-                            alt={`Rzut 3D - ${offerTitle}`}
+                            alt={`Rzut - ${offerTitle}`}
                             className="h-full w-full object-contain"
                             referrerPolicy="no-referrer"
                           />
