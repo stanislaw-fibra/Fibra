@@ -509,15 +509,21 @@ export function ZamyslowBuilding() {
                                             </li>
                                           ))}
                                         </ul>
-                                        <Link
-                                          href={plan.href}
-                                          className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-ink-900 px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-brand-600"
-                                        >
-                                          Zobacz ofertę
-                                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                                            <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-                                          </svg>
-                                        </Link>
+                                        {plan.href ? (
+                                          <Link
+                                            href={plan.href}
+                                            className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-ink-900 px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-brand-600"
+                                          >
+                                            Zobacz ofertę
+                                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                                              <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                          </Link>
+                                        ) : (
+                                          <p className="mt-4 text-[13px] text-ink-400">
+                                            Oferta wkrótce
+                                          </p>
+                                        )}
                                       </div>
                                     </motion.div>
                                   )}

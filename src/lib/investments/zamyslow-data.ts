@@ -24,7 +24,8 @@ export type FloorPlanRoom = { name: string; areaM2: number };
 export type FloorPlanUnit = {
   id: string;
   d: string;
-  href: string;
+  /** Link do oferty; brak = mieszkanie bez gotowej oferty (na razie tylko 1. piętro). */
+  href?: string;
   areaM2: number;
   rooms: number;
   status: UnitStatus;
@@ -74,6 +75,99 @@ export type ZamyslowData = {
   floors: ZamyslowFloor[];
 };
 
+// --- Rzuty pozostałych pięter (parter, 2-5) na tej samej KOLOROWEJ bazie co 1. piętro ---
+// Budynek jest powtarzalny: te same 6 stref (geometria 1:1 z floor-1), a numer mieszkania
+// i dane (metraż/pokoje/rozkład) per piętro z architektonicznych PDF (13.07.2026).
+// Numeracja ZWERYFIKOWANA względem PDF/DWG: rozmiar pikselowy każdej kolorowej strefy na
+// rzucie z Figmy pokrywa się z metrażem z PDF. Pozycja→offset (rzut z Figmy = PDF obrócony
+// o 180°): dół-środek-L=1, LEWO=2, góra-środek-L=3, góra-środek-P=4, PRAWO=5, dół-środek-P=6.
+// Numer mieszkania = 6*index piętra + offset. Obraz = kolorowy rzut floor-1 (współdzielony,
+// bo układ pięter jest identyczny). Floor-1 zostaje nietknięty (osobny literał niżej).
+const liv = (a: number): FloorPlanRoom => ({ name: "Pokój dzienny z aneksem", areaM2: a });
+const rm = (a: number): FloorPlanRoom => ({ name: "Pokój", areaM2: a });
+const bd = (a: number): FloorPlanRoom => ({ name: "Sypialnia", areaM2: a });
+const ba = (a: number): FloorPlanRoom => ({ name: "Łazienka", areaM2: a });
+
+const COLORED_PLAN_IMAGE =
+  "/investments/zamyslow/floorplans/floor-1-plan-775x370.webp";
+
+// Geometria 6 stref w kolejności offsetów 1..6 (identyczna jak M7-M12 na floor-1).
+const PLAN_SLOTS: { d: string; label: { x: number; y: number } }[] = [
+  { d: "M336 346L336 261L282 261L282 235L282 205L139 205L139 346Z", label: { x: 229, y: 281 } },
+  { d: "M220 195L220 110L116 110L116 25L24 25L24 342L130 342L130 195Z", label: { x: 94, y: 181 } },
+  { d: "M335 154L335 24L127 24L127 102L228 102L228 154Z", label: { x: 244, y: 80 } },
+  { d: "M615 144L615 25L430 25L431 154L521 154L521 144Z", label: { x: 521, y: 87 } },
+  { d: "M751 346L751 25L625 25L625 153L530 153L530 197L625 197L625 346Z", label: { x: 678, y: 185 } },
+  { d: "M615 345L615 205L429 205L429 262L347 262L347 345Z", label: { x: 494, y: 281 } },
+];
+
+type PlanSlot = { area: number; rooms: number; roomsList: FloorPlanRoom[] };
+function buildFloorData(floorIndex: number, slots: PlanSlot[]) {
+  const base = floorIndex * 6;
+  const planUnits: FloorPlanUnit[] = slots.map((s, i) => ({
+    id: `M${base + i + 1}`,
+    d: PLAN_SLOTS[i].d,
+    label: PLAN_SLOTS[i].label,
+    areaM2: s.area,
+    rooms: s.rooms,
+    status: "Dostępne",
+    roomsList: s.roomsList,
+  }));
+  const units: ZamyslowUnit[] = planUnits.map((u) => ({
+    id: u.id,
+    areaM2: u.areaM2,
+    rooms: u.rooms,
+    status: u.status,
+  }));
+  const floorPlan: FloorPlan = {
+    image: COLORED_PLAN_IMAGE,
+    viewBox: { width: 775, height: 370 },
+    units: planUnits,
+  };
+  return { units, floorPlan };
+}
+
+const GROUND_DATA = buildFloorData(0, [
+  { area: 31.12, rooms: 2, roomsList: [liv(20.23), bd(7.19), ba(3.7)] },
+  { area: 49.15, rooms: 3, roomsList: [liv(27.04), rm(7.28), ba(4.48), bd(10.35)] },
+  { area: 27.44, rooms: 2, roomsList: [liv(16.4), bd(7.48), ba(3.56)] },
+  { area: 28.69, rooms: 2, roomsList: [liv(17.4), ba(4.13), bd(7.16)] },
+  { area: 55.42, rooms: 3, roomsList: [liv(27.82), rm(10.24), ba(4.98), bd(12.38)] },
+  { area: 32.34, rooms: 2, roomsList: [liv(18.47), bd(8.74), ba(5.13)] },
+]);
+const FLOOR2_DATA = buildFloorData(2, [
+  { area: 31.03, rooms: 2, roomsList: [liv(20.14), bd(7.19), ba(3.7)] },
+  { area: 48.97, rooms: 3, roomsList: [liv(27.04), rm(7.28), ba(4.48), bd(10.17)] },
+  { area: 27.44, rooms: 2, roomsList: [liv(16.4), bd(7.48), ba(3.56)] },
+  { area: 28.43, rooms: 2, roomsList: [liv(17.14), ba(4.13), bd(7.16)] },
+  { area: 55.24, rooms: 3, roomsList: [liv(27.82), rm(10.24), ba(4.8), bd(12.38)] },
+  { area: 40.6, rooms: 3, roomsList: [liv(19.14), rm(8.25), ba(4.95), bd(8.26)] },
+]);
+const FLOOR3_DATA = buildFloorData(3, [
+  { area: 31.03, rooms: 2, roomsList: [liv(20.14), bd(7.19), ba(3.7)] },
+  { area: 48.71, rooms: 3, roomsList: [liv(27.04), rm(7.28), ba(4.22), bd(10.17)] },
+  { area: 27.18, rooms: 2, roomsList: [liv(16.14), bd(7.48), ba(3.56)] },
+  { area: 28.26, rooms: 2, roomsList: [liv(16.97), ba(4.13), bd(7.16)] },
+  { area: 55.15, rooms: 3, roomsList: [liv(27.82), rm(10.24), ba(4.71), bd(12.38)] },
+  { area: 40.6, rooms: 3, roomsList: [liv(19.14), rm(8.25), ba(4.95), bd(8.26)] },
+]);
+const FLOOR4_DATA = buildFloorData(4, [
+  { area: 30.94, rooms: 2, roomsList: [liv(20.05), bd(7.19), ba(3.7)] },
+  { area: 48.53, rooms: 3, roomsList: [liv(27.04), rm(7.28), ba(4.22), bd(9.99)] },
+  { area: 27.18, rooms: 2, roomsList: [liv(16.14), bd(7.48), ba(3.56)] },
+  { area: 28.17, rooms: 2, roomsList: [liv(16.88), ba(4.13), bd(7.16)] },
+  { area: 55.06, rooms: 3, roomsList: [liv(27.82), rm(10.24), ba(4.62), bd(12.38)] },
+  { area: 40.42, rooms: 3, roomsList: [liv(19.14), rm(8.07), ba(4.95), bd(8.26)] },
+]);
+const FLOOR5_DATA = buildFloorData(5, [
+  { area: 30.94, rooms: 2, roomsList: [liv(20.05), bd(7.19), ba(3.7)] },
+  { area: 48.53, rooms: 3, roomsList: [liv(27.04), rm(7.28), ba(4.22), bd(9.99)] },
+  { area: 27.18, rooms: 2, roomsList: [liv(16.14), bd(7.48), ba(3.56)] },
+  { area: 28.17, rooms: 2, roomsList: [liv(16.88), ba(4.13), bd(7.16)] },
+  { area: 54.97, rooms: 3, roomsList: [liv(27.82), rm(10.24), ba(4.53), bd(12.38)] },
+  { area: 32.16, rooms: 2, roomsList: [liv(19.14), rm(8.07), ba(4.95)] },
+]);
+
 export const zamyslowData: ZamyslowData = {
   name: "Osiedle Zamysłów",
   images: {
@@ -96,14 +190,8 @@ export const zamyslowData: ZamyslowData = {
         right:
           "M1519.5 1261L1650 1223L1737 1202.5L1850 1174L2234.5 1061.5L2234.5 1151.5L1934 1254.5L1723 1334L1519.5 1418.5L1519.5 1261Z",
       },
-      units: [
-        { id: "M1", areaM2: 54.2, rooms: 3, status: "Dostępne" },
-        { id: "M2", areaM2: 49.8, rooms: 2, status: "Dostępne" },
-        { id: "M3", areaM2: 61.1, rooms: 3, status: "Dostępne" },
-        { id: "M4", areaM2: 45.6, rooms: 2, status: "Dostępne" },
-        { id: "M5", areaM2: 58.7, rooms: 3, status: "Dostępne" },
-        { id: "M6", areaM2: 67.4, rooms: 4, status: "Dostępne" },
-      ],
+      units: GROUND_DATA.units,
+      floorPlan: GROUND_DATA.floorPlan,
     },
     {
       id: "floor-1",
@@ -231,14 +319,8 @@ export const zamyslowData: ZamyslowData = {
         right:
           "M1519 937.001L1807 915.5L2236 868.5L2236 978L2098.5 1004L1859 1051L1680 1085.5L1519 1115.5L1519 937.001Z",
       },
-      units: [
-        { id: "M13", areaM2: 53.6, rooms: 3, status: "Dostępne" },
-        { id: "M14", areaM2: 46.8, rooms: 2, status: "Dostępne" },
-        { id: "M15", areaM2: 62.2, rooms: 3, status: "Dostępne" },
-        { id: "M16", areaM2: 43.7, rooms: 2, status: "Dostępne" },
-        { id: "M17", areaM2: 59.4, rooms: 3, status: "Dostępne" },
-        { id: "M18", areaM2: 71.2, rooms: 4, status: "Dostępne" },
-      ],
+      units: FLOOR2_DATA.units,
+      floorPlan: FLOOR2_DATA.floorPlan,
     },
     {
       id: "floor-3",
@@ -250,14 +332,8 @@ export const zamyslowData: ZamyslowData = {
         right:
           "M1519 767.5L1740 767.5L2238 754.5L2236.5 868.5L2112.5 882L1806 916L1680.5 925.5L1519 936.5L1519 767.5Z",
       },
-      units: [
-        { id: "M19", areaM2: 54.9, rooms: 3, status: "Dostępne" },
-        { id: "M20", areaM2: 48.1, rooms: 2, status: "Dostępne" },
-        { id: "M21", areaM2: 64.4, rooms: 3, status: "Dostępne" },
-        { id: "M22", areaM2: 45.2, rooms: 2, status: "Dostępne" },
-        { id: "M23", areaM2: 58.6, rooms: 3, status: "Dostępne" },
-        { id: "M24", areaM2: 70.3, rooms: 4, status: "Dostępne" },
-      ],
+      units: FLOOR3_DATA.units,
+      floorPlan: FLOOR3_DATA.floorPlan,
     },
     {
       id: "floor-4",
@@ -269,14 +345,8 @@ export const zamyslowData: ZamyslowData = {
         right:
           "M1519 598.5L1735 606.5L1859 611L2059 637.5L2142.5 637.5L2238 648L2238 754.5L2113 758L1808.5 765.5L1680 767.5L1519 767.5L1519 598.5Z",
       },
-      units: [
-        { id: "M25", areaM2: 53.1, rooms: 3, status: "Dostępne" },
-        { id: "M26", areaM2: 46.7, rooms: 2, status: "Dostępne" },
-        { id: "M27", areaM2: 62.9, rooms: 3, status: "Dostępne" },
-        { id: "M28", areaM2: 44.6, rooms: 2, status: "Dostępne" },
-        { id: "M29", areaM2: 57.2, rooms: 3, status: "Dostępne" },
-        { id: "M30", areaM2: 68.8, rooms: 4, status: "Dostępne" },
-      ],
+      units: FLOOR4_DATA.units,
+      floorPlan: FLOOR4_DATA.floorPlan,
     },
     {
       id: "floor-5",
@@ -288,14 +358,8 @@ export const zamyslowData: ZamyslowData = {
         right:
           "M1519 409.5L1740 441.5L2238 529L2238 647.5L2142.5 637.5L2058.5 636.5L1807 608.5L1680.5 604.5L1519 598.5L1519 409.5Z",
       },
-      units: [
-        { id: "M31", areaM2: 55.8, rooms: 3, status: "Dostępne" },
-        { id: "M32", areaM2: 49.2, rooms: 2, status: "Dostępne" },
-        { id: "M33", areaM2: 65.1, rooms: 3, status: "Dostępne" },
-        { id: "M34", areaM2: 46.1, rooms: 2, status: "Dostępne" },
-        { id: "M35", areaM2: 59.7, rooms: 3, status: "Dostępne" },
-        { id: "M36", areaM2: 72.4, rooms: 4, status: "Dostępne" },
-      ],
+      units: FLOOR5_DATA.units,
+      floorPlan: FLOOR5_DATA.floorPlan,
     },
   ],
 };

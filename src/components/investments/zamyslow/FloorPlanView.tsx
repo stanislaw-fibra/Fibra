@@ -188,7 +188,9 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
   // przy ruchu WEWNĄTRZ elementu).
   const scheduleHide = () => {
     cancelHide();
-    hideTimer.current = setTimeout(() => setActiveId(null), 90);
+    // Dłuższe opóźnienie = czas, by dojechać kursorem z mieszkania do karty
+    // (karta jest interaktywna i sama utrzymuje podświetlenie - patrz onPointerEnter).
+    hideTimer.current = setTimeout(() => setActiveId(null), 260);
   };
   const showUnit = (unit: FloorPlanUnit) => {
     cancelHide();
@@ -198,6 +200,12 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
   };
 
   const navigate = (unit: FloorPlanUnit) => {
+    // Mieszkania bez gotowej oferty (piętra 0, 2-5) nie przekierowują - klik/tap
+    // pokazuje tylko kartę ze szczegółami (metraż, rozkład pokoi).
+    if (!unit.href) {
+      showUnit(unit);
+      return;
+    }
     setNavigatingId(unit.id);
     router.push(unit.href);
   };
@@ -527,6 +535,9 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
                 unit={active}
                 anchor={anchor}
                 loading={navigatingId === active.id}
+                onKeepAlive={cancelHide}
+                onRelease={scheduleHide}
+                onOpen={() => navigate(active)}
               />
             )}
           </AnimatePresence>,
@@ -544,10 +555,16 @@ function DetailCard({
   unit,
   anchor,
   loading,
+  onKeepAlive,
+  onRelease,
+  onOpen,
 }: {
   unit: FloorPlanUnit;
   anchor: { x: number; y: number };
   loading: boolean;
+  onKeepAlive: () => void;
+  onRelease: () => void;
+  onOpen: () => void;
 }) {
   const vw = typeof window !== "undefined" ? window.innerWidth : 1280;
   const vh = typeof window !== "undefined" ? window.innerHeight : 800;
@@ -562,9 +579,13 @@ function DetailCard({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.12 }}
-      // pointer-events-none = box nigdy nie przechwytuje kursora, więc najechanie na
-      // niego nie „wypycha" kursora z mieszkania (koniec migotania). Box to podgląd.
-      className="pointer-events-none fixed z-[200] w-[230px] max-w-[82vw] overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-ink-950/95 text-white shadow-2xl shadow-black/60 backdrop-blur-md"
+      // Karta jest interaktywna: kursor nad kartą utrzymuje ją i podświetlenie
+      // (onPointerEnter -> cancelHide), więc da się dojechać i kliknąć „Zobacz ofertę".
+      // Karta pojawia się z offsetem 16px OBOK mieszkania (nie pod kursorem), a
+      // pointerEnter/Leave + zwłoka 260ms tworzą „most" mieszkanie<->karta bez migotania.
+      onPointerEnter={onKeepAlive}
+      onPointerLeave={onRelease}
+      className="pointer-events-auto fixed z-[200] w-[230px] max-w-[82vw] overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-ink-950/95 text-white shadow-2xl shadow-black/60 backdrop-blur-md"
       style={{ left: anchor.x, top: anchor.y, transform: `${xT} ${yT}` }}
     >
       <div className="px-4 pt-3.5">
@@ -591,21 +612,27 @@ function DetailCard({
         </ul>
       </div>
 
-      <div className="flex items-center justify-center gap-1.5 border-t border-white/10 bg-white/[0.04] px-3 py-2.5 text-[12.5px] font-medium text-white/85">
-        {loading ? (
-          <>
-            <Spinner className="text-white" />
-            Otwieram ofertę…
-          </>
-        ) : (
-          <>
-            Kliknij, aby zobaczyć ofertę
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-              <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </>
-        )}
-      </div>
+      {loading ? (
+        <div className="flex items-center justify-center gap-1.5 border-t border-white/10 bg-white/[0.04] px-3 py-2.5 text-[12.5px] font-medium text-white/85">
+          <Spinner className="text-white" />
+          Otwieram ofertę…
+        </div>
+      ) : unit.href ? (
+        <button
+          type="button"
+          onClick={onOpen}
+          className="flex w-full items-center justify-center gap-1.5 border-t border-white/10 bg-white/[0.06] px-3 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-accent-400 hover:text-ink-950"
+        >
+          Zobacz ofertę
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+            <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      ) : (
+        <div className="flex items-center justify-center border-t border-white/10 bg-white/[0.04] px-3 py-2.5 text-[12.5px] font-medium text-white/55">
+          Oferta wkrótce
+        </div>
+      )}
     </motion.div>
   );
 }
