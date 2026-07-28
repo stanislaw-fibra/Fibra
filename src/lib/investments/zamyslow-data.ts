@@ -34,6 +34,18 @@ export type FloorPlanUnit = {
 };
 
 /**
+ * Statyczny opis na rzucie (np. „TARAS"). Nie jest klikalny - to podpis części
+ * rysunku, która nie należy do żadnego mieszkania. `rotate` w stopniach dla
+ * podpisów pionowych (tarasy przy bocznych ścianach).
+ */
+export type FloorPlanAnnotation = {
+  text: string;
+  x: number;
+  y: number;
+  rotate?: number;
+};
+
+/**
  * Interaktywny rzut piętra: lekki obraz (webp) + nałożone klikalne strefy mieszkań.
  * Współrzędne stref żyją w `viewBox` (naturalny układ obrazu 1x), a SVG siada na
  * obrazie 1:1 (oba object-contain / xMidYMid meet o tym samym aspekcie).
@@ -42,6 +54,7 @@ export type FloorPlan = {
   image: string;
   viewBox: { width: number; height: number };
   units: FloorPlanUnit[];
+  annotations?: FloorPlanAnnotation[];
 };
 
 export type ZamyslowFloor = {
@@ -75,56 +88,29 @@ export type ZamyslowData = {
   floors: ZamyslowFloor[];
 };
 
-// --- Rzuty pozostałych pięter (parter, 2-5) na tej samej KOLOROWEJ bazie co 1. piętro ---
-// Budynek jest powtarzalny: te same 6 stref (geometria 1:1 z floor-1), a numer mieszkania
-// i dane (metraż/pokoje/rozkład) per piętro z architektonicznych PDF (13.07.2026).
-// Numeracja ZWERYFIKOWANA względem PDF/DWG: rozmiar pikselowy każdej kolorowej strefy na
-// rzucie z Figmy pokrywa się z metrażem z PDF. Pozycja→offset (rzut z Figmy = PDF obrócony
-// o 180°): dół-środek-L=1, LEWO=2, góra-środek-L=3, góra-środek-P=4, PRAWO=5, dół-środek-P=6.
-// Numer mieszkania = 6*index piętra + offset. Obraz = kolorowy rzut floor-1 (współdzielony,
-// bo układ pięter jest identyczny). Floor-1 zostaje nietknięty (osobny literał niżej).
+// --- Dane mieszkań per piętro (architektura 13.07.2026) ---
+// Numeracja: numer = 6 * index piętra + pozycja. Pozycje na rzucie (orientacja jak
+// u architekta, north-up): góra-prawo=1, PRAWO=2, dół-prawo=3, dół-lewo=4, LEWO=5,
+// góra-lewo=6. Stąd np. na 1. piętrze M11 jest po lewej, a M8 po prawej.
+//
+// Poniższe `slots` zasilają listę mieszkań pod hero. Interaktywne rzuty (obrazy +
+// klikalne strefy) są osobno, w `floorPlan` każdego piętra - generowane skryptem
+// `scripts/zamyslow-floorplan.mjs` z plików SVG eksportowanych z Illustratora.
 const liv = (a: number): FloorPlanRoom => ({ name: "Pokój dzienny z aneksem", areaM2: a });
 const rm = (a: number): FloorPlanRoom => ({ name: "Pokój", areaM2: a });
 const bd = (a: number): FloorPlanRoom => ({ name: "Sypialnia", areaM2: a });
 const ba = (a: number): FloorPlanRoom => ({ name: "Łazienka", areaM2: a });
 
-const COLORED_PLAN_IMAGE =
-  "/investments/zamyslow/floorplans/floor-1-plan-775x370.webp";
-
-// Geometria 6 stref w kolejności offsetów 1..6 (identyczna jak M7-M12 na floor-1).
-const PLAN_SLOTS: { d: string; label: { x: number; y: number } }[] = [
-  { d: "M336 346L336 261L282 261L282 235L282 205L139 205L139 346Z", label: { x: 229, y: 281 } },
-  { d: "M220 195L220 110L116 110L116 25L24 25L24 342L130 342L130 195Z", label: { x: 94, y: 181 } },
-  { d: "M335 154L335 24L127 24L127 102L228 102L228 154Z", label: { x: 244, y: 80 } },
-  { d: "M615 144L615 25L430 25L431 154L521 154L521 144Z", label: { x: 521, y: 87 } },
-  { d: "M751 346L751 25L625 25L625 153L530 153L530 197L625 197L625 346Z", label: { x: 678, y: 185 } },
-  { d: "M615 345L615 205L429 205L429 262L347 262L347 345Z", label: { x: 494, y: 281 } },
-];
-
 type PlanSlot = { area: number; rooms: number; roomsList: FloorPlanRoom[] };
 function buildFloorData(floorIndex: number, slots: PlanSlot[]) {
   const base = floorIndex * 6;
-  const planUnits: FloorPlanUnit[] = slots.map((s, i) => ({
+  const units: ZamyslowUnit[] = slots.map((s, i) => ({
     id: `M${base + i + 1}`,
-    d: PLAN_SLOTS[i].d,
-    label: PLAN_SLOTS[i].label,
     areaM2: s.area,
     rooms: s.rooms,
     status: "Dostępne",
-    roomsList: s.roomsList,
   }));
-  const units: ZamyslowUnit[] = planUnits.map((u) => ({
-    id: u.id,
-    areaM2: u.areaM2,
-    rooms: u.rooms,
-    status: u.status,
-  }));
-  const floorPlan: FloorPlan = {
-    image: COLORED_PLAN_IMAGE,
-    viewBox: { width: 775, height: 370 },
-    units: planUnits,
-  };
-  return { units, floorPlan };
+  return { units };
 }
 
 const GROUND_DATA = buildFloorData(0, [
@@ -191,7 +177,112 @@ export const zamyslowData: ZamyslowData = {
           "M1519.5 1261L1650 1223L1737 1202.5L1850 1174L2234.5 1061.5L2234.5 1151.5L1934 1254.5L1723 1334L1519.5 1418.5L1519.5 1261Z",
       },
       units: GROUND_DATA.units,
-      floorPlan: GROUND_DATA.floorPlan,
+      // Parter ma WŁASNY kadr - tarasy wychodzą dalej niż balkony na piętrach,
+      // więc wspólne okno by je ucięło. Strefy przeliczone ze wspólnego układu
+      // (z kompensacją przesunięcia arkusza) i dociągnięte do granic kolorów.
+      // M6 jest mniejsze niż M12 na piętrach (wejście + wózkownia).
+      floorPlan: {
+        image: "/investments/zamyslow/floorplans/floor-ground-plan.webp",
+        viewBox: { width: 906, height: 500.5 },
+        // Podpisy tarasów - na rzucie architekta są opisane, a same prostokąty
+        // bez opisu wyglądałyby jak przypadkowe ramki. Boczne obrócone o -90°.
+        annotations: [
+          { text: "Taras", x: 319, y: 40 },
+          { text: "Taras", x: 690, y: 40 },
+          { text: "Taras", x: 336, y: 458 },
+          { text: "Taras", x: 582, y: 458 },
+          { text: "Taras", x: 40, y: 350, rotate: -90 },
+          { text: "Taras", x: 865, y: 352, rotate: -90 },
+        ],
+        units: [
+          {
+            id: "M1",
+            href: "/zamyslow/mieszkania/m1",
+            d: "M502.2 87.7L502.2 175.7L559.2 175.7L559.2 200.7L559.2 230.7L703.2 230.7L703.2 87.7Z",
+            areaM2: 31.12,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 584.1, y: 169.8 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 20.23 },
+              { name: "Sypialnia", areaM2: 7.19 },
+              { name: "Łazienka", areaM2: 3.7 },
+            ],
+          },
+          {
+            id: "M2",
+            href: "/zamyslow/mieszkania/m2",
+            d: "M620.2 237.7L620.2 325.7L723.2 325.7L723.2 410.7L816.2 410.7L816.2 87.7L710.2 87.7L710.2 237.7Z",
+            areaM2: 49.15,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 717.4, y: 265.4 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 27.04 },
+              { name: "Pokój", areaM2: 7.28 },
+              { name: "Łazienka", areaM2: 4.48 },
+              { name: "Sypialnia", areaM2: 10.35 },
+            ],
+          },
+          {
+            id: "M3",
+            href: "/zamyslow/mieszkania/m3",
+            d: "M501.2 278.7L501.2 411.7L717.2 411.7L717.2 331.7L613.2 331.7L613.2 278.7Z",
+            areaM2: 27.44,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 610.5, y: 340.7 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 16.4 },
+              { name: "Sypialnia", areaM2: 7.48 },
+              { name: "Łazienka", areaM2: 3.56 },
+            ],
+          },
+          {
+            id: "M4",
+            href: "/zamyslow/mieszkania/m4",
+            d: "M223.2 288.7L223.2 411.7L413.2 411.7L413.2 279.7L318.2 279.7L318.2 288.7Z",
+            areaM2: 28.69,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 318.2, y: 326.7 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 17.4 },
+              { name: "Łazienka", areaM2: 4.13 },
+              { name: "Sypialnia", areaM2: 7.16 },
+            ],
+          },
+          {
+            id: "M5",
+            href: "/zamyslow/mieszkania/m5",
+            d: "M88.2 87.7L88.2 411.7L218.2 411.7L218.2 283.7L313.2 283.7L313.2 236.7L218.2 236.7L218.2 87.7Z",
+            areaM2: 55.42,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 209.5, y: 255 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 27.82 },
+              { name: "Pokój", areaM2: 10.24 },
+              { name: "Łazienka", areaM2: 4.98 },
+              { name: "Sypialnia", areaM2: 12.38 },
+            ],
+          },
+          {
+            id: "M6",
+            href: "/zamyslow/mieszkania/m6",
+            d: "M224.2 87.7L224.2 231.7L412.2 231.7L412.2 99.7L413.2 99.7L413.2 87.7Z",
+            areaM2: 32.34,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 349.9, y: 139.7 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 18.47 },
+              { name: "Sypialnia", areaM2: 8.74 },
+              { name: "Łazienka", areaM2: 5.13 },
+            ],
+          },
+        ],
+      },
     },
     {
       id: "floor-1",
@@ -203,108 +294,109 @@ export const zamyslowData: ZamyslowData = {
           "M1519 1116.5L2236 978L2234.5 1061.5L2083 1106L1800 1187.5L1659.5 1220L1519 1259.5L1519 1116.5Z",
       },
       units: [
-        { id: "M7", areaM2: 31.21, rooms: 2, status: "Dostępne" },
-        { id: "M8", areaM2: 49.58, rooms: 3, status: "Dostępne" },
-        { id: "M9", areaM2: 27.7, rooms: 2, status: "Dostępne" },
-        { id: "M10", areaM2: 28.95, rooms: 2, status: "Dostępne" },
-        { id: "M11", areaM2: 55.52, rooms: 3, status: "Dostępne" },
-        { id: "M12", areaM2: 40.83, rooms: 3, status: "Dostępne" },
+        { id: "M7", areaM2: 31.12, rooms: 2, status: "Dostępne" },
+        { id: "M8", areaM2: 49.15, rooms: 3, status: "Dostępne" },
+        { id: "M9", areaM2: 27.44, rooms: 2, status: "Dostępne" },
+        { id: "M10", areaM2: 28.52, rooms: 2, status: "Dostępne" },
+        { id: "M11", areaM2: 55.33, rooms: 3, status: "Dostępne" },
+        { id: "M12", areaM2: 40.8, rooms: 3, status: "Dostępne" },
       ],
-      // Interaktywny rzut 1. piętra - jedyne piętro z gotowym rzutem (prototyp).
-      // Obraz transparentny, w orientacji jak w Figmie (artboard obrócony -90°).
-      // Kontury stref to CZYSTE kształty z Figmy (proste linie), obrócone o 180°
-      // (artboard -90° + obrót obrazu -90° = 180°) i dopasowane do pozycji mieszkań
-      // w układzie viewBox 775x370. Przypisanie etykiet M7-M12 wg rozmiaru kształtów
-      // z Figmy - tymczasowe, podmienimy razem z linkami do ofert.
+      // Interaktywny rzut 1. piętra. Obraz: eksport z Illustratora nowej architektury
+      // (13.07.2026, bez numerów/tekstów), obrócony -90° i wpasowany w ramkę z zapasem,
+      // więc NIC nie jest ucięte (balkony/tarasy mieszczą się w kadrze).
+      // Dopasowanie liczone automatycznie (bbox masek kolorowych + maksymalizacja IoU
+      // względem poprzedniego rzutu, IoU 0.80), a strefy przesunięte o tę samą wartość -
+      // dzięki temu każdy obrys nadal siedzi dokładnie w ścianach swojego mieszkania.
+      // Numeracja zgodna z etykietami z DWG/PDF (żółte=M8, pomarańczowe=M11 itd.).
       floorPlan: {
-        image: "/investments/zamyslow/floorplans/floor-1-plan-775x370.webp",
-        viewBox: { width: 775, height: 370 },
+        image: "/investments/zamyslow/floorplans/floor-1-plan-v3-north.webp",
+        viewBox: { width: 822.53, height: 418.5 },
         units: [
           {
             id: "M7",
-            href: "/oferty/nowe-garaz-podziemny-ogrod-urzadzone-pod-klucz-FIB-MW-4173",
-            d: "M336 346L336 261L282 261L282 235L282 205L139 205L139 346Z",
-            areaM2: 31.21,
+            href: "/zamyslow/mieszkania/m7",
+            d: "M460.2 47.2L460.2 135.2L517.2 135.2L517.2 159.2L517.2 190.2L662.2 190.2L662.2 47.2Z",
+            areaM2: 31.12,
             rooms: 2,
             status: "Dostępne",
-            label: { x: 229, y: 281 },
+            label: { x: 570.2, y: 113.2 },
             roomsList: [
-              { name: "Pokój dzienny z aneksem", areaM2: 20.43 },
-              { name: "Sypialnia", areaM2: 7.08 },
+              { name: "Pokój dzienny z aneksem", areaM2: 20.23 },
+              { name: "Sypialnia", areaM2: 7.19 },
               { name: "Łazienka", areaM2: 3.7 },
             ],
           },
           {
             id: "M8",
-            href: "/oferty/nowa-kawalerka-premium-klimatyzacja-winda-FIB-MW-4172",
-            d: "M220 195L220 110L116 110L116 25L24 25L24 342L130 342L130 195Z",
-            areaM2: 49.58,
+            href: "/zamyslow/mieszkania/m8",
+            d: "M578.2 196.2L578.2 284.2L682.2 284.2L682.2 370.2L774.2 370.2L774.2 47.2L669.2 47.2L669.2 196.2Z",
+            areaM2: 49.15,
             rooms: 3,
             status: "Dostępne",
-            label: { x: 94, y: 181 },
+            label: { x: 705.2, y: 213.2 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 27.04 },
               { name: "Pokój", areaM2: 7.28 },
-              { name: "Sypialnia", areaM2: 10.53 },
-              { name: "Łazienka", areaM2: 4.73 },
+              { name: "Łazienka", areaM2: 4.48 },
+              { name: "Sypialnia", areaM2: 10.35 },
             ],
           },
           {
             id: "M9",
-            href: "/oferty/nowy-apartamentowiec-wyposazone-pod-klucz-FIB-MW-4171",
-            d: "M335 154L335 24L127 24L127 102L228 102L228 154Z",
-            areaM2: 27.7,
+            href: "/zamyslow/mieszkania/m9",
+            d: "M459.2 237.2L459.2 370.2L674.2 370.2L674.2 290.2L571.2 290.2L571.2 237.2Z",
+            areaM2: 27.44,
             rooms: 2,
             status: "Dostępne",
-            label: { x: 244, y: 80 },
+            label: { x: 555.2, y: 314.2 },
             roomsList: [
-              { name: "Pokój dzienny z aneksem", areaM2: 16.66 },
+              { name: "Pokój dzienny z aneksem", areaM2: 16.4 },
               { name: "Sypialnia", areaM2: 7.48 },
               { name: "Łazienka", areaM2: 3.56 },
             ],
           },
           {
             id: "M10",
-            href: "/oferty/tylko-185-000-zl-2-pokoje-balkon-1-pietro-FIB-MS-4168",
-            d: "M615 144L615 25L430 25L431 154L521 154L521 144Z",
-            areaM2: 28.95,
+            href: "/zamyslow/mieszkania/m10",
+            d: "M181.2 247.2L181.2 370.2L368.2 370.2L371.2 238.2L277.2 238.2L277.2 247.2Z",
+            areaM2: 28.52,
             rooms: 2,
             status: "Dostępne",
-            label: { x: 521, y: 87 },
+            label: { x: 278.2, y: 307.2 },
             roomsList: [
-              { name: "Pokój dzienny z aneksem", areaM2: 17.66 },
-              { name: "Sypialnia", areaM2: 7.16 },
+              { name: "Pokój dzienny z aneksem", areaM2: 17.23 },
               { name: "Łazienka", areaM2: 4.13 },
+              { name: "Sypialnia", areaM2: 7.16 },
             ],
           },
           {
             id: "M11",
-            href: "/oferty/tu-chce-sie-wracac-apartament-z-balkonem-FIB-MW-4164",
-            d: "M751 346L751 25L625 25L625 153L530 153L530 197L625 197L625 346Z",
-            areaM2: 55.52,
+            href: "/zamyslow/mieszkania/m11",
+            d: "M46.2 46.2L46.2 371.2L176.2 371.2L176.2 242.2L271.2 242.2L271.2 196.2L176.2 196.2L176.2 46.2Z",
+            areaM2: 55.33,
             rooms: 3,
             status: "Dostępne",
-            label: { x: 678, y: 185 },
+            label: { x: 121.2, y: 209.2 },
             roomsList: [
-              { name: "Pokój dzienny z aneksem", areaM2: 27.94 },
+              { name: "Pokój dzienny z aneksem", areaM2: 27.82 },
               { name: "Pokój", areaM2: 10.24 },
+              { name: "Łazienka", areaM2: 4.89 },
               { name: "Sypialnia", areaM2: 12.38 },
-              { name: "Łazienka", areaM2: 4.96 },
             ],
           },
           {
             id: "M12",
-            href: "/oferty/premium-3-pokoje-2-miejsca-parkingowe-nowe-budown-FIB-MS-4158",
-            d: "M615 345L615 205L429 205L429 262L347 262L347 345Z",
-            areaM2: 40.83,
+            href: "/zamyslow/mieszkania/m12",
+            d: "M181.2 46.2L181.2 191.2L371.2 191.2L371.2 134.2L454.2 134.2L454.2 46.2Z",
+            areaM2: 40.8,
             rooms: 3,
             status: "Dostępne",
-            label: { x: 494, y: 281 },
+            label: { x: 305.2, y: 113.2 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 19.14 },
-              { name: "Pokój", areaM2: 8.61 },
-              { name: "Sypialnia", areaM2: 8.13 },
+              { name: "Pokój", areaM2: 8.45 },
               { name: "Łazienka", areaM2: 4.95 },
+              { name: "Sypialnia", areaM2: 8.26 },
             ],
           },
         ],
@@ -320,7 +412,99 @@ export const zamyslowData: ZamyslowData = {
           "M1519 937.001L1807 915.5L2236 868.5L2236 978L2098.5 1004L1859 1051L1680 1085.5L1519 1115.5L1519 937.001Z",
       },
       units: FLOOR2_DATA.units,
-      floorPlan: FLOOR2_DATA.floorPlan,
+      floorPlan: {
+        image: "/investments/zamyslow/floorplans/floor-2-plan.webp",
+        viewBox: { width: 822.53, height: 418.5 },
+        units: [
+          {
+            id: "M13",
+            href: "/zamyslow/mieszkania/m13",
+            d: "M460.2 47.2L460.2 134.2L516.2 134.2L516.2 159.2L516.2 189.2L662.2 189.2L662.2 47.2Z",
+            areaM2: 31.03,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 541.9, y: 128.6 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 20.14 },
+              { name: "Sypialnia", areaM2: 7.19 },
+              { name: "Łazienka", areaM2: 3.7 },
+            ],
+          },
+          {
+            id: "M14",
+            href: "/zamyslow/mieszkania/m14",
+            d: "M577.2 196.2L577.2 284.2L682.2 284.2L682.2 370.2L774.2 370.2L774.2 47.2L668.2 47.2L668.2 196.2Z",
+            areaM2: 48.97,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 675.4, y: 224.5 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 27.04 },
+              { name: "Pokój", areaM2: 7.28 },
+              { name: "Łazienka", areaM2: 4.48 },
+              { name: "Sypialnia", areaM2: 10.17 },
+            ],
+          },
+          {
+            id: "M15",
+            href: "/zamyslow/mieszkania/m15",
+            d: "M460.2 238.2L460.2 370.2L675.2 370.2L675.2 291.2L571.2 291.2L571.2 238.2Z",
+            areaM2: 27.44,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 568.9, y: 299.9 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 16.4 },
+              { name: "Sypialnia", areaM2: 7.48 },
+              { name: "Łazienka", areaM2: 3.56 },
+            ],
+          },
+          {
+            id: "M16",
+            href: "/zamyslow/mieszkania/m16",
+            d: "M182.2 247.2L182.2 370.2L368.2 370.2L371.2 238.2L312.2 238.2L312.2 247.2Z",
+            areaM2: 28.43,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 288, y: 285.2 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 17.14 },
+              { name: "Łazienka", areaM2: 4.13 },
+              { name: "Sypialnia", areaM2: 7.16 },
+            ],
+          },
+          {
+            id: "M17",
+            href: "/zamyslow/mieszkania/m17",
+            d: "M46.2 47.2L46.2 371.2L176.2 371.2L176.2 242.2L271.2 242.2L271.2 196.2L176.2 196.2L176.2 47.2Z",
+            areaM2: 55.24,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 167.5, y: 214.2 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 27.82 },
+              { name: "Pokój", areaM2: 10.24 },
+              { name: "Łazienka", areaM2: 4.8 },
+              { name: "Sypialnia", areaM2: 12.38 },
+            ],
+          },
+          {
+            id: "M18",
+            href: "/zamyslow/mieszkania/m18",
+            d: "M181.2 47.2L181.2 190.2L371.2 190.2L371.2 134.2L454.2 134.2L454.2 47.2Z",
+            areaM2: 40.6,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 335.5, y: 123.9 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 19.14 },
+              { name: "Pokój", areaM2: 8.25 },
+              { name: "Łazienka", areaM2: 4.95 },
+              { name: "Sypialnia", areaM2: 8.26 },
+            ],
+          },
+        ],
+      },
     },
     {
       id: "floor-3",
@@ -333,7 +517,99 @@ export const zamyslowData: ZamyslowData = {
           "M1519 767.5L1740 767.5L2238 754.5L2236.5 868.5L2112.5 882L1806 916L1680.5 925.5L1519 936.5L1519 767.5Z",
       },
       units: FLOOR3_DATA.units,
-      floorPlan: FLOOR3_DATA.floorPlan,
+      floorPlan: {
+        image: "/investments/zamyslow/floorplans/floor-3-plan.webp",
+        viewBox: { width: 822.53, height: 418.5 },
+        units: [
+          {
+            id: "M19",
+            href: "/zamyslow/mieszkania/m19",
+            d: "M460.0 47.2L460.0 135.2L516.0 135.2L516.0 159.2L516.0 190.2L661.0 190.2L661.0 47.2Z",
+            areaM2: 31.03,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 541.4, y: 129.2 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 20.14 },
+              { name: "Sypialnia", areaM2: 7.19 },
+              { name: "Łazienka", areaM2: 3.7 },
+            ],
+          },
+          {
+            id: "M20",
+            href: "/zamyslow/mieszkania/m20",
+            d: "M577.0 196.2L577.0 284.2L682.0 284.2L682.0 369.2L774.0 369.2L774.0 47.2L668.0 47.2L668.0 196.2Z",
+            areaM2: 48.71,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 675.3, y: 224.2 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 27.04 },
+              { name: "Pokój", areaM2: 7.28 },
+              { name: "Łazienka", areaM2: 4.22 },
+              { name: "Sypialnia", areaM2: 10.17 },
+            ],
+          },
+          {
+            id: "M21",
+            href: "/zamyslow/mieszkania/m21",
+            d: "M459.0 238.2L459.0 370.2L675.0 370.2L675.0 290.2L571.0 290.2L571.0 238.2Z",
+            areaM2: 27.18,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 568.3, y: 299.5 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 16.14 },
+              { name: "Sypialnia", areaM2: 7.48 },
+              { name: "Łazienka", areaM2: 3.56 },
+            ],
+          },
+          {
+            id: "M22",
+            href: "/zamyslow/mieszkania/m22",
+            d: "M182.0 248.2L182.0 370.2L368.0 370.2L372.0 238.2L319.0 238.2L319.0 248.2Z",
+            areaM2: 28.26,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 290.3, y: 285.5 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 16.97 },
+              { name: "Łazienka", areaM2: 4.13 },
+              { name: "Sypialnia", areaM2: 7.16 },
+            ],
+          },
+          {
+            id: "M23",
+            href: "/zamyslow/mieszkania/m23",
+            d: "M46.0 46.2L46.0 370.2L176.0 370.2L176.0 242.2L271.0 242.2L271.0 196.2L176.0 196.2L176.0 46.2Z",
+            areaM2: 55.15,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 167.3, y: 213.7 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 27.82 },
+              { name: "Pokój", areaM2: 10.24 },
+              { name: "Łazienka", areaM2: 4.71 },
+              { name: "Sypialnia", areaM2: 12.38 },
+            ],
+          },
+          {
+            id: "M24",
+            href: "/zamyslow/mieszkania/m24",
+            d: "M182.0 46.2L182.0 190.2L370.0 190.2L370.0 134.2L454.0 134.2L454.0 46.2Z",
+            areaM2: 40.6,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 335.3, y: 123.5 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 19.14 },
+              { name: "Pokój", areaM2: 8.25 },
+              { name: "Łazienka", areaM2: 4.95 },
+              { name: "Sypialnia", areaM2: 8.26 },
+            ],
+          },
+        ],
+      },
     },
     {
       id: "floor-4",
@@ -346,7 +622,99 @@ export const zamyslowData: ZamyslowData = {
           "M1519 598.5L1735 606.5L1859 611L2059 637.5L2142.5 637.5L2238 648L2238 754.5L2113 758L1808.5 765.5L1680 767.5L1519 767.5L1519 598.5Z",
       },
       units: FLOOR4_DATA.units,
-      floorPlan: FLOOR4_DATA.floorPlan,
+      floorPlan: {
+        image: "/investments/zamyslow/floorplans/floor-4-plan.webp",
+        viewBox: { width: 822.53, height: 418.5 },
+        units: [
+          {
+            id: "M25",
+            href: "/zamyslow/mieszkania/m25",
+            d: "M460.0 47.2L460.0 135.2L516.0 135.2L516.0 159.2L516.0 190.2L662.0 190.2L662.0 47.2Z",
+            areaM2: 30.94,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 541.7, y: 129.2 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 20.05 },
+              { name: "Sypialnia", areaM2: 7.19 },
+              { name: "Łazienka", areaM2: 3.7 },
+            ],
+          },
+          {
+            id: "M26",
+            href: "/zamyslow/mieszkania/m26",
+            d: "M577.0 196.2L577.0 284.2L682.0 284.2L682.0 370.2L774.0 370.2L774.0 47.2L668.0 47.2L668.0 196.2Z",
+            areaM2: 48.53,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 675.3, y: 224.5 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 27.04 },
+              { name: "Pokój", areaM2: 7.28 },
+              { name: "Łazienka", areaM2: 4.22 },
+              { name: "Sypialnia", areaM2: 9.99 },
+            ],
+          },
+          {
+            id: "M27",
+            href: "/zamyslow/mieszkania/m27",
+            d: "M460.0 238.2L460.0 370.2L675.0 370.2L675.0 290.2L571.0 290.2L571.0 238.2Z",
+            areaM2: 27.18,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 568.7, y: 299.5 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 16.14 },
+              { name: "Sypialnia", areaM2: 7.48 },
+              { name: "Łazienka", areaM2: 3.56 },
+            ],
+          },
+          {
+            id: "M28",
+            href: "/zamyslow/mieszkania/m28",
+            d: "M182.0 247.2L182.0 370.2L368.0 370.2L372.0 238.2L319.0 238.2L319.0 247.2Z",
+            areaM2: 28.17,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 290.3, y: 285.2 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 16.88 },
+              { name: "Łazienka", areaM2: 4.13 },
+              { name: "Sypialnia", areaM2: 7.16 },
+            ],
+          },
+          {
+            id: "M29",
+            href: "/zamyslow/mieszkania/m29",
+            d: "M46.0 46.2L46.0 370.2L176.0 370.2L176.0 242.2L271.0 242.2L271.0 196.2L176.0 196.2L176.0 46.2Z",
+            areaM2: 55.06,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 167.3, y: 213.7 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 27.82 },
+              { name: "Pokój", areaM2: 10.24 },
+              { name: "Łazienka", areaM2: 4.62 },
+              { name: "Sypialnia", areaM2: 12.38 },
+            ],
+          },
+          {
+            id: "M30",
+            href: "/zamyslow/mieszkania/m30",
+            d: "M181.0 46.2L181.0 190.2L370.0 190.2L370.0 134.2L453.0 134.2L453.0 46.2Z",
+            areaM2: 40.42,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 334.7, y: 123.5 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 19.14 },
+              { name: "Pokój", areaM2: 8.07 },
+              { name: "Łazienka", areaM2: 4.95 },
+              { name: "Sypialnia", areaM2: 8.26 },
+            ],
+          },
+        ],
+      },
     },
     {
       id: "floor-5",
@@ -359,7 +727,98 @@ export const zamyslowData: ZamyslowData = {
           "M1519 409.5L1740 441.5L2238 529L2238 647.5L2142.5 637.5L2058.5 636.5L1807 608.5L1680.5 604.5L1519 598.5L1519 409.5Z",
       },
       units: FLOOR5_DATA.units,
-      floorPlan: FLOOR5_DATA.floorPlan,
+      floorPlan: {
+        image: "/investments/zamyslow/floorplans/floor-5-plan.webp",
+        viewBox: { width: 822.53, height: 418.5 },
+        units: [
+          {
+            id: "M31",
+            href: "/zamyslow/mieszkania/m31",
+            d: "M460.0 47.2L460.0 134.2L516.0 134.2L516.0 159.2L516.0 190.2L661.0 190.2L661.0 47.2Z",
+            areaM2: 30.94,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 541.4, y: 128.9 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 20.05 },
+              { name: "Sypialnia", areaM2: 7.19 },
+              { name: "Łazienka", areaM2: 3.7 },
+            ],
+          },
+          {
+            id: "M32",
+            href: "/zamyslow/mieszkania/m32",
+            d: "M577.0 196.2L577.0 284.2L682.0 284.2L682.0 369.2L774.0 369.2L774.0 47.2L668.0 47.2L668.0 196.2Z",
+            areaM2: 48.53,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 675.3, y: 224.2 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 27.04 },
+              { name: "Pokój", areaM2: 7.28 },
+              { name: "Łazienka", areaM2: 4.22 },
+              { name: "Sypialnia", areaM2: 9.99 },
+            ],
+          },
+          {
+            id: "M33",
+            href: "/zamyslow/mieszkania/m33",
+            d: "M459.0 238.2L459.0 370.2L675.0 370.2L675.0 290.2L571.0 290.2L571.0 238.2Z",
+            areaM2: 27.18,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 568.3, y: 299.5 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 16.14 },
+              { name: "Sypialnia", areaM2: 7.48 },
+              { name: "Łazienka", areaM2: 3.56 },
+            ],
+          },
+          {
+            id: "M34",
+            href: "/zamyslow/mieszkania/m34",
+            d: "M181.0 248.2L181.0 370.2L368.0 370.2L372.0 238.2L319.0 238.2L319.0 248.2Z",
+            areaM2: 28.17,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 290, y: 285.5 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 16.88 },
+              { name: "Łazienka", areaM2: 4.13 },
+              { name: "Sypialnia", areaM2: 7.16 },
+            ],
+          },
+          {
+            id: "M35",
+            href: "/zamyslow/mieszkania/m35",
+            d: "M46.0 46.2L46.0 370.2L176.0 370.2L176.0 242.2L271.0 242.2L271.0 196.2L176.0 196.2L176.0 46.2Z",
+            areaM2: 54.97,
+            rooms: 3,
+            status: "Dostępne",
+            label: { x: 167.3, y: 213.7 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 27.82 },
+              { name: "Pokój", areaM2: 10.24 },
+              { name: "Łazienka", areaM2: 4.53 },
+              { name: "Sypialnia", areaM2: 12.38 },
+            ],
+          },
+          {
+            id: "M36",
+            href: "/zamyslow/mieszkania/m36",
+            d: "M182.0 46.2L182.0 190.2L371.0 190.2L371.0 56.2L371.0 56.2L371.0 46.2Z",
+            areaM2: 32.16,
+            rooms: 2,
+            status: "Dostępne",
+            label: { x: 308, y: 97.5 },
+            roomsList: [
+              { name: "Pokój dzienny z aneksem", areaM2: 19.14 },
+              { name: "Pokój", areaM2: 8.07 },
+              { name: "Łazienka", areaM2: 4.95 },
+            ],
+          },
+        ],
+      },
     },
   ],
 };

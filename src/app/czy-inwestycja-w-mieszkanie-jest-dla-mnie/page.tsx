@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Footer } from "@/components/site/Footer";
-import { Nav } from "@/components/site/Nav";
+import { ZamyslowFooter } from "@/components/investments/zamyslow/ZamyslowFooter";
+import { ZamyslowNav } from "@/components/investments/zamyslow/ZamyslowNav";
 
 export const metadata: Metadata = {
   title:
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function CzyInwestycjaPage() {
   return (
     <>
-      <Nav />
+      <ZamyslowNav />
       <main className="flex-1 pt-[72px]">
         <article className="bg-paper">
           <div className="container-xl py-24 md:py-32">
@@ -72,7 +72,7 @@ export default function CzyInwestycjaPage() {
           </div>
         </article>
       </main>
-      <Footer />
+      <ZamyslowFooter />
     </>
   );
 }

@@ -58,17 +58,17 @@ export function InvestorHero() {
               className="font-display fluid-display text-white"
             >
               Nowe mieszkanie w Rybniku, które{" "}
-              <em className="italic text-accent-400">pracuje na Ciebie każdego miesiąca.</em>
+              <em className="italic text-accent-400">co miesiąc przynosi Ci dochód.</em>
             </motion.h1>
 
             <motion.p
               variants={item}
               className="mt-8 max-w-[48ch] text-[17px] leading-relaxed text-white/75"
             >
-              Osiedle Zamysłów to nowa inwestycja w Rybniku. Pomagamy wybrać
-              i kupić mieszkanie, a potem prowadzimy cały najem za Ciebie, od
-              znalezienia najemcy po bieżącą obsługę. Ty inwestujesz raz i co
-              miesiąc odbierasz czynsz.
+              Kupujesz mieszkanie. My zajmujemy się całą resztą. Pomagamy wybrać
+              lokal, znajdujemy sprawdzonego najemcę, podpisujemy umowę
+              i prowadzimy obsługę najmu. Ty inwestujesz raz, a później co
+              miesiąc otrzymujesz czynsz.
             </motion.p>
 
             <motion.div variants={item} className="mt-10">
@@ -91,12 +91,12 @@ export function InvestorHero() {
             </motion.div>
 
             <motion.p variants={item} className="mt-7 text-[13px] text-white/45">
-              Dopiero rozważasz pierwsze mieszkanie na wynajem?{" "}
+              Nigdy wcześniej nie inwestowałeś w mieszkanie?{" "}
               <Link
                 href="/czy-inwestycja-w-mieszkanie-jest-dla-mnie"
                 className="text-white/70 underline underline-offset-2 transition-colors hover:text-white"
               >
-                Przeczytaj, czy taka inwestycja jest dla Ciebie
+                Sprawdź, od czego zacząć
               </Link>
               .
             </motion.p>

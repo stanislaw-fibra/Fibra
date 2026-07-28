@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Nav } from "@/components/site/Nav";
-import { Footer } from "@/components/site/Footer";
+import { ZamyslowNav } from "@/components/investments/zamyslow/ZamyslowNav";
+import { ZamyslowFooter } from "@/components/investments/zamyslow/ZamyslowFooter";
 import { Reveal } from "@/components/ui/Reveal";
 
 export const metadata: Metadata = {
   title: "Przewodnik Inwestora - Fibra Nieruchomości",
   description:
-    "Bezpieczne lokowanie kapitału w gotowe „pod klucz” apartamenty z najmem. Model, parametry finansowe, zabezpieczenia i FAQ inwestora.",
+    "Bezpieczne lokowanie kapitału w mieszkania wykończone pod klucz i przygotowane do wynajmu. Model, parametry finansowe, zabezpieczenia i FAQ inwestora.",
   alternates: { canonical: "/przewodnik-inwestora" },
   openGraph: {
     title: "Przewodnik Inwestora - Fibra Nieruchomości",
     description:
-      "Bezpieczne lokowanie kapitału w gotowe „pod klucz” apartamenty z najmem. Model, parametry finansowe, zabezpieczenia i FAQ inwestora.",
+      "Bezpieczne lokowanie kapitału w mieszkania wykończone pod klucz i przygotowane do wynajmu. Model, parametry finansowe, zabezpieczenia i FAQ inwestora.",
     url: "/przewodnik-inwestora",
     type: "website",
     locale: "pl_PL",
@@ -28,9 +28,9 @@ const WHY_2025 = [
   },
   {
     n: "02",
-    title: "Realnie ujemne stopy",
+    title: "Lokaty nie chronią już kapitału",
     body:
-      "Stopy depozytowe w bankach są realnie ujemne - kapitał trzymany na lokacie traci na wartości.",
+      "Gdy inflacja przewyższa oprocentowanie lokat, realna wartość oszczędności maleje.",
   },
   {
     n: "03",
@@ -40,9 +40,9 @@ const WHY_2025 = [
   },
   {
     n: "04",
-    title: "Real assets w cenie",
+    title: "Aktywa, które mają realną wartość",
     body:
-      "Inwestorzy przenoszą środki z lokat i obligacji do aktywów rzeczowych - nieruchomość pracuje na siebie.",
+      "Coraz więcej inwestorów przenosi kapitał z lokat i obligacji do nieruchomości, które mogą generować dochód z najmu.",
   },
 ];
 
@@ -79,7 +79,7 @@ const NUMBERS = [
   { value: "269 – 611 tys. zł", label: "cena lokali (27 – 68 m²)" },
   { value: "ok. 250 zł/mies.", label: "koszty stałe + media" },
   { value: "1 800 – 3 200 zł", label: "prognozowany czynsz najmu / mies." },
-  { value: "6,2 – 7,4 %", label: "szacowana rentowność brutto rocznie" },
+  { value: "5,7 – 6,9 %", label: "szacowana rentowność brutto rocznie" },
   { value: "II / 2026", label: "termin oddania" },
 ];
 
@@ -110,7 +110,7 @@ const SAFETY = [
     n: "05",
     title: "Zarządzanie najmem A–Z",
     body:
-      "Obsługujemy cały proces najmu - ogromna oszczędność czasu i minimalny pustostan.",
+      "Obsługujemy cały proces najmu - ogromna oszczędność Twojego czasu i minimalny pustostan.",
   },
 ];
 
@@ -150,7 +150,7 @@ const NEXT_STEPS = [
 export default function PrzewodnikInwestoraPage() {
   return (
     <>
-      <Nav />
+      <ZamyslowNav />
       <main className="flex-1 pt-[72px]">
         {/* Hero */}
         <section className="relative py-16 md:py-24 overflow-hidden">
@@ -168,12 +168,13 @@ export default function PrzewodnikInwestoraPage() {
                   className="font-display text-ink-950 leading-[1.05] tracking-tight text-balance"
                   style={{ fontSize: "clamp(2rem, 5vw, 3.75rem)" }}
                 >
-                  Bezpieczne lokowanie kapitału w gotowe „pod klucz” apartamenty z najmem.
+                  Bezpieczne lokowanie kapitału w mieszkania wykończone pod klucz
+                  i przygotowane do wynajmu.
                 </h1>
               </Reveal>
               <Reveal delay={180}>
                 <p className="mt-5 md:mt-8 text-[16px] md:text-[19px] leading-[1.55] text-ink-700 text-pretty">
-                  Opracowanie Grupy Fibra Sp. z o.o.
+                  Opracowanie ekspertów Grupy Fibra
                 </p>
               </Reveal>
             </div>
@@ -537,7 +538,7 @@ export default function PrzewodnikInwestoraPage() {
           </div>
         </section>
       </main>
-      <Footer />
+      <ZamyslowFooter />
     </>
   );
 }

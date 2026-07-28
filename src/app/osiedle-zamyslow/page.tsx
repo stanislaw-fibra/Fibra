@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Footer } from "@/components/site/Footer";
-import { Nav } from "@/components/site/Nav";
+import { ZamyslowFooter } from "@/components/investments/zamyslow/ZamyslowFooter";
+import { ZamyslowNav } from "@/components/investments/zamyslow/ZamyslowNav";
 import { ZamyslowExperience } from "@/components/investments/zamyslow/ZamyslowExperience";
 
 export const metadata: Metadata = {
@@ -13,11 +13,11 @@ export const metadata: Metadata = {
 export default function OsiedleZamyslowPage() {
   return (
     <>
-      <Nav />
+      <ZamyslowNav experience="osiedle" />
       <main className="flex-1 pt-[72px]">
         <ZamyslowExperience />
       </main>
-      <Footer />
+      <ZamyslowFooter experience="osiedle" />
     </>
   );
 }

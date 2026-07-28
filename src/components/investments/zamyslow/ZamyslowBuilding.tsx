@@ -118,17 +118,76 @@ export function ZamyslowBuilding() {
     py.set(0);
   };
 
+  // Wybrane piętro trzymamy też w adresie (hash #pietro-<id>), żeby ścieżka była
+  // naturalna: klik w piętro -> rzut -> klik w mieszkanie (przejście do oferty) ->
+  // „wstecz" wraca do OTWARTEGO rzutu tego piętra, a nie do zresetowanej sceny.
+  // (Ta sama konwencja co deep-linki materiałów oferty: #rzut/#spacer/#film.)
+  const floorFromHash = (hash: string): string | null => {
+    const m = hash.match(/^#pietro-(.+)$/);
+    const id = m?.[1];
+    return id && floors.some((f) => f.id === id) ? id : null;
+  };
+
+  // Odtworzenie stanu z adresu: przy wejściu (powrót „wstecz" z oferty montuje
+  // stronę na nowo) oraz przy popstate (Wstecz/Dalej w obrębie tej samej strony).
+  useEffect(() => {
+    const fromHash = floorFromHash(window.location.hash);
+    if (fromHash) {
+      setSelectedId(fromHash);
+      // Wejście z linku „Otwórz interaktywny rzut" na stronie oferty (albo
+      // powrót „wstecz"): scena z rzutem ma być od razu w kadrze, nie na dole
+      // strony. scroll-mt na scenie kompensuje pasek nawigacji.
+      // Ustawienie pozycji startowej po wejściu z linku (nie animacja):
+      // behavior "instant" omija globalne scroll-behavior:smooth. Sekcje nad
+      // sceną doładowują obrazy i przesuwają layout jeszcze przez chwilę po
+      // mount, więc przez 2 s pilnujemy pozycji watchdogiem - a pierwszy gest
+      // użytkownika (scroll/dotyk/klawisz) natychmiast go wyłącza.
+      const pin = () =>
+        heroRef.current?.scrollIntoView({ block: "start", behavior: "instant" });
+      setTimeout(pin, 0);
+      const watchdog = setInterval(() => {
+        const top = heroRef.current?.getBoundingClientRect().top;
+        if (top !== undefined && Math.abs(top - 72) > 4) pin();
+      }, 250);
+      const stop = () => clearInterval(watchdog);
+      setTimeout(stop, 2000);
+      for (const ev of ["wheel", "touchstart", "keydown"] as const) {
+        window.addEventListener(ev, stop, { once: true, passive: true });
+      }
+    }
+    const onPop = () => {
+      setSelectedId(floorFromHash(window.location.hash));
+      setExpandedUnit(null);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+    // floors pochodzi ze stałych danych - zależność stabilna.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Klik w piętro NIE przerzuca już strony niżej - zostajemy w scenie i otwieramy
   // interaktywny rzut piętra w tym samym kadrze (premium experience).
   const selectFloor = (id: string) => {
+    const wasOpen = selectedId !== null;
     setSelectedId(id);
     setExpandedUnit(null);
     resetParallax();
+    const url = `${window.location.pathname}${window.location.search}#pietro-${id}`;
+    // Pierwsze otwarcie = nowy wpis w historii (cel dla „wstecz"); przełączanie
+    // pięter w windzie tylko podmienia bieżący wpis, żeby nie zaśmiecać historii.
+    if (wasOpen) window.history.replaceState(null, "", url);
+    else window.history.pushState(null, "", url);
   };
 
   const clearSelection = () => {
     setSelectedId(null);
     setExpandedUnit(null);
+    // Zamknięcie rzutu zdejmuje hash w miejscu (bez nowego wpisu historii).
+    window.history.replaceState(
+      null,
+      "",
+      window.location.pathname + window.location.search,
+    );
   };
 
   const zoomOrigin = selected
@@ -143,7 +202,7 @@ export function ZamyslowBuilding() {
           ref={heroRef}
           onMouseMove={handleMouseMove}
           onMouseLeave={resetParallax}
-          className="relative w-full overflow-hidden bg-ink-950 aspect-[4/5] sm:aspect-[3/2] md:aspect-[3309/1847]"
+          className="relative w-full scroll-mt-[72px] overflow-hidden bg-ink-950 aspect-[4/5] sm:aspect-[3/2] md:aspect-[3309/1847]"
         >
           {/* Warstwa parallax (overscan tylko na desktopie) */}
           <motion.div

@@ -14,10 +14,11 @@ export function WhichApartment() {
             <em className="italic text-brand-600">który pasuje do budżetu.</em>
           </h2>
           <p className="mt-6 text-[16px] leading-relaxed text-ink-600">
-            Kliknij piętro na wizualizacji, żeby zobaczyć metraże, układy i
-            aktualny status każdego mieszkania. Pod inwestycję na wynajem
-            zwykle najlepiej sprawdzają się mniejsze, łatwo wynajmowalne lokale,
-            ale dobór zależy od Twoich celów. Pomożemy go dopasować.
+            Kliknij wybrane piętro na wizualizacji, aby zobaczyć metraże, układy
+            mieszkań i ich aktualny status. Pod wynajem najczęściej wybierane są
+            mniejsze lokale, ale najlepszy wybór zawsze zależy od Twojego budżetu
+            i planów. Pomożemy wybrać mieszkanie, które będzie najlepiej
+            odpowiadało Twoim celom.
           </p>
         </div>
       </div>

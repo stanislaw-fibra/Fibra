@@ -6,25 +6,25 @@ import { motion, useInView } from "framer-motion";
 const ease = [0.22, 1, 0.36, 1] as const;
 
 // Punkty zaufania oparte na sposobie działania (proces, jawność), a nie na
-// deklaracjach typu "najlepsi". Jeśli masz twarde dowody (liczba zrealizowanych
-// inwestycji, lata na rynku, konkretne osiedla), dopisz je do `proof` poniżej -
-// najmocniej działa konkret, nie przymiotnik.
+// deklaracjach typu "najlepsi". Twarde liczby (lata na rynku, mieszkania
+// w zarządzaniu, liczba inwestorów) żyją osobno w `zamyslow-proof.ts` i lądują
+// w pasku nad tą sekcją - najmocniej działa konkret, nie przymiotnik.
 const pillars = [
   {
     title: "Lokalny deweloper, nie anonimowa spółka",
-    body: "Działamy z Radlina, w regionie, w którym budujemy. Za inwestycją stoi Grupa Fibra Sp. z o.o. - z adresem, numerem telefonu i ludźmi, do których zadzwonisz przed zakupem i po nim.",
+    body: "Budujemy tutaj i jesteśmy tutaj na co dzień. Inwestycję prowadzi Grupa Fibra Sp. z o.o. - z biurem, zespołem i konkretnymi osobami, z którymi będziesz w kontakcie przed i po zakupie mieszkania.",
   },
   {
-    title: "Liczby pokazujemy wprost",
-    body: "Ceny, metraże, status każdego lokalu i szacowaną rentowność dostajesz na stół. Bez gwiazdek drobnym drukiem i obietnic, których nie da się sprawdzić.",
+    title: "Pełna przejrzystość oferty",
+    body: "Nie każemy niczego wyliczać. Przy każdym mieszkaniu znajdziesz cenę, metraż, status dostępności, przewidywany czynsz i szacowaną rentowność. Wszystkie najważniejsze informacje masz od razu przed sobą.",
   },
   {
-    title: "Wynajem prowadzimy też sami",
-    body: "Na sąsiedniej inwestycji przy Niedobczyckiej 128F wynajmujemy mieszkania na bieżąco. Widzimy popyt z pierwszej ręki, a nie z prognoz.",
+    title: "Mamy własny dział zarządzania najmem",
+    body: "Najmem mieszkań na naszym osiedlu zajmujemy się od lat. Dzięki temu wiemy, jak wygląda rzeczywistość: ile trwa znalezienie najemców i czego oni oczekują.",
   },
   {
     title: "Jeden opiekun przez całą transakcję",
-    body: "Od pierwszej rozmowy przez prospekt informacyjny i umowę aż po odbiór masz jedną osobę po swojej stronie. Nie przekazujemy Cię między działami.",
+    body: "Od pierwszej rozmowy aż po odbiór mieszkania prowadzi Cię jedna osoba. Nie zmieniamy opiekuna w trakcie zakupu.",
   },
 ];
 
@@ -42,13 +42,14 @@ export function TrustSection() {
               Czy mogę zaufać?
             </p>
             <h2 className="mt-6 font-display fluid-h2 text-ink-950">
-              Zanim zaufasz pieniędzmi,{" "}
-              <em className="italic text-brand-600">sprawdź, kto za tym stoi.</em>
+              Kiedy inwestujesz pieniądze,{" "}
+              <em className="italic text-brand-600">warto wiedzieć, komu je powierzasz.</em>
             </h2>
           </div>
           <p className="max-w-[48ch] text-[17px] leading-relaxed text-ink-600 lg:pb-1.5">
-            Inwestycja w mieszkanie to nie zakup impulsowy. Masz prawo wiedzieć,
-            z kim siadasz do umowy i na czym opieramy to, co mówimy.
+            Zakup mieszkania inwestycyjnego to decyzja na lata. Dlatego
+            pokazujemy nie tylko ofertę, ale również ludzi, doświadczenie
+            i liczby, na których możesz się oprzeć.
           </p>
         </div>
 

@@ -21,7 +21,13 @@ const GORODO_LINKS = [
   },
 ] as const;
 
-export function Footer() {
+/**
+ * Wspólna stopka. Domyślnie logo prowadzi na stronę główną Fibry.
+ * Na stronach „doświadczenia" Zamysłowa przekazujemy `logoHref="/zamyslow"`,
+ * żeby klik w logo (jak w nagłówku `ZamyslowNav`) wracał do Zamysłowa,
+ * a nie wyrzucał użytkownika na fibra.pl.
+ */
+export function Footer({ logoHref = "/" }: { logoHref?: string } = {}) {
   return (
     <footer className="relative bg-ink-950 text-ink-200 mt-auto overflow-hidden">
       <div className="absolute inset-0 grad-radial-brand opacity-40 pointer-events-none" />
@@ -31,7 +37,7 @@ export function Footer() {
       <div className="container-xl relative py-24 md:py-32">
         <div className="grid md:grid-cols-12 gap-10 md:gap-16">
           <div className="md:col-span-5">
-            <Logo variant="paper" />
+            <Logo variant="paper" href={logoHref} />
             <p className="mt-10 font-display fluid-h2 text-white max-w-[14ch]">
               Doświadczenie, któremu możesz zaufać.
             </p>

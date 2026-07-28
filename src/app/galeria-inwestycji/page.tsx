@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Nav } from "@/components/site/Nav";
-import { Footer } from "@/components/site/Footer";
+import { ZamyslowNav } from "@/components/investments/zamyslow/ZamyslowNav";
+import { ZamyslowFooter } from "@/components/investments/zamyslow/ZamyslowFooter";
 import { Reveal } from "@/components/ui/Reveal";
 import { GallerySection, type GalleryCollection } from "@/components/investments/GallerySection";
 
@@ -58,7 +58,7 @@ const COLLECTIONS: GalleryCollection[] = [
 export default function GaleriaInwestycjiPage() {
   return (
     <>
-      <Nav />
+      <ZamyslowNav />
       <main className="flex-1 pt-[72px]">
         {/* Hero */}
         <section className="relative py-16 md:py-24 overflow-hidden">
@@ -161,7 +161,7 @@ export default function GaleriaInwestycjiPage() {
           </div>
         </section>
       </main>
-      <Footer />
+      <ZamyslowFooter />
     </>
   );
 }

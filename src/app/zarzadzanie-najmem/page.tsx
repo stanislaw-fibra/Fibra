@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Nav } from "@/components/site/Nav";
-import { Footer } from "@/components/site/Footer";
+import { ZamyslowNav } from "@/components/investments/zamyslow/ZamyslowNav";
+import { ZamyslowFooter } from "@/components/investments/zamyslow/ZamyslowFooter";
 import { Reveal } from "@/components/ui/Reveal";
 
 export const metadata: Metadata = {
   title: "Zarządzanie najmem - Fibra Nieruchomości",
   description:
-    "Kompleksowa obsługa najmu: przygotowanie mieszkania, dobór najemcy, umowy, rozliczenia, media i serwis techniczny. Pasywny dochód bez zaangażowania.",
+    "Przejmujemy cały proces zarządzania najmem: przygotowanie mieszkania, dobór najemcy, umowy, rozliczenia, media i serwis techniczny.",
   alternates: { canonical: "/zarzadzanie-najmem" },
   openGraph: {
     title: "Zarządzanie najmem - Fibra Nieruchomości",
@@ -23,17 +23,17 @@ const INVESTOR_SCOPE = [
   {
     title: "Przygotowanie mieszkania",
     body:
-      "Wykończenie pod klucz, drobne poprawki, sesja zdjęciowa i przygotowanie oferty - lokal idzie na rynek w pełnej formie.",
+      "Wykończenie pod klucz, sesja zdjęciowa i przygotowanie oferty - mieszkanie jest gotowe do wynajmu.",
   },
   {
     title: "Dobór najemcy",
     body:
-      "Weryfikacja, rozmowy, sprawdzenie zdolności i historii - wybieramy osoby, które realnie zadbają o lokal.",
+      "Weryfikacja, rozmowy oraz sprawdzenie historii i zdolności płatniczej - wybieramy najemców, którzy dają największe szanse na spokojny i bezproblemowy najem.",
   },
   {
-    title: "Obsługa administracyjna",
+    title: "Opieka nad najemcą",
     body:
-      "Umowy, aneksy, protokoły, rozliczenia mediów i okresowe kontrole - wszystko po naszej stronie.",
+      "Jesteśmy pierwszym kontaktem dla najemcy w bieżących sprawach, organizujemy niezbędne naprawy i dbamy o sprawny przebieg najmu.",
   },
   {
     title: "Inwestor zagraniczny",
@@ -45,11 +45,11 @@ const INVESTOR_SCOPE = [
 const TENANT_SCOPE = [
   {
     title: "Jasne warunki",
-    body: "Umowa, protokoły, ubezpieczenia i przepisanie liczników - wszystko podane na tacy.",
+    body: "Umowa, protokoły, ubezpieczenia i przepisanie liczników - wszystkie formalności przygotowujemy za Ciebie.",
   },
   {
     title: "Terminowe rozliczenia",
-    body: "Stały kontakt, czyste rozliczenia mediów i opłat - bez niespodzianek pod koniec miesiąca.",
+    body: "Stały kontakt oraz przejrzyste rozliczenia mediów i opłat - bez niespodzianek pod koniec miesiąca.",
   },
   {
     title: "Sprawny serwis techniczny",
@@ -60,7 +60,7 @@ const TENANT_SCOPE = [
 export default function ZarzadzanieNajmemPage() {
   return (
     <>
-      <Nav />
+      <ZamyslowNav />
       <main className="flex-1 pt-[72px]">
         {/* Hero */}
         <section className="relative py-16 md:py-24 overflow-hidden">
@@ -83,8 +83,9 @@ export default function ZarzadzanieNajmemPage() {
               </Reveal>
               <Reveal delay={180}>
                 <p className="mt-5 md:mt-8 text-[16px] md:text-[19px] leading-[1.55] text-ink-700 text-pretty">
-                  Kompleksowa usługa zarządzania najmem - od przygotowania mieszkania, przez dobór
-                  najemcy, aż po pełną obsługę administracyjną i techniczną.
+                  Przejmujemy cały proces zarządzania najmem - od przygotowania mieszkania
+                  i znalezienia odpowiedniego najemcy po bieżącą obsługę administracyjną
+                  i techniczną.
                 </p>
               </Reveal>
             </div>
@@ -105,20 +106,18 @@ export default function ZarzadzanieNajmemPage() {
                   className="font-display text-ink-950 tracking-tight leading-[1.05] text-balance"
                   style={{ fontSize: "clamp(1.8rem, 4vw, 2.9rem)" }}
                 >
-                  Pasywny dochód bez zaangażowania.
+                  Jak wygląda zarządzanie najmem.
                 </h2>
                 <div className="mt-6 md:mt-7 text-[16px] md:text-[17px] text-ink-700 leading-[1.7] space-y-4 text-pretty">
                   <p>
-                    Oferujemy kompleksową usługę zarządzania najmem, która pozwala inwestorom
-                    czerpać zyski z nieruchomości bez konieczności angażowania czasu i energii.
-                    Zajmujemy się wszystkim - od przygotowania mieszkania, przez dobór odpowiedniego
-                    najemcy, aż po pełną obsługę administracyjną: umowy, rozliczenia, media i
-                    okresowe kontrole.
+                    Przejmujemy cały proces zarządzania najmem - od przygotowania mieszkania
+                    i znalezienia odpowiedniego najemcy po umowy, rozliczenia, media i bieżącą
+                    obsługę.
                   </p>
                   <p>
-                    Dzięki temu inwestycja staje się całkowicie pasywna, a Ty zyskujesz
-                    bezpieczeństwo, spokój i stabilny dochód. Nasze rozwiązania cenią szczególnie
-                    inwestorzy z zagranicy, którzy mogą zarabiać w Polsce bez fizycznej obecności.
+                    Dzięki temu możesz czerpać dochód z najmu bez codziennego angażowania się
+                    w jego prowadzenie. Zyskujesz więcej spokoju i czasu, a my dbamy o całą
+                    obsługę najmu.
                   </p>
                   <p className="font-display text-[1.4rem] md:text-[1.55rem] text-ink-950 leading-[1.25] tracking-tight">
                     Zainwestuj - resztą zajmiemy się my.
@@ -178,9 +177,9 @@ export default function ZarzadzanieNajmemPage() {
               </Reveal>
               <Reveal delay={160}>
                 <p className="mt-5 md:mt-7 text-[16px] md:text-[18px] leading-[1.65] text-ink-200 text-pretty">
-                  Najemcy korzystający z naszych usług mogą liczyć na komfortowy i bezproblemowy
-                  wynajem. W razie potrzeby szybko reagujemy na usterki i organizujemy niezbędne
-                  naprawy oraz przeglądy techniczne - najem jest bezpieczny, przejrzysty i wygodny.
+                  Najemcy korzystający z naszych usług mogą liczyć na przejrzyste zasady, sprawną
+                  obsługę i szybką reakcję w razie potrzeby. Organizujemy naprawy i przeglądy
+                  techniczne, aby najem przebiegał komfortowo i bez zbędnych problemów.
                 </p>
               </Reveal>
             </div>
@@ -210,8 +209,8 @@ export default function ZarzadzanieNajmemPage() {
                 className="font-display italic text-ink-950 leading-[1.15] tracking-tight text-balance"
                 style={{ fontSize: "clamp(1.55rem, 4vw, 2.6rem)" }}
               >
-                „Chcesz mieć pewność, że Twoje mieszkanie zarabia bezproblemowo, a najemca jest
-                zadowolony? Właśnie to oferujemy.”
+                Chcesz inwestować w mieszkanie, a zarządzanie najmem powierzyć specjalistom?
+                Chętnie pokażemy Ci, jak to działa.
               </p>
             </Reveal>
             <Reveal delay={120}>
@@ -259,7 +258,7 @@ export default function ZarzadzanieNajmemPage() {
           </div>
         </section>
       </main>
-      <Footer />
+      <ZamyslowFooter />
     </>
   );
 }

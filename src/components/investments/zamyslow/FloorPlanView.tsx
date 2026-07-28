@@ -165,6 +165,7 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
     det: clamp(6, planW * 0.0126, 9.5),
     py: clamp(1, planW * 0.005, 3),
     px: clamp(2.5, planW * 0.0105, 7),
+    ann: clamp(5, planW * 0.0092, 8.5),
   };
 
   // Kotwica karty liczona od razu (synchronicznie), żeby karta nie „doganiała".
@@ -391,6 +392,24 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
                   );
                 })}
               </svg>
+
+              {/* Podpisy części rysunku (np. tarasy) - nieklikalne, zawsze widoczne,
+                  bo opisują rzut, a nie strefy. Delikatna typografia jak „eyebrow". */}
+              {plan.annotations?.map((a, i) => (
+                <div
+                  key={`ann-${i}`}
+                  className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap font-sans font-medium uppercase text-ink-400"
+                  style={{
+                    left: `${(a.x / vbW) * 100}%`,
+                    top: `${(a.y / vbH) * 100}%`,
+                    fontSize: `${lbl.ann}px`,
+                    letterSpacing: "0.22em",
+                    transform: `translate(-50%, -50%) rotate(${a.rotate ?? 0}deg)`,
+                  }}
+                >
+                  {a.text}
+                </div>
+              ))}
 
               {/* Stałe etykiety: małe, półprzezroczyste plakietki skalujące się z
                   rzutem (jednostki cqw → proporcjonalne na desktopie i mobile).

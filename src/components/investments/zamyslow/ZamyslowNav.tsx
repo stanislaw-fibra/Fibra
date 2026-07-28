@@ -4,19 +4,33 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "@/components/site/Logo";
+import {
+  useZamyslowExperience,
+  ZAMYSLOW_EXPERIENCES,
+  type ZamyslowExperience,
+} from "@/lib/investments/zamyslow-experience";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
 // Standalone menu strony Zamysłowa - te linki były wcześniej pod zakładką „Zamysłów".
-const LINKS: { href: string; label: string }[] = [
-  { href: "/zamyslow#mieszkania", label: "Mieszkania" },
+// „Mieszkania" prowadzi do właściwego rodzica (inwestor: /zamyslow#mieszkania,
+// kupujący: /osiedle-zamyslow); reszta to wspólne podstrony obu experience.
+const buildLinks = (mieszkania: string): { href: string; label: string }[] => [
+  { href: mieszkania, label: "Mieszkania" },
   { href: "/przewodnik-inwestora", label: "Przewodnik inwestora" },
   { href: "/zarzadzanie-najmem", label: "Zarządzanie najmem" },
   { href: "/galeria-inwestycji", label: "Galeria" },
   { href: "/prospekt-informacyjny", label: "Prospekt" },
 ];
 
-export function ZamyslowNav() {
+export function ZamyslowNav({
+  experience,
+}: {
+  experience?: ZamyslowExperience;
+}) {
+  const exp = useZamyslowExperience(experience);
+  const cfg = ZAMYSLOW_EXPERIENCES[exp];
+  const LINKS = buildLinks(cfg.mieszkania);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -48,8 +62,8 @@ export function ZamyslowNav() {
         ].join(" ")}
       >
         <div className="container-xl flex h-[72px] items-center justify-between">
-          {/* Logo -> góra strony Zamysłowa (NIE fibra.pl) */}
-          <Logo variant="ink" href="/zamyslow" onNavigate={() => setOpen(false)} />
+          {/* Logo -> właściwy rodzic Zamysłowa (NIE fibra.pl) */}
+          <Logo variant="ink" href={cfg.home} onNavigate={() => setOpen(false)} />
 
           <nav className="hidden items-center gap-8 lg:flex">
             {LINKS.map((l) => (
@@ -65,7 +79,7 @@ export function ZamyslowNav() {
 
           <div className="flex items-center gap-3">
             <Link
-              href="/zamyslow#kontakt"
+              href={cfg.kontakt}
               className="hidden items-center gap-2 rounded-full bg-ink-900 px-5 py-2.5 text-[14px] font-medium text-white transition-colors hover:bg-accent-400 hover:text-ink-950 sm:inline-flex"
             >
               Umów rozmowę
@@ -125,7 +139,7 @@ export function ZamyslowNav() {
                 ))}
               </nav>
               <Link
-                href="/zamyslow#kontakt"
+                href={cfg.kontakt}
                 onClick={() => setOpen(false)}
                 className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-accent-400 px-6 py-4 text-[15px] font-medium text-ink-950"
               >

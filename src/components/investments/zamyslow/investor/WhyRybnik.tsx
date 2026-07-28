@@ -13,22 +13,22 @@ const objections = [
   {
     objection: "„Przecież w Rybniku nie ma uczelni.”",
     answer:
-      "I dobrze, bo nie inwestujesz pod studentów. Najem w Rybniku napędzają ludzie pracujący: pary, single, młode rodziny, osoby w trakcie budowy własnego domu. To najemcy, którzy szukają mieszkania na rok i dłużej, a nie na jeden semestr.",
+      "Brak dużej uczelni nie oznacza braku najemców. W Rybniku mieszkania wynajmują przede wszystkim osoby pracujące - single, pary, młode rodziny. To najemcy, którzy szukają mieszkania na rok lub dłużej, dzięki czemu najem jest bardziej stabilny.",
   },
   {
     objection: "„Czy w ogóle będzie komu wynajmować?”",
     answer:
-      "Rybnik to jedno z największych miast w regionie i lokalne centrum pracy, usług i administracji. Popyt na nowe, ciepłe mieszkania z miejscem postojowym jest stały. Wynajem prowadzimy też na sąsiedniej inwestycji, więc widzimy go na żywo.",
+      "Tak. Potwierdza to nasze doświadczenie. Na naszym osiedlu na bieżąco wynajmujemy mieszkania i widzimy, że dobrze wykończone lokale z miejscem postojowym znajdują najemców. Popyt nie jest dla nas teorią - obserwujemy go na co dzień.",
   },
   {
     objection: "„Najemcy ciągle się zmieniają, to same kłopoty.”",
     answer:
-      "W miastach studenckich rotacja jest duża. Tu jest odwrotnie: najemcy zostają na dłużej. Mniejsza rotacja oznacza mniej pustych miesięcy, mniej odświeżania między najmami i spokojniejszy, przewidywalny przychód.",
+      "W Rybniku najemcy często zostają na dłużej niż w typowych miastach studenckich. To oznacza mniejszą rotację, mniej okresów bez najemcy i rzadszą potrzebę przygotowywania mieszkania do kolejnego wynajmu.",
   },
   {
     objection: "„Czy to się w ogóle opłaca w mniejszym mieście?”",
     answer:
-      "Niższa cena wejścia niż w Katowicach czy Wrocławiu, a czynsze najmu nie spadają proporcjonalnie. Dlatego rentowność liczona na Zamysłowie potrafi być wyższa niż w dużej metropolii. Liczby pokazujemy w następnej sekcji.",
+      "Nie każda dobra inwestycja musi być w dużym mieście. W Rybniku mieszkania kosztują mniej niż w największych aglomeracjach, a dobrze przygotowane lokale nadal cieszą się zainteresowaniem najemców. To przekłada się na atrakcyjną rentowność inwestycji.",
   },
 ];
 
@@ -45,12 +45,12 @@ export function WhyRybnik() {
             Dlaczego Rybnik?
           </p>
           <h2 className="mt-6 font-display fluid-h2 text-white">
-            Rozwiejmy obawy{" "}
-            <em className="italic text-accent-400">po kolei.</em>
+            Masz pytania?{" "}
+            <em className="italic text-accent-400">To dobrze.</em>
           </h2>
           <p className="mt-6 text-[16px] leading-relaxed text-white/65">
-            Najczęstsze wątpliwości inwestorów słyszymy wprost. Nie uciekamy od
-            nich, tylko odpowiadamy konkretem.
+            Zakup mieszkania inwestycyjnego warto dobrze przemyśleć.
+            Odpowiadamy na pytania, które słyszymy od inwestorów najczęściej.
           </p>
         </div>
 
@@ -77,13 +77,14 @@ export function WhyRybnik() {
         </div>
 
         <p className="mt-10 text-[14px] text-white/45">
-          Chcesz spokojnie rozważyć za i przeciw?{" "}
+          Masz inne wątpliwości?{" "}
           <Link
             href="/czy-inwestycja-w-mieszkanie-jest-dla-mnie"
             className="text-white/70 underline underline-offset-2 transition-colors hover:text-white"
           >
-            Czy inwestycja w mieszkanie na wynajem jest dla mnie?
+            Przeczytaj, o czym warto wiedzieć przed zakupem mieszkania na wynajem
           </Link>
+          .
         </p>
       </div>
     </section>
