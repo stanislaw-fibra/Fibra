@@ -10,6 +10,7 @@ import { ReturnsSection } from "@/components/investments/zamyslow/investor/Retur
 import { WhichApartment } from "@/components/investments/zamyslow/investor/WhichApartment";
 import { ZamyslowApartmentsList } from "@/components/investments/zamyslow/ZamyslowApartmentsList";
 import { InvestorCta } from "@/components/investments/zamyslow/investor/InvestorCta";
+import { InvestorStickyCta } from "@/components/investments/zamyslow/investor/InvestorStickyCta";
 
 export const metadata: Metadata = {
   title: "Zainwestuj w Rybniku - Osiedle Zamysłów | Fibra Nieruchomości",
@@ -33,6 +34,7 @@ export default function ZamyslowPage() {
         <ZamyslowApartmentsList />
         <InvestorCta />
       </main>
+      <InvestorStickyCta />
       <ZamyslowFooter experience="investor" />
     </>
   );

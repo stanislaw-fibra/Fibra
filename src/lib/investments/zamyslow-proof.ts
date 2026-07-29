@@ -40,19 +40,19 @@ export const PROOF_STRIP_MIN_FACTS = 2;
  */
 export const zamyslowAdvantages = [
   {
-    title: "Lokalizacja, którą łatwo sprawdzić",
-    body: "3,5 km do rynku w Rybniku, 1,8 km do Drogi Głównej Południowej i szybkiego dojazdu do A1, 800 m do szkoły i 1,2 km do przedszkola. Sklep w bezpośrednim sąsiedztwie, a wokół zielona część miasta.",
+    title: "Lokalizacja, która przyciąga najemców",
+    body: "Spokojna, zielona część Rybnika z szybkim dojazdem do centrum, autostrady A1 i największych zakładów pracy. Bliskość szkoły, przedszkola i sklepu zwiększa komfort mieszkańców, ułatwia wynajem i wspiera wartość mieszkania.",
   },
   {
-    title: "Popyt znamy z tego samego osiedla",
-    body: "W sąsiednim budynku na Zamysłowie wynajmujemy mieszkania na bieżąco. Wiemy, ile realnie trwa znalezienie najemcy pod tym adresem i za ile wynajmują się konkretne metraże. Opieramy się na tym, co widzimy u siebie na miejscu.",
+    title: "Wynajmujemy tu od lat",
+    body: "To nie prognozy. Na Osiedlu Zamysłów od lat wynajmujemy mieszkania i wiemy, jak wygląda popyt, czas wynajmu oraz stawki dla poszczególnych metraży.",
   },
   {
     title: "Standard, który skraca szukanie najemcy",
-    body: "Mieszkania oddajemy wykończone pod klucz, z łazienką, kuchnią i AGD w cenie. W standardzie klimatyzacja i rolety elektryczne, trzyszybowe okna oraz izolacja do 30 cm, więc najemca płaci niższe rachunki, a lokal jest gotowy do wynajmu od pierwszego dnia.",
+    body: "Mieszkania oddajemy wykończone pod klucz, z łazienką, kuchnią i AGD w cenie. W standardzie klimatyzacja i rolety elektryczne, trzyszybowe okna oraz izolacja do 30 cm, więc najemca płaci niższe rachunki.",
   },
   {
     title: "Metraże, które wynajmują się najłatwiej",
-    body: "Mieszkania 2- i 3-pokojowe od 27 do 55,5 m², z miejscem postojowym w garażu podziemnym. To właśnie te układy najemcy pracujący wybierają najczęściej.",
+    body: "Największym zainteresowaniem cieszą się mieszkania 2- i 3-pokojowe o powierzchni od 27 do 55,5 m². Dla większej wygody można dokupić miejsce postojowe lub garaż wolnostojący.",
   },
 ];

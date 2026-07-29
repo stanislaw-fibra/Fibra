@@ -49,6 +49,18 @@ export function ReturnsSection() {
                 5,7 – 6,9%
               </p>
               <p className="mt-2 text-[15px] text-white/55">rocznie</p>
+
+              <div className="mt-7 border-t border-white/10 pt-6">
+                <a
+                  href="#kontakt"
+                  className="inline-flex items-center gap-2 rounded-full bg-accent-400 px-6 py-3 text-[14px] font-medium text-ink-950 transition-colors duration-300 hover:bg-white"
+                >
+                  Poproś o prognozowany czynsz
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+                    <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </a>
+              </div>
             </motion.div>
 
             <p className="mt-6 max-w-[44ch] text-[13.5px] leading-relaxed text-ink-500">
@@ -86,26 +98,6 @@ export function ReturnsSection() {
                 </motion.li>
               ))}
             </ol>
-
-            {/* Bezpieczeństwo inwestycji - inwestor częściej boi się straty niż
-                tego, czy zarobi 6 czy 7%. Fakty prawne pochodzą z /przewodnik-inwestora. */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, ease, delay: 0.45 }}
-              className="mt-8 rounded-[var(--radius-lg)] border border-brand-500/20 bg-brand-500/[0.04] p-7"
-            >
-              <p className="font-medium text-ink-950">
-                Najwyższa stopa zwrotu to nie wszystko
-              </p>
-              <p className="mt-2.5 text-[14.5px] leading-relaxed text-ink-600">
-                Pomagamy wybrać mieszkanie z myślą o stabilnym wynajmie
-                i długoterminowym bezpieczeństwie inwestycji, a nie tylko
-                o najwyższej rentowności na papierze. Zakup chroni umowa
-                deweloperska i rachunek powierniczy, z którego środki trafiają
-                do nas dopiero po odebranym etapie budowy.
-              </p>
-            </motion.div>
           </div>
         </div>
       </div>

@@ -23,8 +23,10 @@ export function WhichApartment() {
         </div>
       </div>
 
-      {/* Pełny, interaktywny eksplorator budynku (ten sam co na /osiedle-zamyslow). */}
-      <div className="mt-12 md:mt-16">
+      {/* Pełny, interaktywny eksplorator budynku (ten sam co na /osiedle-zamyslow).
+          `id` jest celem sticky CTA - skrót ma prowadzić wprost do wizualizacji,
+          a nie do nagłówka sekcji nad nią. */}
+      <div id="wizualizacja" className="mt-12 scroll-mt-[72px] md:mt-16">
         <ZamyslowExperience />
       </div>
     </section>

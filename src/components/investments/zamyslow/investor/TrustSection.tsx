@@ -11,7 +11,7 @@ const ease = [0.22, 1, 0.36, 1] as const;
 // w pasku nad tą sekcją - najmocniej działa konkret, nie przymiotnik.
 const pillars = [
   {
-    title: "Lokalny deweloper, nie anonimowa spółka",
+    title: "Deweloper z 20-letnim doświadczeniem",
     body: "Budujemy tutaj i jesteśmy tutaj na co dzień. Inwestycję prowadzi Grupa Fibra Sp. z o.o. - z biurem, zespołem i konkretnymi osobami, z którymi będziesz w kontakcie przed i po zakupie mieszkania.",
   },
   {
