@@ -52,18 +52,29 @@ export function InvestorStickyCta() {
     <div
       aria-hidden={!show}
       className={[
-        "fixed inset-x-0 bottom-0 z-[90] flex justify-center px-4 pb-5 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
-        show ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0",
+        // Na desktopie w prawym dolnym rogu (nie ginie w treści), na telefonie
+        // wyśrodkowany nad krawędzią ekranu - tam kciuk i tak trafia najłatwiej.
+        "fixed inset-x-0 bottom-0 z-[90] flex justify-center px-4 pb-5 md:justify-end md:px-8 md:pb-8",
+        "pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+        show ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
       ].join(" ")}
     >
+      {/* Akcentowy pomarańcz marki - odcina się i od jasnych sekcji, i od
+          ciemnych (eksplorator, kontakt), gdzie ciemna pigułka ginęła. */}
       <a
         href="#wizualizacja"
         tabIndex={show ? 0 : -1}
-        className="inline-flex items-center gap-2.5 rounded-full bg-ink-950 px-6 py-3.5 text-[14px] font-medium text-white shadow-[0_8px_32px_-8px_rgba(11,15,20,0.45)] transition-colors duration-300 hover:bg-accent-400 hover:text-ink-950"
+        className={[
+          show ? "pointer-events-auto" : "",
+          "inline-flex items-center gap-3 rounded-full bg-accent-400 px-8 py-4 text-[16px] font-semibold text-ink-950",
+          "ring-1 ring-ink-950/10 shadow-[0_2px_8px_rgba(11,15,20,0.14),0_18px_44px_-10px_rgba(242,101,34,0.55)]",
+          "transition-all duration-300 hover:-translate-y-0.5 hover:bg-ink-950 hover:text-white",
+          "hover:shadow-[0_2px_8px_rgba(11,15,20,0.2),0_18px_44px_-10px_rgba(11,15,20,0.5)]",
+        ].join(" ")}
       >
         Zobacz dostępne mieszkania
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-          <path d="M7 3v8M3 7l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <svg width="17" height="17" viewBox="0 0 14 14" fill="none" aria-hidden>
+          <path d="M7 3v8M3 7l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </a>
     </div>
