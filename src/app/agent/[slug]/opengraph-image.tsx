@@ -84,10 +84,12 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const thumb = agent.cloudflareVideoId
     ? cloudflareStreamThumbnailViaDeliveryNet(agent.cloudflareVideoId, {
         time: "3s",
-        height: 1200,
+        height: 1920,
       })
     : null;
-  const frame = { width: PORTRAIT_W * 2, height: OG_SIZE.height * 2 };
+  // Kadr od samej góry ujęcia: w pionowych rolkach twarz jest wysoko, a na dole
+  // podłoga i pasek z napisami. Zero zapasu = zero uciętych głów.
+  const frame = { width: PORTRAIT_W * 2, height: OG_SIZE.height * 2, verticalBias: 0 };
   const portrait =
     (await fetchCoverImageDataUri(agent.photoUrl, frame)) ??
     (await fetchCoverImageDataUri(thumb, frame));

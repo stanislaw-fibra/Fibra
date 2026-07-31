@@ -117,20 +117,35 @@ export async function fetchImageDataUri(
 }
 
 /**
- * Pobiera obraz i przycina go przez `sharp` do dokładnego kadru `width x height`,
- * wybierając najciekawszy fragment (`attention` - w praktyce twarz). Zwraca JPEG.
+ * Pobiera obraz i przycina go przez `sharp` do dokładnego kadru `width x height`.
+ * Zwraca JPEG jako data-URI.
  *
  * Dwa powody, żeby nie brać bajtów wprost:
  *  - portrety agentów w Storage to oryginały z sesji (PNG ~8 MB), na których
  *    renderer OG (resvg) się wywraca; transformacje obrazu w Supabase są płatne,
- *  - klatki z pionowych auto-prezentacji (9:16) trzeba skadrować, bo przy prostym
- *    `cover` w kadrze zostaje sufit albo pasek napisów zamiast twarzy.
+ *  - klatki z pionowych auto-prezentacji (9:16) trzeba skadrować do 3:4.
+ *
+ * Kadrujemy DETERMINISTYCZNIE: w poziomie do środka, w pionie wg `verticalBias`.
+ * Automat `sharp.strategy.attention` sprawdzał się gorzej - przy pionowych rolkach
+ * konsekwentnie zjeżdżał na sam dół kadru (najwięcej kontrastu jest przy podłodze
+ * i napisach), przez co osobom nagranym w całej sylwetce ucinał czubek głowy.
  *
  * Zwraca `null` przy każdym problemie - wywołujący ma mieć fallback.
  */
 export async function fetchCoverImageDataUri(
   url: string | undefined | null,
-  opts: { width: number; height: number; quality?: number; maxSourceBytes?: number },
+  opts: {
+    width: number;
+    height: number;
+    quality?: number;
+    maxSourceBytes?: number;
+    /**
+     * Gdzie posadzić kadr w pionie: 0 = przy górnej krawędzi, 0.5 = środek,
+     * 1 = przy dolnej. Domyślnie 0.25 - twarz jest u góry ujęcia, a nadmiar
+     * podłogi/butów można oddać.
+     */
+    verticalBias?: number;
+  },
 ): Promise<string | null> {
   if (!url) return null;
   try {
@@ -142,9 +157,28 @@ export async function fetchCoverImageDataUri(
     if (buf.byteLength > (opts.maxSourceBytes ?? 25_000_000)) return null;
 
     const { default: sharp } = await import("sharp");
+    const { width, height, quality = 82, verticalBias = 0.25 } = opts;
+    const meta = await sharp(buf).metadata();
+
+    // Bez wymiarów źródła nie policzymy okna - wtedy zwykły `cover` do środka.
+    if (!meta.width || !meta.height) {
+      const out = await sharp(buf)
+        .resize(width, height, { fit: "cover" })
+        .jpeg({ quality, mozjpeg: true })
+        .toBuffer();
+      return `data:image/jpeg;base64,${out.toString("base64")}`;
+    }
+
+    const scale = Math.max(width / meta.width, height / meta.height);
+    const winW = Math.min(meta.width, Math.round(width / scale));
+    const winH = Math.min(meta.height, Math.round(height / scale));
+    const left = Math.round((meta.width - winW) / 2);
+    const top = Math.round((meta.height - winH) * Math.min(Math.max(verticalBias, 0), 1));
+
     const out = await sharp(buf)
-      .resize(opts.width, opts.height, { fit: "cover", position: sharp.strategy.attention })
-      .jpeg({ quality: opts.quality ?? 82, mozjpeg: true })
+      .extract({ left, top, width: winW, height: winH })
+      .resize(width, height, { fit: "cover" })
+      .jpeg({ quality, mozjpeg: true })
       .toBuffer();
     return `data:image/jpeg;base64,${out.toString("base64")}`;
   } catch {
