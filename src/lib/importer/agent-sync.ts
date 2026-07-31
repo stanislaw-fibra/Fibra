@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { ensureAgentSlug } from "@/lib/agent-slug";
 
 export interface AgentCandidate {
   name: string | null;
@@ -10,6 +11,8 @@ export interface AgentCandidate {
 
 // Upsert agenta po email. Zwraca agent.id lub null, jeśli nie mamy ani emaila ani nazwiska.
 // Nie nadpisuje zdjęcia/bio (ustawiane ręcznie w panelu).
+// Przy okazji pilnuje, żeby agent miał swój publiczny link `/agent/<slug>` - osoby
+// zakładane automatycznie z VIRGO też mają go dostać, bez ręcznego SQL-a.
 export async function upsertAgent(
   supabase: SupabaseClient,
   candidate: AgentCandidate,
@@ -21,7 +24,7 @@ export async function upsertAgent(
   if (email) {
     const { data: existing, error: selErr } = await supabase
       .from("agents")
-      .select("id, phone_office, phone_mobile, name")
+      .select("id, phone_office, phone_mobile, name, slug")
       .eq("email", email)
       .maybeSingle();
     if (selErr) throw selErr;
@@ -43,6 +46,11 @@ export async function upsertAgent(
           .eq("id", existing.id);
         if (upErr) throw upErr;
       }
+      await ensureAgentSlug(supabase, {
+        id: existing.id,
+        name: name ?? existing.name,
+        slug: existing.slug,
+      });
       return { id: existing.id, created: false };
     }
 
@@ -59,16 +67,20 @@ export async function upsertAgent(
       .select("id")
       .single();
     if (insErr) throw insErr;
+    await ensureAgentSlug(supabase, { id: inserted.id, name: name ?? email, slug: null });
     return { id: inserted.id, created: true };
   }
 
   // Brak emaila - spróbuj po nazwisku (fallback)
   const { data: byName } = await supabase
     .from("agents")
-    .select("id")
+    .select("id, slug")
     .eq("name", name!)
     .maybeSingle();
-  if (byName?.id) return { id: byName.id, created: false };
+  if (byName?.id) {
+    await ensureAgentSlug(supabase, { id: byName.id, name, slug: byName.slug });
+    return { id: byName.id, created: false };
+  }
 
   const { data: inserted, error } = await supabase
     .from("agents")
@@ -81,5 +93,6 @@ export async function upsertAgent(
     .select("id")
     .single();
   if (error) throw error;
+  await ensureAgentSlug(supabase, { id: inserted.id, name, slug: null });
   return { id: inserted.id, created: true };
 }

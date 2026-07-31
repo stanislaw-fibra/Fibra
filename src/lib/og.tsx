@@ -116,6 +116,42 @@ export async function fetchImageDataUri(
   }
 }
 
+/**
+ * Pobiera obraz i przycina go przez `sharp` do dokładnego kadru `width x height`,
+ * wybierając najciekawszy fragment (`attention` - w praktyce twarz). Zwraca JPEG.
+ *
+ * Dwa powody, żeby nie brać bajtów wprost:
+ *  - portrety agentów w Storage to oryginały z sesji (PNG ~8 MB), na których
+ *    renderer OG (resvg) się wywraca; transformacje obrazu w Supabase są płatne,
+ *  - klatki z pionowych auto-prezentacji (9:16) trzeba skadrować, bo przy prostym
+ *    `cover` w kadrze zostaje sufit albo pasek napisów zamiast twarzy.
+ *
+ * Zwraca `null` przy każdym problemie - wywołujący ma mieć fallback.
+ */
+export async function fetchCoverImageDataUri(
+  url: string | undefined | null,
+  opts: { width: number; height: number; quality?: number; maxSourceBytes?: number },
+): Promise<string | null> {
+  if (!url) return null;
+  try {
+    const res = await fetch(url, { cache: "force-cache" });
+    if (!res.ok) return null;
+    const type = res.headers.get("content-type") ?? "image/jpeg";
+    if (!type.startsWith("image/")) return null;
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.byteLength > (opts.maxSourceBytes ?? 25_000_000)) return null;
+
+    const { default: sharp } = await import("sharp");
+    const out = await sharp(buf)
+      .resize(opts.width, opts.height, { fit: "cover", position: sharp.strategy.attention })
+      .jpeg({ quality: opts.quality ?? 82, mozjpeg: true })
+      .toBuffer();
+    return `data:image/jpeg;base64,${out.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+
 /** Skraca tekst do `max` znaków, ucinając na granicy słowa, z wielokropkiem. */
 export function clampText(value: string, max: number): string {
   const text = value.replace(/\s+/g, " ").trim();

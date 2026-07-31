@@ -17,9 +17,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const agent = await getPublicAgentBySlug(slug);
   if (!agent) return { title: "Agent - Fibra Nieruchomości" };
+
+  const canonical = `/agent/${agent.slug ?? slug}`;
+  const title = `${agent.name} - oferty | Fibra Nieruchomości`;
+  const description = `Auto-prezentacja i aktualne oferty: ${agent.name}, ${agent.role}. Fibra Nieruchomości w Radlinie.`;
+
   return {
-    title: `${agent.name} - oferty | Fibra Nieruchomości`,
-    description: `Auto-prezentacja i aktualne oferty: ${agent.name}, ${agent.role}. Fibra Nieruchomości w Radlinie.`,
+    title,
+    description,
+    alternates: { canonical },
+    // og:image / twitter:image z konwencji plikowej (`opengraph-image.tsx` w tym
+    // segmencie) - karta z portretem agenta, bo ten link krąży po WhatsAppie i FB.
+    openGraph: {
+      type: "profile",
+      locale: "pl_PL",
+      url: canonical,
+      siteName: "Fibra Nieruchomości",
+      title: `${agent.name} - ${agent.role}`,
+      description,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${agent.name} - ${agent.role}`,
+      description,
+    },
   };
 }
 

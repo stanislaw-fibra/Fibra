@@ -18,10 +18,10 @@ export const metadata: Metadata = {
   },
 };
 
-// TODO: Bartek dośle finalny PDF - wtedy podmień URL na hostowany u nas
-// (np. Supabase Storage `documents/prospekt-informacyjny.pdf`).
-const PROSPEKT_URL =
-  "https://p1.galapp.net/BCK/0309/Web/e0ec1d5c/Grafika/Prospekt_informacyjny_128F_podpisany.pdf";
+// Aktualny prospekt: budynek 128G, sporządzony 29.10.2025, podpisany elektronicznie.
+// Hostowany u nas (`public/prospekt/`) - poprzednia wersja (128F) leżała na serwerze GALApp.
+// Przy kolejnej aktualizacji: wrzuć nowy PDF obok i podmień nazwę pliku poniżej.
+const PROSPEKT_URL = "/prospekt/prospekt-informacyjny-128g.pdf";
 
 export default function ProspektInformacyjnyPage() {
   return (
@@ -84,10 +84,10 @@ export default function ProspektInformacyjnyPage() {
 
                   <div>
                     <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-brand-700">
-                      Dokument PDF · Podpisany
+                      Dokument PDF · Podpisany · 29.10.2025
                     </p>
                     <h2 className="mt-2 font-display text-ink-950 text-[1.75rem] md:text-[2.2rem] leading-tight tracking-tight">
-                      Prospekt informacyjny - Osiedle Zamysłów
+                      Prospekt informacyjny - Osiedle Zamysłów, budynek 128G
                     </h2>
                     <p className="mt-4 text-[15.5px] md:text-[16px] text-ink-700 leading-[1.7] max-w-2xl">
                       Pobierz aktualną wersję prospektu. Dokument otworzy się w nowej karcie -

@@ -11,7 +11,8 @@
     "import:local:no-images": "IMPORT_SKIP_IMAGES=1 tsx scripts/run-local-import.ts",
     "import:zip": "NODE_OPTIONS=\"--max-old-space-size=4096\" tsx scripts/run-local-zip-import.ts",
     "import:zip:dry": "DRY_RUN=1 NODE_OPTIONS=\"--max-old-space-size=4096\" tsx scripts/run-local-zip-import.ts",
-    "images:warm": "tsx scripts/warm-images.ts"
+    "images:warm": "tsx scripts/warm-images.ts",
+    "agents:slugs": "tsx scripts/backfill-agent-slugs.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
@@ -27,6 +28,7 @@
     "react-dom": "19.2.4",
     "resend": "^6.12.4",
     "server-only": "^0.0.1",
+    "sharp": "^0.34.5",
     "tus-js-client": "^4.3.1"
   },
   "devDependencies": {

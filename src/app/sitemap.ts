@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getAllActiveOffers } from "@/lib/offers-query";
+import { getPublicTeamMembers } from "@/lib/team-query";
 
 const SITE_URL = "https://fibra.pl";
 
@@ -46,5 +47,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     }));
 
-  return [...staticEntries, ...offerEntries];
+  // Strony agentów (`/agent/<slug>`) - tylko osoby widoczne publicznie.
+  let team: Awaited<ReturnType<typeof getPublicTeamMembers>> = [];
+  try {
+    team = await getPublicTeamMembers();
+  } catch {
+    team = [];
+  }
+
+  const agentEntries: MetadataRoute.Sitemap = team
+    .filter((m) => m.slug)
+    .map((m) => ({
+      url: `${SITE_URL}/agent/${m.slug}`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    }));
+
+  return [...staticEntries, ...offerEntries, ...agentEntries];
 }

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { canonicalName, teamDefaultsFor } from "@/lib/team-defaults";
+import { ensureAgentSlug } from "@/lib/agent-slug";
 
 async function requireSessionUser() {
   const supabase = await createSupabaseServer();
@@ -116,6 +117,10 @@ export async function updateTeamMemberAction(formData: FormData) {
     redirect(`/panel/zespol?error=${encodeURIComponent(result.error.message)}`);
   }
 
+  // Każdy agent ma mieć swój link `fibra.pl/agent/<slug>` - nadajemy przy pierwszym zapisie,
+  // jeżeli jeszcze go nie ma. Istniejącego sluga nie ruszamy.
+  await ensureAgentSlug(admin, { id });
+
   revalidatePath("/panel/zespol");
   revalidatePath("/o-fibrze");
   redirect(`/panel/zespol?saved=${id}`);
@@ -216,6 +221,9 @@ export async function addKnownTeamMemberAction(formData: FormData) {
     redirect(`/panel/zespol?error=${encodeURIComponent("Nie udało się dodać osoby")}`);
   }
 
+  // Świeżo dodana osoba od razu dostaje publiczny link `/agent/<slug>`.
+  await ensureAgentSlug(admin, { id: created.id, name });
+
   revalidatePath("/panel/zespol");
   revalidatePath("/o-fibrze");
   redirect(`/panel/zespol?saved=${created.id}`);
@@ -255,6 +263,8 @@ export async function attachTeamMemberVideoAction(
   const result = await admin.from("agents").update(fullPatch).eq("id", agentId);
 
   if (!result.error) {
+    // Wgranie filmu = osoba idzie na stronę, więc musi mieć też własny link.
+    await ensureAgentSlug(admin, { id: agentId });
     revalidatePath("/panel/zespol");
     revalidatePath("/o-fibrze");
     return { ok: true, visibilityEnabled: true };

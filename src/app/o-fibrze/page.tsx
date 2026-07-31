@@ -5,6 +5,8 @@ import { Reveal } from "@/components/ui/Reveal";
 import { TeamMemberMedia } from "@/components/team/TeamMemberMedia";
 import { OfficeVirtualTour } from "@/components/home/OfficeVirtualTour";
 import { getPublicTeamMembers, type TeamMember } from "@/lib/team-query";
+import { firstNameGenitive } from "@/lib/polish-names";
+import { cleanBio } from "@/lib/agent-bio";
 import { GoogleReviews } from "@/components/reviews/GoogleReviews";
 
 export const revalidate = 60;
@@ -104,48 +106,6 @@ function formatPhoneHref(phone: string) {
   return `tel:+48${phone.replace(/\D/g, "")}`;
 }
 
-/** Warianty unicode (math-bold itp.) -> zwykłe znaki; usuwa znaki zero-width. */
-function normalizePlain(s: string) {
-  return s.normalize("NFKC").replace(/[\u200B-\u200D\uFEFF]/g, "");
-}
-
-const onlyDigits = (s: string) => s.replace(/\D/g, "");
-
-/**
- * Usuwa z POCZĄTKU bio linie będące zdublowanym kontaktem agenta (jego email lub
- * jego numer), które bywały ręcznie wklejane w treść opisu. Usuwa tylko ZNANE
- * dane (z pól email/phone), nigdy nieznanej treści, i zatrzymuje się na pierwszej
- * linii, która kontaktem nie jest. Dodatkowo normalizuje unicode w całym bio.
- */
-function cleanBio(bio: string, name?: string, email?: string, phone?: string): string {
-  const normalized = normalizePlain(bio);
-  const nameLc = name?.trim().toLowerCase();
-  const emailLc = email?.trim().toLowerCase();
-  const phoneDigits = phone ? onlyDigits(phone) : "";
-  if (!nameLc && !emailLc && !phoneDigits) return normalized.trim();
-
-  const lines = normalized.split("\n");
-  let start = 0;
-  while (start < lines.length) {
-    const raw = lines[start].trim();
-    if (raw === "") {
-      start++;
-      continue;
-    }
-    const ld = onlyDigits(raw);
-    const isKnownName = Boolean(nameLc) && raw.toLowerCase() === nameLc;
-    const isKnownEmail = Boolean(emailLc) && raw.toLowerCase().includes(emailLc!);
-    const isKnownPhone =
-      Boolean(phoneDigits) && ld.includes(phoneDigits) && ld.length <= phoneDigits.length + 3;
-    if (isKnownName || isKnownEmail || isKnownPhone) {
-      start++;
-      continue;
-    }
-    break;
-  }
-  return lines.slice(start).join("\n").trim();
-}
-
 export default async function OFibrzePage() {
   // Najpierw próbujemy z bazy. Jeżeli baza pusta (migracja nie pojechała / admin nic nie wpisał),
   // pokazujemy hardcoded fallback z PIM-em - żeby strona nigdy nie była pusta.
@@ -225,6 +185,26 @@ export default async function OFibrzePage() {
                     </p>
                   ))}
                 </div>
+
+                {founder.slug ? (
+                  <div className="mt-5 text-center lg:text-left">
+                    <Link
+                      href={`/agent/${founder.slug}`}
+                      className="inline-flex items-center gap-2 text-[14px] font-semibold text-brand-700 transition-colors hover:text-brand-500"
+                    >
+                      Profil i oferty {firstNameGenitive(founder.name) ?? founder.name}
+                      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden>
+                        <path
+                          d="M3 7h8M7 3l4 4-4 4"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </Link>
+                  </div>
+                ) : null}
               </Reveal>
             </div>
           </div>
@@ -326,6 +306,25 @@ export default async function OFibrzePage() {
                             </p>
                           ))}
                       </div>
+
+                      {/* Własna podstrona agenta - ten sam link, który agent rozsyła klientom. */}
+                      {member.slug ? (
+                        <Link
+                          href={`/agent/${member.slug}`}
+                          className="mt-5 inline-flex items-center gap-2 text-[14px] font-semibold text-brand-700 transition-colors hover:text-brand-500"
+                        >
+                          Profil i oferty {firstNameGenitive(member.name) ?? member.name}
+                          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden>
+                            <path
+                              d="M3 7h8M7 3l4 4-4 4"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </Link>
+                      ) : null}
                     </div>
                   </article>
                 </Reveal>

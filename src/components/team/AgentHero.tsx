@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { TeamMemberMedia } from "@/components/team/TeamMemberMedia";
 import { firstName, firstNameGenitive, firstNameAccusative } from "@/lib/polish-names";
+import { cleanBio } from "@/lib/agent-bio";
 import type { TeamMember } from "@/lib/team-query";
 
 type Props = {
@@ -23,6 +24,9 @@ export function AgentHero({ agent, variant = "full" }: Props) {
   const nameNom = firstName(agent.name) ?? agent.name;
   const nameGen = firstNameGenitive(agent.name) ?? nameNom;
   const nameAcc = firstNameAccusative(agent.name) ?? nameNom;
+  // Ten sam „odchudzacz" bio co na /o-fibrze - biogramy bywają wklejone razem
+  // z nazwiskiem/mailem/telefonem na pierwszych liniach, a te pokazujemy obok.
+  const bio = cleanBio(agent.bio ?? "", agent.name, agent.email, agent.phone);
 
   if (variant === "compact") {
     return (
@@ -115,9 +119,9 @@ export function AgentHero({ agent, variant = "full" }: Props) {
             <p className="mt-3 text-[13px] font-semibold uppercase tracking-[0.18em] text-brand-700">
               {agent.role}
             </p>
-            {agent.bio ? (
+            {bio ? (
               <div className="mt-6 md:mt-8 max-w-2xl text-[16px] md:text-[17px] text-ink-800 leading-[1.7] text-pretty">
-                {agent.bio.split(/\n{2,}/).map((para, i) => (
+                {bio.split(/\n{2,}/).map((para, i) => (
                   <p key={i} className="mb-4 last:mb-0 whitespace-pre-line">
                     {para}
                   </p>
