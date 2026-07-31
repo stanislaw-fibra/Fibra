@@ -27,7 +27,7 @@ const COLLECTIONS: GalleryCollection[] = [
     slug: "zamyslow-etap-iii",
     title: "Osiedle Zamysłów - Etap III",
     description:
-      "Aktualnie realizowany etap inwestycji w Rybniku-Zamysłowie. Termin oddania: II/2026.",
+      "Aktualnie realizowany etap inwestycji w Rybniku-Zamysłowie. Termin oddania: II/2028.",
     location: "Rybnik · Zamysłów",
     status: "W budowie",
     photos: [],

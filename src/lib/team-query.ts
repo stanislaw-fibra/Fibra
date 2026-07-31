@@ -152,6 +152,16 @@ export async function getPublicTeamMembers(): Promise<TeamMember[]> {
 }
 
 /**
+ * Założyciel (Bartosz) - do bloków „poznaj założyciela" poza `/o-fibrze`,
+ * np. autoprezentacja w sekcji o zaufaniu na `/zamyslow`. `null`, gdy nie ma go
+ * w bazie albo jest ukryty.
+ */
+export async function getPublicFounder(): Promise<TeamMember | null> {
+  const team = await getPublicTeamMembers();
+  return team.find((m) => m.kind === "founder") ?? null;
+}
+
+/**
  * Sprawdza, czy nowe kolumny zespołu (`bio_long`, `team_role`, `team_order`,
  * `is_team_visible`, `cloudflare_video_id`) są dostępne w `agents`. Pozwala panelowi
  * pokazać banner „uruchom migrację" i wyłączyć część funkcjonalności (np. wideo)

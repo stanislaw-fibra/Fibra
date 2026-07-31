@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { zamyslowAdvantages } from "@/lib/investments/zamyslow-proof";
+import { buildZamyslowAdvantages } from "@/lib/investments/zamyslow-proof";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -11,9 +11,10 @@ const ease = [0.22, 1, 0.36, 1] as const;
  * też inne inwestycje, dlaczego akurat ta? Sekcja siada między „dlaczego Rybnik”
  * a liczbami, więc czytelnik przechodzi: miasto -> osiedle -> rentowność -> lokal.
  */
-export function WhyZamyslow() {
+export function WhyZamyslow({ areaRangeLabel }: { areaRangeLabel: string | null }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const advantages = buildZamyslowAdvantages(areaRangeLabel);
 
   return (
     <section
@@ -33,7 +34,7 @@ export function WhyZamyslow() {
         </div>
 
         <div className="mt-14 grid gap-5 lg:grid-cols-2">
-          {zamyslowAdvantages.map((a, i) => (
+          {advantages.map((a, i) => (
             <motion.div
               key={a.title}
               initial={{ opacity: 0, y: 20 }}

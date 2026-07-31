@@ -57,7 +57,7 @@ export function InvestorHero() {
               variants={item}
               className="font-display fluid-display text-white"
             >
-              Nowe mieszkanie w Rybniku, które{" "}
+              Nowe mieszkanie pod klucz, które{" "}
               <em className="italic text-accent-400">co miesiąc przynosi Ci dochód.</em>
             </motion.h1>
 
@@ -65,7 +65,7 @@ export function InvestorHero() {
               variants={item}
               className="mt-8 max-w-[48ch] text-[17px] leading-relaxed text-white/75"
             >
-              Kupujesz mieszkanie. My zajmujemy się całą resztą. Pomagamy wybrać
+              Kupujesz mieszkanie w Rybniku. My zajmujemy się całą resztą. Pomagamy wybrać
               lokal, znajdujemy sprawdzonego najemcę, podpisujemy umowę
               i prowadzimy obsługę najmu. Ty inwestujesz raz, a później co
               miesiąc otrzymujesz czynsz.

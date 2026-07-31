@@ -3,6 +3,10 @@ import Link from "next/link";
 import { ZamyslowNav } from "@/components/investments/zamyslow/ZamyslowNav";
 import { ZamyslowFooter } from "@/components/investments/zamyslow/ZamyslowFooter";
 import { Reveal } from "@/components/ui/Reveal";
+import { getZamyslowUnitsSummary } from "@/lib/investments/zamyslow-units";
+
+// Ceny/metraże z arkusza mieszkań - odświeżamy stronę, zamiast zamrażać ją na buildzie.
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Przewodnik Inwestora - Fibra Nieruchomości",
@@ -19,7 +23,7 @@ export const metadata: Metadata = {
   },
 };
 
-const WHY_2025 = [
+const WHY_NOW = [
   {
     n: "01",
     title: "Niski poziom pustostanów",
@@ -75,13 +79,29 @@ const MODEL_STEPS = [
   },
 ];
 
-const NUMBERS = [
-  { value: "269 – 611 tys. zł", label: "cena lokali (27 – 68 m²)" },
-  { value: "ok. 250 zł/mies.", label: "koszty stałe + media" },
-  { value: "1 800 – 3 200 zł", label: "prognozowany czynsz najmu / mies." },
-  { value: "5,7 – 6,9 %", label: "szacowana rentowność brutto rocznie" },
-  { value: "II / 2026", label: "termin oddania" },
-];
+// Bez prognozowanego czynszu najmu: klient nie podaje tej liczby na stronie,
+// wylicza ją indywidualnie dla konkretnego mieszkania. Termin oddania
+// potwierdzony przez klienta (13.05.2028), więc odbiór kluczy w 2028 r.
+//
+// Ceny i metraże NIE są wpisane na sztywno - lecą z arkusza mieszkań, tego
+// samego, który zasila strony lokali. Gdy arkusz nie odpowie, kafelek z ceną
+// wypada zamiast pokazywać nieaktualne widełki.
+function buildNumbers(range: { areaRangeLabel: string; priceRangeLabel: string | null } | null) {
+  return [
+    range?.priceRangeLabel
+      ? { value: range.priceRangeLabel, label: `cena lokali (${range.areaRangeLabel})` }
+      : null,
+    { value: "ok. 250 zł/mies.", label: "koszty stałe + media" },
+    { value: "5,7 – 6,9 %", label: "szacowana rentowność brutto rocznie" },
+    { value: "II / 2028", label: "termin oddania" },
+  ].filter((n): n is { value: string; label: string } => n !== null);
+}
+
+/** Tyle kolumn, ile kafelków - żeby siatka nigdy nie miała pustego pola. */
+const NUMBER_COLUMNS: Record<number, string> = {
+  3: "lg:grid-cols-3",
+  4: "lg:grid-cols-4",
+};
 
 const SAFETY = [
   {
@@ -98,7 +118,7 @@ const SAFETY = [
   {
     n: "03",
     title: "Terminy potwierdzone historią",
-    body: "Trzy wcześniejsze etapy oddane zgodnie z harmonogramem.",
+    body: "Dotrzymywanie terminów mamy potwierdzone historią wcześniejszych realizacji.",
   },
   {
     n: "04",
@@ -143,11 +163,13 @@ const NEXT_STEPS = [
   {
     n: "03",
     title: "Umowa deweloperska",
-    body: "Podpisujesz umowę i czekasz na odbiór kluczy w 2026 r.",
+    body: "Podpisujesz umowę i czekasz na odbiór kluczy w 2028 r.",
   },
 ];
 
-export default function PrzewodnikInwestoraPage() {
+export default async function PrzewodnikInwestoraPage() {
+  const NUMBERS = buildNumbers(await getZamyslowUnitsSummary());
+
   return (
     <>
       <ZamyslowNav />
@@ -188,7 +210,7 @@ export default function PrzewodnikInwestoraPage() {
               <Reveal>
                 <p className="eyebrow inline-flex items-center gap-3 mb-6">
                   <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
-                  01 · Dlaczego nieruchomości w 2025 r.
+                  01 · Dlaczego nieruchomości
                   <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
                 </p>
               </Reveal>
@@ -202,7 +224,7 @@ export default function PrzewodnikInwestoraPage() {
               </Reveal>
             </div>
             <div className="mt-12 md:mt-16 grid sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
-              {WHY_2025.map((item, i) => (
+              {WHY_NOW.map((item, i) => (
                 <Reveal key={item.n} delay={i * 80}>
                   <article className="h-full rounded-2xl bg-white p-7 md:p-8 shadow-[var(--shadow-soft)] border border-ink-200/60">
                     <span className="inline-flex items-center justify-center h-9 w-9 rounded-full bg-brand-500/10 text-[11px] font-semibold tracking-wide text-brand-700">
@@ -323,7 +345,11 @@ export default function PrzewodnikInwestoraPage() {
               </Reveal>
             </div>
 
-            <div className="mt-12 md:mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-5">
+            <div
+              className={`mt-12 md:mt-14 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5 ${
+                NUMBER_COLUMNS[NUMBERS.length] ?? "lg:grid-cols-4"
+              }`}
+            >
               {NUMBERS.map((item, i) => (
                 <Reveal key={i} delay={i * 60}>
                   <div className="h-full rounded-2xl bg-white p-6 md:p-7 border border-ink-200/60 flex flex-col justify-between">

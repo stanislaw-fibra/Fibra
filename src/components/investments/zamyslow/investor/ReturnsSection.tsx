@@ -8,7 +8,7 @@ const ease = [0.22, 1, 0.36, 1] as const;
 const steps = [
   {
     label: "Cena zakupu",
-    body: "Wyliczenia opieramy na rzeczywistej cenie zakupu konkretnego mieszkania wraz z miejscem postojowym.",
+    body: "Wyliczenia opieramy na rzeczywistej cenie zakupu konkretnego mieszkania.",
   },
   {
     label: "Czynsz najmu",

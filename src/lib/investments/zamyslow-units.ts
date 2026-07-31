@@ -291,3 +291,60 @@ export async function getZamyslowUnit(
 export function formatPln(n: number): string {
   return `${new Intl.NumberFormat("pl-PL").format(n)} zł`;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Widełki metrażu i ceny dla tekstów marketingowych (/zamyslow, Przewodnik).
+//
+// Klient prosił, żeby ŻADEN zakres nie był wpisany w kod na sztywno - metraże
+// i ceny mają lecieć z tego samego arkusza, co strony lokali. Zaokrąglamy
+// „na zewnątrz" (dół w dół, góra w górę), żeby widełki nigdy nie obiecywały
+// mniejszej ceny ani nie ucinały największego mieszkania.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ZamyslowUnitsSummary {
+  total: number;
+  available: number;
+  /** np. „27 – 55,5 m²". */
+  areaRangeLabel: string;
+  /** np. „296 – 554 tys. zł". `null`, gdy w arkuszu nie ma jeszcze cen. */
+  priceRangeLabel: string | null;
+}
+
+/** 55.5 → „55,5"; 27 → „27". */
+function plNumber(n: number): string {
+  return String(n).replace(".", ",");
+}
+
+export function getZamyslowUnitsSummaryFrom(
+  listing: ZamyslowUnitsListing,
+): ZamyslowUnitsSummary {
+  const areas = listing.units.map((u) => u.areaM2).filter((a) => a > 0);
+  const prices = listing.units
+    .map((u) => u.price)
+    .filter((p): p is number => typeof p === "number" && p > 0);
+
+  const areaRangeLabel = areas.length
+    ? `${plNumber(Math.floor(Math.min(...areas)))} – ${plNumber(
+        Math.ceil(Math.max(...areas) * 2) / 2,
+      )} m²`
+    : "";
+
+  const priceRangeLabel = prices.length
+    ? `${Math.floor(Math.min(...prices) / 1000)} – ${Math.ceil(
+        Math.max(...prices) / 1000,
+      )} tys. zł`
+    : null;
+
+  return {
+    total: listing.total,
+    available: listing.available,
+    areaRangeLabel,
+    priceRangeLabel,
+  };
+}
+
+/** Widełki z arkusza. `null`, gdy arkusz nie odpowiada - wtedy strona pokazuje fallback. */
+export async function getZamyslowUnitsSummary(): Promise<ZamyslowUnitsSummary | null> {
+  const listing = await getZamyslowUnits();
+  return listing ? getZamyslowUnitsSummaryFrom(listing) : null;
+}

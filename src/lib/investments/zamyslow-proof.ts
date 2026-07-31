@@ -15,14 +15,14 @@ export type ProofFact = {
   label: string;
 };
 
+// Liczby potwierdzone przez klienta (odpowiedź na maila, 31.07.2026).
+// Świadomie nie ma tu kafelka o wcześniejszych etapach: klient prosił, żeby nie
+// podawać, ile ich było - historia dotrzymywania terminów została jako zdanie
+// w Przewodniku Inwestora, bez liczby.
 export const proofFacts: ProofFact[] = [
-  // TODO(Roman/Arkadiusz): od ilu lat Fibra prowadzi zarządzanie najmem?
-  { value: null, label: "lat doświadczenia w zarządzaniu najmem" },
-  // TODO(Roman/Arkadiusz): iloma mieszkaniami zarządzamy dziś?
-  { value: null, label: "mieszkań w zarządzaniu" },
-  // TODO(Roman/Arkadiusz): ilu inwestorów kupiło u nas mieszkanie?
-  { value: null, label: "inwestorów, którzy nam zaufali" },
-  { value: "3", label: "wcześniejsze etapy oddane zgodnie z harmonogramem" },
+  { value: "17", label: "lat doświadczenia w zarządzaniu najmem" },
+  { value: "120+", label: "mieszkań w zarządzaniu" },
+  { value: "100+", label: "inwestorów, którzy nam zaufali" },
 ];
 
 /**
@@ -38,13 +38,19 @@ export const PROOF_STRIP_MIN_FACTS = 2;
  * warto wybrać właśnie Osiedle Zamysłów?”. Każdy punkt opiera się na danych,
  * które są już na stronie (rzuty mieszkań, przewodnik inwestora, /wynajem-zamyslow).
  */
-export const zamyslowAdvantages = [
+/**
+ * @param areaRangeLabel widełki metrażu z arkusza (np. „27 – 55,5 m²") - nigdy
+ *   nie wpisujemy ich na sztywno, bo arkusz jest jedynym źródłem prawdy.
+ *   `null` (arkusz nie odpowiada) = zdanie o metrażach po prostu wypada,
+ *   zamiast pokazywać nieaktualną liczbę.
+ */
+export const buildZamyslowAdvantages = (areaRangeLabel: string | null) => [
   {
-    title: "Lokalizacja, która przyciąga najemców",
+    title: "Dobra lokalizacja",
     body: "Spokojna, zielona część Rybnika z szybkim dojazdem do centrum, autostrady A1 i największych zakładów pracy. Bliskość szkoły, przedszkola i sklepu zwiększa komfort mieszkańców, ułatwia wynajem i wspiera wartość mieszkania.",
   },
   {
-    title: "Wynajmujemy tu od lat",
+    title: "Sprawdzony najem",
     body: "To nie prognozy. Na Osiedlu Zamysłów od lat wynajmujemy mieszkania i wiemy, jak wygląda popyt, czas wynajmu oraz stawki dla poszczególnych metraży.",
   },
   {
@@ -52,7 +58,22 @@ export const zamyslowAdvantages = [
     body: "Mieszkania oddajemy wykończone pod klucz, z łazienką, kuchnią i AGD w cenie. W standardzie klimatyzacja i rolety elektryczne, trzyszybowe okna oraz izolacja do 30 cm, więc najemca płaci niższe rachunki.",
   },
   {
+    // Bez wzmianki o miejscach postojowych: klient potwierdził, że nie są
+    // przypisane do mieszkań i do czasu uruchomienia ich sprzedaży nie piszemy
+    // o nich na stronie.
     title: "Metraże, które wynajmują się najłatwiej",
-    body: "Największym zainteresowaniem cieszą się mieszkania 2- i 3-pokojowe o powierzchni od 27 do 55,5 m². Dla większej wygody można dokupić miejsce postojowe lub garaż wolnostojący.",
+    body: areaRangeLabel
+      ? `Największym zainteresowaniem cieszą się mieszkania 2- i 3-pokojowe. Na Osiedlu Zamysłów mamy lokale o powierzchni ${areaRangeLabel}, a przy każdym z nich pokazujemy rzut, dzięki czemu od razu widzisz układ pomieszczeń.`
+      : "Największym zainteresowaniem cieszą się mieszkania 2- i 3-pokojowe. Przy każdym lokalu pokazujemy rzut, dzięki czemu od razu widzisz układ pomieszczeń.",
   },
 ];
+
+/**
+ * Autoprezentacja założyciela w sekcji „Czy mogę zaufać?".
+ *
+ * Domyślnie bierzemy film z profilu założyciela w Supabase (ten sam, co na
+ * /o-fibrze). Gdy powstanie osobne nagranie pod inwestora, wystarczy wpisać tu
+ * jego Cloudflare Stream ID - override wygrywa z bazą. `null` = korzystamy z bazy,
+ * a gdy tam też nie ma filmu, blok po prostu się nie pokazuje.
+ */
+export const FOUNDER_VIDEO_OVERRIDE: string | null = null;
