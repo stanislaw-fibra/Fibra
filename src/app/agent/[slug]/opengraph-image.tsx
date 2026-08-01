@@ -1,13 +1,16 @@
 /**
- * Obraz Open Graph per-agent: portret po prawej (zdjęcie z panelu albo klatka
- * z auto-prezentacji na Cloudflare Stream), po lewej markowy panel z imieniem,
- * rolą, telefonem i adresem własnej podstrony.
+ * Obraz Open Graph per-agent: wyśrodkowany „medalion" - logo, okrągły portret,
+ * imię, rola i telefon - na rozmytym tle z tego samego zdjęcia.
  *
- * Po co: agenci rozsyłają swój link (`fibra.pl/agent/justyna`) na WhatsAppie,
- * Messengerze i LinkedInie - podgląd ma pokazywać KONKRETNĄ osobę, a nie
- * ogólną kartę firmy.
+ * DLACZEGO WSZYSTKO NA ŚRODKU (uwaga Romana, 31.07.2026): karta 1200x630 wygląda
+ * dobrze tylko tam, gdzie serwis pokazuje ją w całości. W KOMENTARZU na Facebooku
+ * podgląd jest kwadratową miniaturą przyciętą do środka - poprzedni układ (tekst
+ * z lewej, zdjęcie z prawej) pokazywał wtedy ucięte słowo i skrawek zdjęcia.
+ * Teraz cała treść mieści się w środkowym kwadracie 630x630, więc mała miniatura
+ * jest kompletną wizytówką, a szeroka karta - tą samą wizytówką z tłem.
  *
- * Gdy nie ma ani zdjęcia, ani filmu - inicjały na markowym tle (nigdy pusty kadr).
+ * Portret: zdjęcie z panelu, a gdy go nie ma - klatka z auto-prezentacji.
+ * Bez jednego i drugiego zostają inicjały na markowym tle.
  */
 import { ImageResponse } from "next/og";
 import { getPublicAgentBySlug } from "@/lib/team-query";
@@ -19,7 +22,9 @@ import {
   ogColors,
   OG_SIZE,
   OG_CONTENT_TYPE,
-  fetchCoverImageDataUri,
+  fetchImageBuffer,
+  coverImageDataUri,
+  blurredBackdropDataUri,
   clampText,
 } from "@/lib/og";
 
@@ -29,10 +34,15 @@ export const contentType = OG_CONTENT_TYPE;
 // Karta odświeżana raz dziennie - zdjęcie/rola zmieniają się rzadko.
 export const revalidate = 86400;
 
-/** Szerokość kolumny z portretem (reszta to panel tekstowy). */
-const PORTRAIT_W = 470;
-/** Szerokość logo Fibry w lewym górnym rogu. */
-const LOGO_W = 168;
+/** Średnica okrągłego portretu. */
+const AVATAR = 250;
+/** Szerokość logo nad portretem. */
+const LOGO_W = 150;
+/**
+ * Bezpieczna szerokość treści = wysokość karty. Tyle widać w kwadratowej
+ * miniaturze, więc nic ważnego nie może z tego wystawać.
+ */
+const SAFE_W = OG_SIZE.height;
 
 function initials(name: string): string {
   return name
@@ -76,33 +86,38 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   }
 
   // Zdjęcie z panelu ma pierwszeństwo; inaczej klatka z filmu auto-prezentacji.
-  // `videodelivery.net` działa bez zmiennej z kodem klienta CF, więc render OG
-  // nie zależy od konfiguracji środowiska buildu.
-  //
-  // Klatka z 3. sekundy, nie z pierwszej: na starcie rolek wisi jeszcze plansza
-  // z napisami (wypalone w wideo), a po kilku sekundach jest sama osoba.
+  // `videodelivery.net` działa bez zmiennej z kodem klienta CF, a klatkę bierzemy
+  // z 3. sekundy, bo na starcie rolek wisi plansza z wypalonymi napisami.
   const thumb = agent.cloudflareVideoId
     ? cloudflareStreamThumbnailViaDeliveryNet(agent.cloudflareVideoId, {
         time: "3s",
         height: 1920,
       })
     : null;
-  // Kadr od samej góry ujęcia: w pionowych rolkach twarz jest wysoko, a na dole
-  // podłoga i pasek z napisami. Zero zapasu = zero uciętych głów.
-  const frame = { width: PORTRAIT_W * 2, height: OG_SIZE.height * 2, verticalBias: 0 };
-  const portrait =
-    (await fetchCoverImageDataUri(agent.photoUrl, frame)) ??
-    (await fetchCoverImageDataUri(thumb, frame));
+  const source =
+    (await fetchImageBuffer(agent.photoUrl)) ?? (await fetchImageBuffer(thumb));
 
-  // Role bywają długie i sklejone ukośnikiem („Licencjonowany Agent / Specjalista ds. …") -
+  // Kółko: największy możliwy kwadrat, wyśrodkowany w poziomie i osadzony tuż pod
+  // górną krawędzią. Zbliżanie kadru („zoom") odpada - przy ciasnych portretach
+  // ucinało brodę, a zysk przy zdjęciach całej sylwetki był niewielki.
+  // Tło rozmywamy z tego samego pliku.
+  const [avatar, backdrop] = await Promise.all([
+    coverImageDataUri(source, {
+      width: AVATAR * 2,
+      height: AVATAR * 2,
+      verticalBias: 0.05,
+    }),
+    blurredBackdropDataUri(source, { width: OG_SIZE.width, height: OG_SIZE.height }),
+  ]);
+
+  // Role bywają długie i sklejone kreską („Agent Nieruchomości | Specjalista ds. …") -
   // w karcie zostawiamy pierwszy człon, żeby nie kończyć urwanym „ds…".
-  const roleParts = agent.role.split("/").map((p) => p.trim()).filter(Boolean);
+  const roleParts = agent.role.split(/[/|]/).map((p) => p.trim()).filter(Boolean);
   const role = clampText(
-    agent.role.length > 52 && roleParts.length > 1 ? roleParts[0] : agent.role,
-    52,
+    agent.role.length > 46 && roleParts.length > 1 ? roleParts[0] : agent.role,
+    46,
   );
-  const isFounder = agent.kind === "founder";
-  const panelW = OG_SIZE.width - PORTRAIT_W;
+  const nameSize = agent.name.length > 20 ? 42 : agent.name.length > 15 ? 48 : 54;
 
   return new ImageResponse(
     (
@@ -111,158 +126,170 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           width: "100%",
           height: "100%",
           display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
           backgroundColor: ogColors.navy900,
           fontFamily: "Inter",
           color: ogColors.white,
         }}
       >
-        {/* Lewy panel: marka + dane osoby */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            width: panelW,
-            height: "100%",
-            padding: "52px 48px 52px 56px",
-            backgroundImage: `linear-gradient(135deg, ${ogColors.navy800} 0%, ${ogColors.navy900} 62%)`,
-          }}
-        >
-          {/* Logo marki (wektor z repo) - pewniejsze niż tekst, bo satori nie
-              renderuje naszego Instrument Serif i podmieniałby go na Inter. */}
-          <div style={{ display: "flex" }}>
-            {logo ? (
-              <img
-                src={logo}
-                width={LOGO_W}
-                height={Math.round(LOGO_W / BRAND_LOGO_RATIO)}
-                style={{ display: "flex" }}
-              />
-            ) : (
-              <div style={{ display: "flex", fontSize: 34, fontWeight: 700 }}>Fibra</div>
-            )}
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <div
-              style={{
-                display: "flex",
-                fontSize: 20,
-                fontWeight: 600,
-                letterSpacing: 3,
-                textTransform: "uppercase",
-                color: ogColors.brand100,
-              }}
-            >
-              {isFounder ? "Założyciel Fibry" : "Zespół Fibry"}
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                marginTop: 14,
-                fontSize: agent.name.length > 18 ? 52 : 62,
-                fontWeight: 600,
-                letterSpacing: -1,
-                lineHeight: 1.05,
-                color: ogColors.white,
-                maxWidth: panelW - 104,
-              }}
-            >
-              {agent.name}
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                marginTop: 16,
-                fontSize: 24,
-                lineHeight: 1.3,
-                color: ogColors.brand200,
-                maxWidth: panelW - 104,
-              }}
-            >
-              {role}
-            </div>
-
-            {agent.phone ? (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  alignSelf: "flex-start",
-                  marginTop: 26,
-                  padding: "12px 24px",
-                  borderRadius: 14,
-                  backgroundColor: ogColors.accent,
-                  fontSize: 28,
-                  fontWeight: 700,
-                }}
-              >
-                {agent.phone}
-              </div>
-            ) : null}
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              fontSize: 22,
-              fontWeight: 600,
-              color: "rgba(255,255,255,0.72)",
-            }}
-          >
-            fibra.pl/agent/{agent.slug ?? slug}
-          </div>
-        </div>
-
-        {/* Prawa kolumna: portret (zdjęcie lub klatka z wideo) */}
-        <div
-          style={{
-            display: "flex",
-            position: "relative",
-            width: PORTRAIT_W,
-            height: "100%",
-            backgroundColor: ogColors.navy800,
-          }}
-        >
-          {portrait ? (
-            <img
-              src={portrait}
-              width={PORTRAIT_W}
-              height={OG_SIZE.height}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          ) : (
-            <div
-              style={{
-                display: "flex",
-                width: "100%",
-                height: "100%",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundImage: `linear-gradient(160deg, ${ogColors.brand500} 0%, ${ogColors.navy800} 100%)`,
-                fontFamily: "Instrument Serif",
-                fontSize: 150,
-                color: "rgba(255,255,255,0.9)",
-              }}
-            >
-              {initials(agent.name)}
-            </div>
-          )}
-
-          {/* Miękkie przejście panel -> zdjęcie, żeby krawędź nie cięła kadru na pół */}
+        {/* Tło: rozmyte zdjęcie albo markowy gradient */}
+        {backdrop ? (
+          <img
+            src={backdrop}
+            width={OG_SIZE.width}
+            height={OG_SIZE.height}
+            style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
+          />
+        ) : (
           <div
             style={{
               position: "absolute",
               top: 0,
               left: 0,
-              bottom: 0,
-              width: 120,
+              width: "100%",
+              height: "100%",
               display: "flex",
-              backgroundImage: `linear-gradient(to right, ${ogColors.navy900} 0%, rgba(0,22,35,0) 100%)`,
+              backgroundImage: `linear-gradient(135deg, ${ogColors.navy800} 0%, ${ogColors.navy900} 100%)`,
             }}
           />
+        )}
+
+        {/* Przyciemnienie - żeby biały tekst trzymał kontrast na każdym zdjęciu */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            backgroundImage:
+              "linear-gradient(to right, rgba(0,16,26,0.92) 0%, rgba(0,16,26,0.72) 30%, rgba(0,16,26,0.72) 70%, rgba(0,16,26,0.92) 100%)",
+          }}
+        />
+
+        {/* Kolumna treści - mieści się w środkowym kwadracie karty */}
+        <div
+          style={{
+            position: "relative",
+            width: SAFE_W,
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "40px 40px 34px",
+          }}
+        >
+          {logo ? (
+            <img
+              src={logo}
+              width={LOGO_W}
+              height={Math.round(LOGO_W / BRAND_LOGO_RATIO)}
+              style={{ display: "flex" }}
+            />
+          ) : (
+            <div style={{ display: "flex", fontSize: 30, fontWeight: 700 }}>FIBRA</div>
+          )}
+
+          {/* Portret w kółku z pomarańczową obwódką */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: 26,
+              width: AVATAR,
+              height: AVATAR,
+              borderRadius: AVATAR,
+              border: `4px solid ${ogColors.accent}`,
+              backgroundColor: ogColors.navy800,
+              overflow: "hidden",
+            }}
+          >
+            {avatar ? (
+              <img
+                src={avatar}
+                width={AVATAR}
+                height={AVATAR}
+                style={{
+                  width: AVATAR,
+                  height: AVATAR,
+                  borderRadius: AVATAR,
+                  objectFit: "cover",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  fontFamily: "Instrument Serif",
+                  fontSize: 96,
+                  color: "rgba(255,255,255,0.92)",
+                }}
+              >
+                {initials(agent.name)}
+              </div>
+            )}
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              marginTop: 24,
+              fontSize: nameSize,
+              fontWeight: 600,
+              letterSpacing: -0.8,
+              lineHeight: 1.1,
+              textAlign: "center",
+            }}
+          >
+            {agent.name}
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              marginTop: 8,
+              fontSize: 21,
+              lineHeight: 1.3,
+              color: ogColors.brand100,
+              textAlign: "center",
+            }}
+          >
+            {role}
+          </div>
+
+          {agent.phone ? (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginTop: 20,
+                padding: "10px 24px",
+                borderRadius: 12,
+                backgroundColor: ogColors.accent,
+                fontSize: 26,
+                fontWeight: 700,
+              }}
+            >
+              {agent.phone}
+            </div>
+          ) : null}
+
+          <div
+            style={{
+              display: "flex",
+              marginTop: 18,
+              fontSize: 19,
+              fontWeight: 600,
+              color: "rgba(255,255,255,0.7)",
+            }}
+          >
+            fibra.pl/agent/{agent.slug ?? slug}
+          </div>
         </div>
       </div>
     ),

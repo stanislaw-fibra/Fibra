@@ -117,36 +117,13 @@ export async function fetchImageDataUri(
 }
 
 /**
- * Pobiera obraz i przycina go przez `sharp` do dokładnego kadru `width x height`.
- * Zwraca JPEG jako data-URI.
- *
- * Dwa powody, żeby nie brać bajtów wprost:
- *  - portrety agentów w Storage to oryginały z sesji (PNG ~8 MB), na których
- *    renderer OG (resvg) się wywraca; transformacje obrazu w Supabase są płatne,
- *  - klatki z pionowych auto-prezentacji (9:16) trzeba skadrować do 3:4.
- *
- * Kadrujemy DETERMINISTYCZNIE: w poziomie do środka, w pionie wg `verticalBias`.
- * Automat `sharp.strategy.attention` sprawdzał się gorzej - przy pionowych rolkach
- * konsekwentnie zjeżdżał na sam dół kadru (najwięcej kontrastu jest przy podłodze
- * i napisach), przez co osobom nagranym w całej sylwetce ucinał czubek głowy.
- *
- * Zwraca `null` przy każdym problemie - wywołujący ma mieć fallback.
+ * Pobiera surowe bajty obrazu (bez przeróbek), żeby dało się zrobić z nich kilka
+ * wariantów bez ponownego ściągania. `null`, gdy się nie udało albo plik za duży.
  */
-export async function fetchCoverImageDataUri(
+export async function fetchImageBuffer(
   url: string | undefined | null,
-  opts: {
-    width: number;
-    height: number;
-    quality?: number;
-    maxSourceBytes?: number;
-    /**
-     * Gdzie posadzić kadr w pionie: 0 = przy górnej krawędzi, 0.5 = środek,
-     * 1 = przy dolnej. Domyślnie 0.25 - twarz jest u góry ujęcia, a nadmiar
-     * podłogi/butów można oddać.
-     */
-    verticalBias?: number;
-  },
-): Promise<string | null> {
+  opts?: { maxBytes?: number },
+): Promise<Buffer | null> {
   if (!url) return null;
   try {
     const res = await fetch(url, { cache: "force-cache" });
@@ -154,30 +131,98 @@ export async function fetchCoverImageDataUri(
     const type = res.headers.get("content-type") ?? "image/jpeg";
     if (!type.startsWith("image/")) return null;
     const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.byteLength > (opts.maxSourceBytes ?? 25_000_000)) return null;
+    if (buf.byteLength > (opts?.maxBytes ?? 25_000_000)) return null;
+    return buf;
+  } catch {
+    return null;
+  }
+}
 
+/**
+ * Przycina obraz przez `sharp` do dokładnego kadru `width x height` i zwraca JPEG
+ * jako data-URI.
+ *
+ * Dwa powody, żeby nie podawać satori surowych bajtów:
+ *  - portrety agentów w Storage to oryginały z sesji (PNG ~8 MB, nawet 3840x5760),
+ *    na których renderer OG (resvg) się wywraca; transformacje obrazu w Supabase
+ *    są płatne,
+ *  - klatki z pionowych auto-prezentacji (9:16) trzeba skadrować.
+ *
+ * Kadrujemy DETERMINISTYCZNIE: w poziomie do środka, w pionie wg `verticalBias`.
+ * Automat `sharp.strategy.attention` sprawdzał się gorzej - przy pionowych rolkach
+ * konsekwentnie zjeżdżał na sam dół kadru (najwięcej kontrastu jest przy podłodze
+ * i napisach), przez co osobom nagranym w całej sylwetce ucinał czubek głowy.
+ */
+export async function coverImageDataUri(
+  source: Buffer | null,
+  opts: {
+    width: number;
+    height: number;
+    quality?: number;
+    /**
+     * Gdzie posadzić kadr w pionie: 0 = przy górnej krawędzi, 0.5 = środek,
+     * 1 = przy dolnej. Domyślnie 0 - twarz jest u góry ujęcia, a nadmiar
+     * podłogi/butów można oddać.
+     */
+    verticalBias?: number;
+    /**
+     * Zawężenie kadru (0-1). 1 = największy możliwy wycinek, 0.8 = podejście
+     * bliżej. Przy okrągłym portrecie warto zejść poniżej 1, żeby twarz nie
+     * tonęła w tle.
+     */
+    zoom?: number;
+  },
+): Promise<string | null> {
+  if (!source) return null;
+  try {
     const { default: sharp } = await import("sharp");
-    const { width, height, quality = 82, verticalBias = 0.25 } = opts;
-    const meta = await sharp(buf).metadata();
+    const { width, height, quality = 82, verticalBias = 0, zoom = 1 } = opts;
+    const meta = await sharp(source).metadata();
 
-    // Bez wymiarów źródła nie policzymy okna - wtedy zwykły `cover` do środka.
-    if (!meta.width || !meta.height) {
-      const out = await sharp(buf)
-        .resize(width, height, { fit: "cover" })
-        .jpeg({ quality, mozjpeg: true })
-        .toBuffer();
-      return `data:image/jpeg;base64,${out.toString("base64")}`;
-    }
+    const pipeline =
+      meta.width && meta.height
+        ? (() => {
+            const scale = Math.max(width / meta.width!, height / meta.height!);
+            const tighten = Math.min(Math.max(zoom, 0.2), 1);
+            const winW = Math.min(meta.width!, Math.round((width / scale) * tighten));
+            const winH = Math.min(meta.height!, Math.round((height / scale) * tighten));
+            return sharp(source).extract({
+              left: Math.round((meta.width! - winW) / 2),
+              top: Math.round((meta.height! - winH) * Math.min(Math.max(verticalBias, 0), 1)),
+              width: winW,
+              height: winH,
+            });
+          })()
+        : sharp(source);
 
-    const scale = Math.max(width / meta.width, height / meta.height);
-    const winW = Math.min(meta.width, Math.round(width / scale));
-    const winH = Math.min(meta.height, Math.round(height / scale));
-    const left = Math.round((meta.width - winW) / 2);
-    const top = Math.round((meta.height - winH) * Math.min(Math.max(verticalBias, 0), 1));
-
-    const out = await sharp(buf)
-      .extract({ left, top, width: winW, height: winH })
+    const out = await pipeline
       .resize(width, height, { fit: "cover" })
+      .jpeg({ quality, mozjpeg: true })
+      .toBuffer();
+    return `data:image/jpeg;base64,${out.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Rozmyte, przyciemnione tło z tego samego zdjęcia - wypełnia szeroki kadr karty,
+ * kiedy właściwy portret jest tylko małym „medalionem" na środku.
+ *
+ * Rozmycie robimy w `sharp`, nie w CSS: satori nie renderuje `filter: blur()`.
+ */
+export async function blurredBackdropDataUri(
+  source: Buffer | null,
+  opts: { width: number; height: number; blur?: number; darken?: number; quality?: number },
+): Promise<string | null> {
+  if (!source) return null;
+  try {
+    const { default: sharp } = await import("sharp");
+    const { width, height, blur = 30, darken = 0.42, quality = 68 } = opts;
+    const out = await sharp(source)
+      .resize(width, height, { fit: "cover" })
+      .blur(blur)
+      .modulate({ brightness: Math.min(Math.max(darken, 0.05), 1) })
       .jpeg({ quality, mozjpeg: true })
       .toBuffer();
     return `data:image/jpeg;base64,${out.toString("base64")}`;
