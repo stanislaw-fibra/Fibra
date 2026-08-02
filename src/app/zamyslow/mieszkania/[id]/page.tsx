@@ -6,7 +6,7 @@ import { ZamyslowFooter } from "@/components/investments/zamyslow/ZamyslowFooter
 import { Reveal } from "@/components/ui/Reveal";
 import { RentalsGallery } from "@/components/rentals/RentalsGallery";
 import { UnitFloorPlanCard } from "@/components/investments/zamyslow/offer/UnitFloorPlanCard";
-import { UnitLayoutBars } from "@/components/investments/zamyslow/offer/UnitLayoutBars";
+import { UnitLayout } from "@/components/investments/zamyslow/offer/UnitLayout";
 import { UnitContact } from "@/components/investments/zamyslow/offer/UnitContact";
 import { UnitStickyBar } from "@/components/investments/zamyslow/offer/UnitStickyBar";
 import {
@@ -254,10 +254,11 @@ export default async function UnitPage(
                     {unit.rooms} {roomsWord(unit.rooms)} na{" "}
                     {unit.areaLabel.replace(".", ",")}.
                   </h2>
-                  {unit.outdoor ? (
+                  {/* Gdy arkusz zna powierzchnię balkonu/tarasu, pokazuje ją kafelek
+                      w rozkładzie - wtedy to zdanie tylko by ją powtarzało. */}
+                  {unit.outdoor && !unit.outdoorArea ? (
                     <p className="mt-4 max-w-[40ch] text-[15.5px] leading-relaxed text-ink-600">
-                      Do mieszkania przynależy {unit.outdoor.toLowerCase()}
-                      {unit.outdoorArea ? ` o powierzchni ${unit.outdoorArea.replace(".", ",")}` : ""}.
+                      Do mieszkania przynależy {unit.outdoor.toLowerCase()}.
                     </p>
                   ) : null}
                   {(unit.links.floorPlanPdf || unit.links.tour3d || unit.links.visualization) ? (
@@ -277,7 +278,7 @@ export default async function UnitPage(
               </div>
               <div className="lg:col-span-8">
                 <Reveal delay={80}>
-                  <UnitLayoutBars unit={unit} />
+                  <UnitLayout unit={unit} />
                 </Reveal>
               </div>
             </div>

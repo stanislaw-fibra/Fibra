@@ -13,6 +13,8 @@ export type TrustFounder = {
   /** Cloudflare Stream ID. Bez niego blok z filmem się nie renderuje. */
   videoId: string;
   photoUrl?: string;
+  /** Przygotowana okładka wideo (miniatura z twarzą) - zamiast klatki ze streamu. */
+  posterUrl?: string;
 };
 
 // Punkty zaufania oparte na sposobie działania (proces, jawność), a nie na
@@ -76,9 +78,14 @@ export function TrustSection({ founder }: { founder?: TrustFounder | null }) {
             className="mt-14 overflow-hidden rounded-[var(--radius-lg)] bg-ink-950 text-white shadow-[var(--shadow-cinematic)]"
           >
             <div className="grid items-center gap-9 p-6 sm:p-8 md:gap-14 md:p-10 lg:grid-cols-[minmax(0,19rem)_minmax(0,1fr)]">
+              {/* Jak hero kursu: statyczna miniatura z twarzą + Play, film startuje
+                  dopiero po kliknięciu (z dźwiękiem) - bez autoodtwarzania,
+                  które pokazywało puste pierwsze sekundy nagrania. */}
               <TeamMemberMedia
                 videoId={founder.videoId}
                 photoUrl={founder.photoUrl}
+                poster={founder.posterUrl}
+                autoplay={false}
                 name={founder.name}
                 className="mx-auto w-full max-w-[19rem]"
               />

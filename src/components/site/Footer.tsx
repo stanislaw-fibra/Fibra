@@ -6,7 +6,8 @@ import { NewsletterForm } from "./NewsletterForm";
 // Compliance / RODO (Grupa Fibra Sp. z o.o., NIP 6423147630).
 // gorodo.pl generuje dokumenty dynamicznie z NIP-u - auto-aktualizacja przy
 // zmianach prawnych. Każdy link otwiera się w nowej karcie (external service).
-const GORODO_LINKS = [
+// Eksportowane - z tych samych linków korzysta stopka Zamysłowa (ZamyslowFooter).
+export const GORODO_LINKS = [
   {
     label: "Polityka prywatności",
     href: "https://app.gorodo.pl/api/polityka_prywatnosci/6423147630/www.fibranieruchomosci.pl",

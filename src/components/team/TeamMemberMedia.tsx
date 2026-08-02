@@ -20,6 +20,14 @@ type Props = {
   variant?: "founder" | "member";
   /** Kontrolne tło - np. tonacja brand/accent. */
   className?: string;
+  /** Własna okładka (np. przygotowana miniatura) - wygrywa z klatką ze streamu. */
+  poster?: string;
+  /**
+   * `false` = styl jak hero kursu: statyczna okładka + Play, wideo startuje
+   * (od razu z dźwiękiem) dopiero po kliknięciu. Domyślnie `true` -
+   * dotychczasowe zachowanie (autoplay muted loop).
+   */
+  autoplay?: boolean;
 };
 
 /**
@@ -36,7 +44,15 @@ type Props = {
  * Fallback: brak wideo → next/image z portretem → inicjały.
  * Wideo montowane dopiero po wejściu w viewport (IntersectionObserver).
  */
-export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", className = "" }: Props) {
+export function TeamMemberMedia({
+  videoId,
+  photoUrl,
+  name,
+  variant = "member",
+  className = "",
+  poster,
+  autoplay = true,
+}: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -44,6 +60,9 @@ export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", c
   const [revealVideo, setRevealVideo] = useState(false);
   /** Czy user kliknął play z dźwiękiem (wtedy: unmute + kontrolki). */
   const [activated, setActivated] = useState(false);
+  // Setup HLS czyta ten ref zamiast stanu - bez autoplay wideo montuje się
+  // dopiero PO kliknięciu i ma od razu wystartować z dźwiękiem, a nie wyciszone.
+  const activatedRef = useRef(false);
 
   const aspectClass = "aspect-[9/16]";
   const streamId = videoId ? sanitizeCloudflareVideoId(videoId) : null;
@@ -51,15 +70,21 @@ export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", c
     () => (streamId ? `https://videodelivery.net/${streamId}/manifest/video.m3u8` : null),
     [streamId],
   );
-  // Poster (klatka pod wideo, póki HLS się ładuje) - wysokie 1600 px dla ostrości na retina.
-  const posterUrl = streamId
-    ? cloudflareStreamThumbnailUrl(streamId, { time: "1.5s", height: 1600 }) ||
-      cloudflareStreamThumbnailViaDeliveryNet(streamId, { time: "1.5s", height: 1600 })
-    : null;
+  // Poster (klatka pod wideo, póki HLS się ładuje) - wysokie 1600 px dla ostrości
+  // na retina. Własna okładka (prop `poster`) wygrywa z klatką ze streamu -
+  // pierwsze sekundy nagrania bywają puste (np. otwierane drzwi), a przygotowana
+  // miniatura pokazuje od razu twarz.
+  const posterUrl =
+    poster ??
+    (streamId
+      ? cloudflareStreamThumbnailUrl(streamId, { time: "1.5s", height: 1600 }) ||
+        cloudflareStreamThumbnailViaDeliveryNet(streamId, { time: "1.5s", height: 1600 })
+      : null);
 
-  // Mount wideo dopiero gdy karta wchodzi w viewport.
+  // Mount wideo dopiero gdy karta wchodzi w viewport (tylko w trybie autoplay -
+  // bez niego montujemy dopiero po kliknięciu Play).
   useEffect(() => {
-    if (!hlsSrc) return;
+    if (!hlsSrc || !autoplay) return;
     const el = wrapRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
@@ -76,9 +101,9 @@ export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", c
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [hlsSrc]);
+  }, [hlsSrc, autoplay]);
 
-  // Setup HLS + autoplay muted loop.
+  // Setup HLS + start: autoplay = muted loop; po kliknięciu (activatedRef) - z dźwiękiem.
   useEffect(() => {
     if (!shouldMount || !hlsSrc) return;
     const video = videoRef.current;
@@ -86,7 +111,7 @@ export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", c
 
     video.loop = true;
     video.playsInline = true;
-    video.muted = true;
+    video.muted = !activatedRef.current;
     setRevealVideo(false);
 
     const canNativeHls = !!video.canPlayType("application/vnd.apple.mpegurl");
@@ -131,10 +156,18 @@ export function TeamMemberMedia({ videoId, photoUrl, name, variant = "member", c
   ].join(" ");
 
   // ===== 1) Cloudflare Stream - autoplay muted loop, klik = dźwięk =====
+  // (bez autoplay: okładka + Play, wideo montuje się i startuje po kliknięciu)
   if (hlsSrc) {
     const activate = () => {
-      const v = videoRef.current;
+      activatedRef.current = true;
       setActivated(true);
+      // Tryb bez autoplay: dopiero teraz montujemy wideo - efekt setup HLS
+      // wystartuje je z dźwiękiem (patrz activatedRef).
+      if (!shouldMount) {
+        setShouldMount(true);
+        return;
+      }
+      const v = videoRef.current;
       if (v) {
         v.muted = false;
         try {

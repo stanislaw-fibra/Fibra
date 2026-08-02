@@ -58,14 +58,37 @@ export function UnitContact({
                 : `${unitId} · ${floorLabel} · ${areaLabel.replace(".", ",")}. Zostaw numer - oddzwonimy i odpowiemy na pytania o to mieszkanie.`}
             </p>
 
-            <div className="mt-10 text-[15px] text-white/70">
-              <p>
-                Wolisz zadzwonić?{" "}
-                <a href="tel:+48881431800" className="font-medium text-white underline-offset-4 hover:underline">
-                  881 431 800
-                </a>
-              </p>
-            </div>
+            {/* Co się stanie po wysłaniu - zdjęcie obaw przed pierwszym krokiem.
+                Wyłącznie obietnice, które strona składa już gdzie indziej
+                (czas oddzwonienia z potwierdzenia, rezerwacja 48 h z Przewodnika). */}
+            <ul className="mt-9 flex flex-col gap-3.5 text-[14.5px] text-white/70">
+              {[
+                "Oddzwaniamy zwykle w kilka godzin w dni robocze",
+                "Rozmowa bez zobowiązań - pytasz, sprawdzasz, decydujesz",
+                "Wybrane mieszkanie możemy zarezerwować dla Ciebie na 48 godzin",
+              ].map((t) => (
+                <li key={t} className="flex items-start gap-3">
+                  <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-400/15 text-accent-400">
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden>
+                      <path d="M2.5 6.5l2.5 2.5 4.5-5.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                  {t}
+                </li>
+              ))}
+            </ul>
+
+            <a href="tel:+48881431800" className="group mt-10 flex items-center gap-4 text-white">
+              <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/5 transition-colors duration-300 group-hover:bg-accent-400 group-hover:text-ink-950">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 2.08 4.18 2 2 0 0 1 4.07 2H7a2 2 0 0 1 2 1.72c.13.9.35 1.78.66 2.62a2 2 0 0 1-.45 2.11L7.9 9.77a16 16 0 0 0 6 6l1.32-1.32a2 2 0 0 1 2.11-.45c.84.3 1.72.53 2.62.66A2 2 0 0 1 22 16.92Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <span>
+                <span className="block text-[13px] text-white/40">Wolisz zadzwonić?</span>
+                <span className="text-[16px]">881 431 800</span>
+              </span>
+            </a>
           </div>
 
           <div className="lg:col-span-7">
@@ -135,7 +158,7 @@ export function UnitContact({
                       <textarea
                         name="message"
                         rows={3}
-                        placeholder={`Np. pytanie o termin odbioru albo miejsce postojowe do ${unitId}.`}
+                        placeholder={`Np. pytanie o termin odbioru albo rezerwację ${unitId}.`}
                         className="mt-2 w-full resize-none rounded-[var(--radius-sm)] border border-ink-200 bg-ink-50 px-4 py-3 text-[14px] outline-none transition-colors focus:border-brand-500 focus:bg-white"
                       />
                     </label>
