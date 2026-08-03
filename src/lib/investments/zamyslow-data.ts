@@ -79,8 +79,10 @@ export type ZamyslowData = {
     unitLayout3d: string;
   };
   // Wizualizacja 3D mieszkania ("2 animacja model 3d.mp4") - Cloudflare Stream.
-  // embedSrc = URL iframe Stream z parametrami ambient (autoplay/muted/loop/bez kontrolek).
-  // Pusty string => sekcja pokazuje sam poster (bez odtwarzacza).
+  //
+  // UWAGA: sekcja „Zobacz układ mieszkania" została zdjęta z eksploratora
+  // (decyzja klienta 31.07.2026 - na razie niepotrzebna). Adresy zostawiamy,
+  // żeby nie szukać ich ponownie, gdyby film miał wrócić.
   tour3d: {
     embedSrc: string;
     poster: string;

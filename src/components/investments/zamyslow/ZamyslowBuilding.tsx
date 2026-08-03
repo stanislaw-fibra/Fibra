@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import {
   AnimatePresence,
@@ -606,55 +605,6 @@ export function ZamyslowBuilding() {
             </div>
           </div>
         </div>
-
-        {/* Wizualizacja 3D mieszkania */}
-        <section className="bg-ink-950 text-white">
-          <div className="container-xl py-16 md:py-24">
-            <div className="grid gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-center lg:gap-14">
-              <div>
-                <p className="eyebrow eyebrow-on-dark mb-4">Wizualizacja 3D</p>
-                <h2 className="font-display text-3xl text-white md:text-4xl">
-                  Zobacz układ mieszkania
-                </h2>
-                <p className="mt-4 max-w-md text-white/70">
-                  Obejrzyj przykładowe mieszkanie w trójwymiarze: rozkład pomieszczeń,
-                  proporcje i przestrzeń, zanim wejdziesz do środka.
-                </p>
-              </div>
-
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[var(--radius-xl)] bg-ink-900 ring-1 ring-white/10">
-                {zamyslowData.tour3d.embedSrc ? (
-                  <iframe
-                    src={zamyslowData.tour3d.embedSrc}
-                    title="Wizualizacja 3D mieszkania"
-                    loading="lazy"
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    allowFullScreen
-                    className="absolute inset-0 h-full w-full border-0"
-                  />
-                ) : (
-                  <>
-                    <Image
-                      src={zamyslowData.tour3d.poster}
-                      alt="Wizualizacja 3D mieszkania"
-                      fill
-                      sizes="(min-width: 1024px) 55vw, 100vw"
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-ink-950/45">
-                      <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-ink-900">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-                          <path d="M4 3l7 4-7 4V3z" fill="currentColor" />
-                        </svg>
-                        Film 3D już wkrótce
-                      </span>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
       </div>
     </MotionConfig>
   );
