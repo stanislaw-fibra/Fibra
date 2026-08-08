@@ -29,7 +29,13 @@ async function sumBucket(bucket, prefix = "") {
   return { bytes, files };
 }
 async function main() {
-  const buckets = ["offer-images", "course-materials", "agent-photos", "offer-floorplans"];
+  const buckets = [
+    "offer-images",
+    "course-materials",
+    "agent-photos",
+    "offer-floorplans",
+    "investment-gallery",
+  ];
   let total = 0;
   console.log("\n=== Realny rozmiar Storage (Storage API) ===\n");
   for (const b of buckets) {
@@ -38,6 +44,6 @@ async function main() {
     console.log(`  ${b.padEnd(18)} ${String(r.files).padStart(5)} plików  ${mb(r.bytes).padStart(10)}`);
   }
   console.log("  " + "-".repeat(44));
-  console.log(`  ${"RAZEM".padEnd(18)} ${"".padStart(5)}          ${mb(total).padStart(10)}  (limit Free: 1 GB)\n`);
+  console.log(`  ${"RAZEM".padEnd(18)} ${"".padStart(5)}          ${mb(total).padStart(10)}  (plan Pro: 100 GB w cenie)\n`);
 }
 main().catch((e) => { console.error(e); process.exit(1); });

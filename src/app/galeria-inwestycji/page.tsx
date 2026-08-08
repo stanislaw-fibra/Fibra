@@ -3,59 +3,30 @@ import Link from "next/link";
 import { ZamyslowNav } from "@/components/investments/zamyslow/ZamyslowNav";
 import { ZamyslowFooter } from "@/components/investments/zamyslow/ZamyslowFooter";
 import { Reveal } from "@/components/ui/Reveal";
-import { GallerySection, type GalleryCollection } from "@/components/investments/GallerySection";
+import { InvestmentGallery } from "@/components/investments/InvestmentGallery";
+import { getGalleryPhotos } from "@/lib/gallery-query";
 
 export const metadata: Metadata = {
   title: "Galeria inwestycji - Fibra Nieruchomości",
   description:
-    "Galeria zdjęć inwestycji Grupy Fibra - Osiedle Zamysłów (Etap II, Etap III) i inne realizacje na Śląsku.",
+    "Zdjęcia budynków, które Grupa Fibra już wybudowała - Rybnik-Zamysłów i okolice.",
   alternates: { canonical: "/galeria-inwestycji" },
   openGraph: {
     title: "Galeria inwestycji - Fibra Nieruchomości",
-    description: "Zobacz nasze inwestycje - od wizualizacji po gotowe budynki.",
+    description: "Zdjęcia z inwestycji, które już stoją.",
     url: "/galeria-inwestycji",
     type: "website",
     locale: "pl_PL",
   },
 };
 
-// TODO (Supabase): docelowo `getGalleryCollections()` z bucketa storage `investment-gallery`,
-// pogrupowane po `investment_slug`. Na razie układ z placeholderami - UI jest już gotowy
-// na ładowanie dynamicznych zdjęć (komponent GallerySection przyjmuje listę zdjęć).
-const COLLECTIONS: GalleryCollection[] = [
-  {
-    slug: "zamyslow-etap-iii",
-    title: "Osiedle Zamysłów - Etap III",
-    description:
-      "Aktualnie realizowany etap inwestycji w Rybniku-Zamysłowie. Termin oddania: II/2028.",
-    location: "Rybnik · Zamysłów",
-    status: "W budowie",
-    photos: [],
-    placeholderCount: 8,
-  },
-  {
-    slug: "zamyslow-etap-ii",
-    title: "Osiedle Zamysłów - Etap II",
-    description:
-      "Ukończony etap inwestycji - gotowe lokale, zagospodarowanie terenu i część wspólna.",
-    location: "Rybnik · Zamysłów",
-    status: "Zrealizowane",
-    photos: [],
-    placeholderCount: 8,
-  },
-  {
-    slug: "wczesniejsze-realizacje",
-    title: "Wcześniejsze realizacje",
-    description:
-      "Wybór projektów zrealizowanych przez Grupę Fibra w regionie rybnickim od 2006 roku.",
-    location: "Śląsk",
-    status: "Archiwum",
-    photos: [],
-    placeholderCount: 6,
-  },
-];
+// Zdjęcia idą prosto z bucketa Storage - dorzucenie nowego pliku wystarczy,
+// żeby pojawiło się w galerii (kolejność bierze się z nazwy pliku).
+export const revalidate = 3600;
 
-export default function GaleriaInwestycjiPage() {
+export default async function GaleriaInwestycjiPage() {
+  const photos = await getGalleryPhotos();
+
   return (
     <>
       <ZamyslowNav />
@@ -67,7 +38,7 @@ export default function GaleriaInwestycjiPage() {
               <Reveal>
                 <p className="eyebrow inline-flex items-center gap-3 mb-6">
                   <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
-                  Galeria inwestycji
+                  Galeria
                   <span className="inline-block w-6 sm:w-8 h-px bg-brand-500" />
                 </p>
               </Reveal>
@@ -76,44 +47,24 @@ export default function GaleriaInwestycjiPage() {
                   className="font-display text-ink-950 leading-[1.05] tracking-tight text-balance"
                   style={{ fontSize: "clamp(2rem, 5vw, 3.75rem)" }}
                 >
-                  Nasze projekty - od projektu do kluczy.
+                  Zdjęcia z naszych inwestycji.
                 </h1>
               </Reveal>
               <Reveal delay={180}>
                 <p className="mt-5 md:mt-8 text-[16px] md:text-[19px] leading-[1.55] text-ink-700 text-pretty">
-                  Zdjęcia z placu budowy, wizualizacje i gotowe lokale. Galeria jest na bieżąco
-                  uzupełniana - sprawdzaj postępy lub zapisz się na newsletter, żeby nie przegapić
-                  nowych ujęć.
+                  Budynki, które już stoją - Rybnik-Zamysłów i okolice.
                 </p>
-              </Reveal>
-
-              <Reveal delay={240}>
-                <nav className="mt-10 flex flex-wrap items-center justify-center gap-2">
-                  {COLLECTIONS.map((c) => (
-                    <a
-                      key={c.slug}
-                      href={`#${c.slug}`}
-                      className="inline-flex items-center gap-2 rounded-full border border-ink-900/15 bg-white/60 hover:bg-ink-900 hover:text-white px-4 py-2 text-[13px] font-medium text-ink-800 backdrop-blur transition-colors"
-                    >
-                      {c.title}
-                    </a>
-                  ))}
-                </nav>
               </Reveal>
             </div>
           </div>
         </section>
 
-        {/* Kolekcje */}
-        <div className="border-t border-ink-200/60">
-          {COLLECTIONS.map((collection, i) => (
-            <GallerySection
-              key={collection.slug}
-              collection={collection}
-              tone={i % 2 === 0 ? "paper" : "white"}
-            />
-          ))}
-        </div>
+        {/* Zdjęcia */}
+        <section className="relative border-t border-ink-200/60 bg-paper-warm py-14 md:py-20">
+          <div className="container-xl">
+            <InvestmentGallery photos={photos} />
+          </div>
+        </section>
 
         {/* CTA */}
         <section className="relative py-20 md:py-28 bg-ink-950 text-ink-100 overflow-hidden">
