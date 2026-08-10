@@ -4,6 +4,7 @@ import { ZamyslowNav } from "@/components/investments/zamyslow/ZamyslowNav";
 import { ZamyslowFooter } from "@/components/investments/zamyslow/ZamyslowFooter";
 import { Reveal } from "@/components/ui/Reveal";
 import { getZamyslowUnitsSummary } from "@/lib/investments/zamyslow-units";
+import { ZAMYSLOW_PHONE } from "@/lib/investments/zamyslow-data";
 
 // Ceny/metraże z arkusza mieszkań - odświeżamy stronę, zamiast zamrażać ją na buildzie.
 export const revalidate = 300;
@@ -516,10 +517,10 @@ export default async function PrzewodnikInwestoraPage() {
             <Reveal delay={100}>
               <div className="mt-7 md:mt-8 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[16px] md:text-[18px] text-ink-800">
                 <a
-                  href="tel:+48510777200"
+                  href={`tel:${ZAMYSLOW_PHONE.tel}`}
                   className="font-display text-[22px] md:text-[24px] text-brand-700 hover:text-brand-500 tabular-nums transition-colors"
                 >
-                  510 777 200
+                  {ZAMYSLOW_PHONE.display}
                 </a>
                 <span aria-hidden className="hidden sm:inline text-ink-300">·</span>
                 <a

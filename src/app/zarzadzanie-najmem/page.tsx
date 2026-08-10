@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ZamyslowNav } from "@/components/investments/zamyslow/ZamyslowNav";
 import { ZamyslowFooter } from "@/components/investments/zamyslow/ZamyslowFooter";
 import { Reveal } from "@/components/ui/Reveal";
+import { ZAMYSLOW_PHONE } from "@/lib/investments/zamyslow-data";
 
 export const metadata: Metadata = {
   title: "Zarządzanie najmem - Fibra Nieruchomości",
@@ -244,10 +245,10 @@ export default function ZarzadzanieNajmemPage() {
             <Reveal delay={200}>
               <div className="mt-10 md:mt-12 text-[15px] md:text-[16px] text-ink-700 leading-[1.7]">
                 <a
-                  href="tel:+48510777200"
+                  href={`tel:${ZAMYSLOW_PHONE.tel}`}
                   className="font-display text-[20px] md:text-[22px] text-brand-700 hover:text-brand-500 tabular-nums transition-colors"
                 >
-                  510 777 200
+                  {ZAMYSLOW_PHONE.display}
                 </a>
                 <span className="mx-3 text-ink-300" aria-hidden>·</span>
                 <a
