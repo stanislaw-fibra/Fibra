@@ -11,12 +11,11 @@ export function WhichApartment() {
           </p>
           <h2 className="mt-6 font-display fluid-h2 text-ink-950">
             Wybierz lokal,{" "}
-            <em className="italic text-brand-600">który pasuje do budżetu.</em>
+            <em className="italic text-brand-600">który pasuje do Twojego budżetu.</em>
           </h2>
           <p className="mt-6 text-[16px] leading-relaxed text-ink-600">
             Kliknij wybrane piętro na wizualizacji, aby zobaczyć metraże, układy
-            mieszkań i ich aktualny status. Pod wynajem najczęściej wybierane są
-            mniejsze lokale, ale najlepszy wybór zawsze zależy od Twojego budżetu
+            mieszkań i ich aktualny status. Wybór zależy od Twojego budżetu
             i planów. Pomożemy wybrać mieszkanie, które będzie najlepiej
             odpowiadało Twoim celom.
           </p>

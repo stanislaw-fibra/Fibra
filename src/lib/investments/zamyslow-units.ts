@@ -306,6 +306,8 @@ export interface ZamyslowUnitsSummary {
   available: number;
   /** np. „27 – 55,5 m²". */
   areaRangeLabel: string;
+  /** To samo, ale zdaniem: „od 27 do 55,5 m²" - do tekstów, gdzie półpauza źle brzmi. */
+  areaFromToLabel: string;
   /** np. „296 – 554 tys. zł". `null`, gdy w arkuszu nie ma jeszcze cen. */
   priceRangeLabel: string | null;
 }
@@ -323,11 +325,10 @@ export function getZamyslowUnitsSummaryFrom(
     .map((u) => u.price)
     .filter((p): p is number => typeof p === "number" && p > 0);
 
-  const areaRangeLabel = areas.length
-    ? `${plNumber(Math.floor(Math.min(...areas)))} – ${plNumber(
-        Math.ceil(Math.max(...areas) * 2) / 2,
-      )} m²`
-    : "";
+  const areaMin = areas.length ? plNumber(Math.floor(Math.min(...areas))) : "";
+  const areaMax = areas.length ? plNumber(Math.ceil(Math.max(...areas) * 2) / 2) : "";
+  const areaRangeLabel = areas.length ? `${areaMin} – ${areaMax} m²` : "";
+  const areaFromToLabel = areas.length ? `od ${areaMin} do ${areaMax} m²` : "";
 
   const priceRangeLabel = prices.length
     ? `${Math.floor(Math.min(...prices) / 1000)} – ${Math.ceil(
@@ -339,6 +340,7 @@ export function getZamyslowUnitsSummaryFrom(
     total: listing.total,
     available: listing.available,
     areaRangeLabel,
+    areaFromToLabel,
     priceRangeLabel,
   };
 }

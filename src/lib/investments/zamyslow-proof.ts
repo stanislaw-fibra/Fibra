@@ -39,12 +39,12 @@ export const PROOF_STRIP_MIN_FACTS = 2;
  * które są już na stronie (rzuty mieszkań, przewodnik inwestora, /wynajem-zamyslow).
  */
 /**
- * @param areaRangeLabel widełki metrażu z arkusza (np. „27 – 55,5 m²") - nigdy
- *   nie wpisujemy ich na sztywno, bo arkusz jest jedynym źródłem prawdy.
+ * @param areaFromToLabel widełki metrażu z arkusza w formie zdania („od 27 do 55,5 m²")
+ *   - nigdy nie wpisujemy ich na sztywno, bo arkusz jest jedynym źródłem prawdy.
  *   `null` (arkusz nie odpowiada) = zdanie o metrażach po prostu wypada,
  *   zamiast pokazywać nieaktualną liczbę.
  */
-export const buildZamyslowAdvantages = (areaRangeLabel: string | null) => [
+export const buildZamyslowAdvantages = (areaFromToLabel: string | null) => [
   {
     title: "Dobra lokalizacja",
     body: "Spokojna, zielona część Rybnika z szybkim dojazdem do centrum, autostrady A1 i największych zakładów pracy. Bliskość szkoły, przedszkola i sklepu zwiększa komfort mieszkańców, ułatwia wynajem i wspiera wartość mieszkania.",
@@ -62,9 +62,9 @@ export const buildZamyslowAdvantages = (areaRangeLabel: string | null) => [
     // przypisane do mieszkań i do czasu uruchomienia ich sprzedaży nie piszemy
     // o nich na stronie.
     title: "Metraże, które wynajmują się najłatwiej",
-    body: areaRangeLabel
-      ? `Największym zainteresowaniem cieszą się mieszkania 2- i 3-pokojowe. Na Osiedlu Zamysłów mamy lokale o powierzchni ${areaRangeLabel}, a przy każdym z nich pokazujemy rzut, dzięki czemu od razu widzisz układ pomieszczeń.`
-      : "Największym zainteresowaniem cieszą się mieszkania 2- i 3-pokojowe. Przy każdym lokalu pokazujemy rzut, dzięki czemu od razu widzisz układ pomieszczeń.",
+    body: areaFromToLabel
+      ? `Największym zainteresowaniem cieszą się mieszkania 2- i 3-pokojowe. Na Osiedlu Zamysłów oferujemy lokale o powierzchni ${areaFromToLabel}. Każdy lokal prezentujemy wraz z czytelnym rzutem, dzięki czemu od razu zobaczysz układ pomieszczeń.`
+      : "Największym zainteresowaniem cieszą się mieszkania 2- i 3-pokojowe. Każdy lokal prezentujemy wraz z czytelnym rzutem, dzięki czemu od razu zobaczysz układ pomieszczeń.",
   },
 ];
 

@@ -54,7 +54,7 @@ export default async function ZamyslowPage() {
         <ProofStrip />
         <TrustSection founder={trustFounder} />
         <WhyRybnik />
-        <WhyZamyslow areaRangeLabel={units?.areaRangeLabel ?? null} />
+        <WhyZamyslow areaFromToLabel={units?.areaFromToLabel ?? null} />
         <ReturnsSection />
         <WhichApartment />
         <ZamyslowApartmentsList />

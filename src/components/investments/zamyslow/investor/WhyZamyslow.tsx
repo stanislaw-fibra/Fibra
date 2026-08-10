@@ -11,10 +11,10 @@ const ease = [0.22, 1, 0.36, 1] as const;
  * też inne inwestycje, dlaczego akurat ta? Sekcja siada między „dlaczego Rybnik”
  * a liczbami, więc czytelnik przechodzi: miasto -> osiedle -> rentowność -> lokal.
  */
-export function WhyZamyslow({ areaRangeLabel }: { areaRangeLabel: string | null }) {
+export function WhyZamyslow({ areaFromToLabel }: { areaFromToLabel: string | null }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
-  const advantages = buildZamyslowAdvantages(areaRangeLabel);
+  const advantages = buildZamyslowAdvantages(areaFromToLabel);
 
   return (
     <section

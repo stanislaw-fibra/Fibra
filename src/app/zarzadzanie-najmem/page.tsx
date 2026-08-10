@@ -42,18 +42,20 @@ const INVESTOR_SCOPE = [
   },
 ];
 
+// Klient prosił, żeby kafelki mówiły „my robimy", a nie opisywały stan bezosobowo,
+// oraz żeby pierwszy trzymał liczbę mnogą (umowy, protokoły, ubezpieczenia).
 const TENANT_SCOPE = [
   {
     title: "Jasne warunki",
-    body: "Umowa, protokoły, ubezpieczenia i przepisanie liczników - wszystkie formalności przygotowujemy za Ciebie.",
+    body: "Umowy, protokoły, ubezpieczenia i przepisanie liczników - wszystkie formalności przygotowujemy za Ciebie.",
   },
   {
     title: "Terminowe rozliczenia",
-    body: "Stały kontakt oraz przejrzyste rozliczenia mediów i opłat - bez niespodzianek pod koniec miesiąca.",
+    body: "Rozliczamy media i opłaty oraz przygotowujemy przejrzyste zestawienia dla właściciela.",
   },
   {
     title: "Sprawny serwis techniczny",
-    body: "Szybka reakcja na usterki, organizacja napraw i przeglądów technicznych.",
+    body: "Organizujemy naprawy, przeglądy i reagujemy na zgłoszenia najemców, dbając o sprawne funkcjonowanie mieszkania.",
   },
 ];
 
@@ -109,10 +111,11 @@ export default function ZarzadzanieNajmemPage() {
                   Jak wygląda zarządzanie najmem.
                 </h2>
                 <div className="mt-6 md:mt-7 text-[16px] md:text-[17px] text-ink-700 leading-[1.7] space-y-4 text-pretty">
+                  {/* Klient zwrócił uwagę, że ten akapit powielał zdanie z hero.
+                      Zamiast powtórki - co inwestor z tego ma. */}
                   <p>
-                    Przejmujemy cały proces zarządzania najmem - od przygotowania mieszkania
-                    i znalezienia odpowiedniego najemcy po umowy, rozliczenia, media i bieżącą
-                    obsługę.
+                    Nie musisz szukać najemców, pilnować formalności ani rozwiązywać bieżących
+                    spraw. Wszystko bierzemy na siebie.
                   </p>
                   <p>
                     Dzięki temu możesz czerpać dochód z najmu bez codziennego angażowania się
