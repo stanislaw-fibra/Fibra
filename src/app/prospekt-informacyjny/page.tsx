@@ -18,10 +18,12 @@ export const metadata: Metadata = {
   },
 };
 
-// Aktualny prospekt: budynek 128G, sporządzony 29.10.2025, podpisany elektronicznie.
+// Aktualny prospekt: budynek 128G, sporządzony 03.08.2026, podpisany elektronicznie.
 // Hostowany u nas (`public/prospekt/`) - poprzednia wersja (128F) leżała na serwerze GALApp.
-// Przy kolejnej aktualizacji: wrzuć nowy PDF obok i podmień nazwę pliku poniżej.
-const PROSPEKT_URL = "/prospekt/prospekt-informacyjny-128g.pdf";
+// Nazwa pliku zawiera datę sporządzenia, żeby kolejne wersje nie nadpisywały linku,
+// pod którym ktoś mógł już dostać dokument. Przy aktualizacji: wrzuć nowy PDF obok
+// i podmień nazwę poniżej.
+const PROSPEKT_URL = "/prospekt/prospekt-informacyjny-128g-2026-08-03.pdf";
 
 export default function ProspektInformacyjnyPage() {
   return (
@@ -84,7 +86,7 @@ export default function ProspektInformacyjnyPage() {
 
                   <div>
                     <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-brand-700">
-                      Dokument PDF · Podpisany · 29.10.2025
+                      Dokument PDF · Podpisany · 03.08.2026
                     </p>
                     <h2 className="mt-2 font-display text-ink-950 text-[1.75rem] md:text-[2.2rem] leading-tight tracking-tight">
                       Prospekt informacyjny - Osiedle Zamysłów, budynek 128G
