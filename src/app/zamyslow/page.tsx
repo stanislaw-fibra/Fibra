@@ -12,7 +12,7 @@ import { ZamyslowApartmentsList } from "@/components/investments/zamyslow/Zamysl
 import { InvestorCta } from "@/components/investments/zamyslow/investor/InvestorCta";
 import { InvestorStickyCta } from "@/components/investments/zamyslow/investor/InvestorStickyCta";
 import { getPublicFounder } from "@/lib/team-query";
-import { FOUNDER_VIDEO_OVERRIDE, FOUNDER_VIDEO_POSTER } from "@/lib/investments/zamyslow-proof";
+import { FOUNDER_VIDEO_OVERRIDE } from "@/lib/investments/zamyslow-proof";
 import { getZamyslowUnitsSummary } from "@/lib/investments/zamyslow-units";
 
 // Jak /o-fibrze: dane założyciela (film) lecą z Supabase, więc odświeżamy stronę
@@ -41,8 +41,10 @@ export default async function ZamyslowPage() {
         name: founder?.name ?? "Bartosz Nosiadek",
         role: founder?.role ?? "Założyciel, Prezes Zarządu",
         videoId: founderVideoId,
+        // Miniaturą filmu jest oficjalny portret założyciela (ten na niebieskim tle,
+        // ten sam co na /o-fibrze i stronach agentów) - TeamMemberMedia stawia
+        // `photoUrl` przed klatką ze streamu, więc nie podajemy tu własnej okładki.
         photoUrl: founder?.photoUrl,
-        posterUrl: FOUNDER_VIDEO_POSTER,
       }
     : null;
 

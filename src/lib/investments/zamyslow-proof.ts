@@ -78,12 +78,6 @@ export const buildZamyslowAdvantages = (areaFromToLabel: string | null) => [
  */
 export const FOUNDER_VIDEO_OVERRIDE: string | null = null;
 
-/**
- * Okładka autoprezentacji założyciela (sekcja „Czy mogę zaufać?").
- *
- * Pierwsze sekundy nagrania pokazują otwierane drzwi, więc klatka ze streamu
- * wyglądała słabo. Używamy przygotowanej miniatury z twarzą Bartosza (ta sama,
- * co w hero kursu „20 Lekcji Inwestora") - wideo startuje dopiero po kliknięciu,
- * jak na stronie kursu. Gdy powstanie dedykowana miniatura, podmień ścieżkę.
- */
-export const FOUNDER_VIDEO_POSTER = "/kurs/Bartosz_Nosiadek_Miniatura.webp";
+// Miniatura filmu założyciela nie jest już ustawiana tutaj: TeamMemberMedia bierze
+// oficjalny portret z bazy (ten na niebieskim tle, ten sam co na /o-fibrze i stronach
+// agentów), więc podmiana zdjęcia w panelu przenosi się na miniaturę sama.

@@ -71,11 +71,15 @@ export function TeamMemberMedia({
     [streamId],
   );
   // Poster (klatka pod wideo, póki HLS się ładuje) - wysokie 1600 px dla ostrości
-  // na retina. Własna okładka (prop `poster`) wygrywa z klatką ze streamu -
-  // pierwsze sekundy nagrania bywają puste (np. otwierane drzwi), a przygotowana
-  // miniatura pokazuje od razu twarz.
+  // na retina. Kolejność: własna okładka (prop `poster`) -> oficjalny portret
+  // z bazy -> dopiero na końcu klatka ze streamu.
+  //
+  // Portret idzie przed klatką, bo pierwsze sekundy nagrań bywają puste (np.
+  // otwierane drzwi), a klient prosił, żeby miniatura filmu była tym samym
+  // zdjęciem, które dana osoba ma w reszcie serwisu.
   const posterUrl =
     poster ??
+    photoUrl ??
     (streamId
       ? cloudflareStreamThumbnailUrl(streamId, { time: "1.5s", height: 1600 }) ||
         cloudflareStreamThumbnailViaDeliveryNet(streamId, { time: "1.5s", height: 1600 })

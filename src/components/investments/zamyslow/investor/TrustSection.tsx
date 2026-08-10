@@ -12,9 +12,8 @@ export type TrustFounder = {
   role: string;
   /** Cloudflare Stream ID. Bez niego blok z filmem się nie renderuje. */
   videoId: string;
+  /** Portret z bazy - jest zarazem miniaturą filmu (patrz TeamMemberMedia). */
   photoUrl?: string;
-  /** Przygotowana okładka wideo (miniatura z twarzą) - zamiast klatki ze streamu. */
-  posterUrl?: string;
 };
 
 // Punkty zaufania oparte na sposobie działania (proces, jawność), a nie na
@@ -84,7 +83,6 @@ export function TrustSection({ founder }: { founder?: TrustFounder | null }) {
               <TeamMemberMedia
                 videoId={founder.videoId}
                 photoUrl={founder.photoUrl}
-                poster={founder.posterUrl}
                 autoplay={false}
                 name={founder.name}
                 className="mx-auto w-full max-w-[19rem]"
