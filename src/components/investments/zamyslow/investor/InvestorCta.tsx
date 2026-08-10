@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { submitLead } from "@/lib/leads-client";
 import { useFormGuards, GUARD_NOT_READY_MESSAGE } from "@/components/forms/FormGuards";
+import { ZAMYSLOW_PHONE } from "@/lib/investments/zamyslow-data";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -46,7 +47,7 @@ export function InvestorCta() {
             </p>
 
             <div className="mt-14 flex flex-col gap-3">
-              <a href="tel:+48510777200" className="group flex items-center gap-4 text-white">
+              <a href={`tel:${ZAMYSLOW_PHONE.tel}`} className="group flex items-center gap-4 text-white">
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/5 transition-colors duration-300 group-hover:bg-accent-400 group-hover:text-ink-950">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 2.08 4.18 2 2 0 0 1 4.07 2H7a2 2 0 0 1 2 1.72c.13.9.35 1.78.66 2.62a2 2 0 0 1-.45 2.11L7.9 9.77a16 16 0 0 0 6 6l1.32-1.32a2 2 0 0 1 2.11-.45c.84.3 1.72.53 2.62.66A2 2 0 0 1 22 16.92Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -54,7 +55,7 @@ export function InvestorCta() {
                 </span>
                 <span>
                   <span className="block text-[13px] text-white/40">Zadzwoń</span>
-                  <span className="text-[16px]">510 777 200</span>
+                  <span className="text-[16px]">{ZAMYSLOW_PHONE.display}</span>
                 </span>
               </a>
             </div>

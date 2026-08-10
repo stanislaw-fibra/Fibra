@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Logo } from "@/components/site/Logo";
 import { GORODO_LINKS } from "@/components/site/Footer";
+import { ZAMYSLOW_PHONE } from "@/lib/investments/zamyslow-data";
 import {
   useZamyslowExperience,
   ZAMYSLOW_EXPERIENCES,
@@ -74,8 +75,8 @@ export function ZamyslowFooter({
             </Link>
             <p className="text-[14px] text-white/45">
               albo zadzwoń:{" "}
-              <a href="tel:+48510777200" className="font-medium text-white/80 transition-colors hover:text-accent-400">
-                510 777 200
+              <a href={`tel:${ZAMYSLOW_PHONE.tel}`} className="font-medium text-white/80 transition-colors hover:text-accent-400">
+                {ZAMYSLOW_PHONE.display}
               </a>
             </p>
           </div>
@@ -113,8 +114,8 @@ export function ZamyslowFooter({
           <div className="md:col-span-4">
             <p className="eyebrow eyebrow-on-dark mb-5">Kontakt</p>
             <div className="flex flex-col gap-1.5 text-[15px]">
-              <a href="tel:+48510777200" className="text-white transition-colors hover:text-accent-400">
-                510 777 200
+              <a href={`tel:${ZAMYSLOW_PHONE.tel}`} className="text-white transition-colors hover:text-accent-400">
+                {ZAMYSLOW_PHONE.display}
               </a>
               <a href="mailto:biuro@grupafibra.pl" className="text-white transition-colors hover:text-accent-400">
                 biuro@grupafibra.pl

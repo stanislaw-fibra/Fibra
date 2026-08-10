@@ -72,6 +72,19 @@ export type ZamyslowFloor = {
 export const buildingViewBox = { width: 3309, height: 1847 } as const;
 export const buildingImage = "/investments/zamyslow/images/wizualizacja-6.jpg";
 
+/**
+ * Telefon pokazywany w całym doświadczeniu Zamysłowa (strona inwestycji, eksplorator,
+ * strony mieszkań, stopka). Jedna stała, bo numer rozjechał się już raz: strony
+ * pojedynczych mieszkań miały numer prywatny Arka, a reszta serwisu numer biura.
+ *
+ * To NIE dotyczy `/wynajem-zamyslow` - tam kontaktem jest Arek osobiście
+ * (patrz `RENTAL_AGENT` w `src/lib/rentals/zamyslow-rentals.ts`) i tak ma zostać.
+ */
+export const ZAMYSLOW_PHONE = {
+  display: "510 777 200",
+  tel: "+48510777200",
+} as const;
+
 export type ZamyslowData = {
   name: string;
   images: {

@@ -9,6 +9,7 @@ import { UnitFloorPlanCard } from "@/components/investments/zamyslow/offer/UnitF
 import { UnitLayout } from "@/components/investments/zamyslow/offer/UnitLayout";
 import { UnitContact } from "@/components/investments/zamyslow/offer/UnitContact";
 import { UnitStickyBar } from "@/components/investments/zamyslow/offer/UnitStickyBar";
+import { ZAMYSLOW_PHONE } from "@/lib/investments/zamyslow-data";
 import {
   getZamyslowUnit,
   formatPln,
@@ -177,10 +178,10 @@ export default async function UnitPage(
                         </svg>
                       </a>
                       <a
-                        href="tel:+48881431800"
+                        href={`tel:${ZAMYSLOW_PHONE.tel}`}
                         className="inline-flex items-center gap-2 rounded-full border border-ink-950/15 px-6 py-3.5 text-[14px] font-medium text-ink-800 transition-colors hover:border-ink-950/40"
                       >
-                        881 431 800
+                        {ZAMYSLOW_PHONE.display}
                       </a>
                     </div>
                   </div>

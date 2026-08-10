@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ZAMYSLOW_PHONE } from "@/lib/investments/zamyslow-data";
 
 /**
  * Dyskretny pasek CTA przyklejony do dołu ekranu. Pojawia się dopiero, gdy
@@ -66,8 +67,8 @@ export function UnitStickyBar({
           <div className="flex shrink-0 items-center gap-2.5">
             {/* Telefon pod ręką - dla części osób to niższy próg niż formularz. */}
             <a
-              href="tel:+48881431800"
-              aria-label="Zadzwoń: 881 431 800"
+              href={`tel:${ZAMYSLOW_PHONE.tel}`}
+              aria-label={`Zadzwoń: ${ZAMYSLOW_PHONE.display}`}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-950/15 text-ink-800 transition-colors hover:border-ink-950/40 hover:text-ink-950"
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
