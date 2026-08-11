@@ -162,6 +162,18 @@ export async function getPublicFounder(): Promise<TeamMember | null> {
 }
 
 /**
+ * Konkretny, publicznie widoczny członek zespołu po imieniu i nazwisku -
+ * np. Arkadiusz Jezusek jako opiekun Zamysłowa (zdjęcie/rola/telefon/wideo
+ * z bazy, więc podmiana zdjęcia czy dogranie autoprezentacji nie wymaga
+ * zmian w kodzie). `null`, gdy nie ma go w bazie albo jest ukryty.
+ */
+export async function getPublicTeamMember(name: string): Promise<TeamMember | null> {
+  const team = await getPublicTeamMembers();
+  const n = name.trim().toLowerCase();
+  return team.find((m) => m.name.trim().toLowerCase() === n) ?? null;
+}
+
+/**
  * Sprawdza, czy nowe kolumny zespołu (`bio_long`, `team_role`, `team_order`,
  * `is_team_visible`, `cloudflare_video_id`) są dostępne w `agents`. Pozwala panelowi
  * pokazać banner „uruchom migrację" i wyłączyć część funkcjonalności (np. wideo)

@@ -4,7 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { Logo } from "@/components/site/Logo";
 import { GORODO_LINKS } from "@/components/site/Footer";
-import { ZAMYSLOW_PHONE } from "@/lib/investments/zamyslow-data";
+import {
+  ZAMYSLOW_PHONE,
+  ZAMYSLOW_AGENT_FALLBACK,
+} from "@/lib/investments/zamyslow-data";
+import { ZamyslowAgentChip } from "@/components/investments/zamyslow/ZamyslowAgentChip";
 import {
   useZamyslowExperience,
   ZAMYSLOW_EXPERIENCES,
@@ -113,6 +117,14 @@ export function ZamyslowFooter({
 
           <div className="md:col-span-4">
             <p className="eyebrow eyebrow-on-dark mb-5">Kontakt</p>
+            {/* Twarz przy numerze - stopka jest kliencka i wspólna dla obu
+                doświadczeń, więc bierze stałą zamiast fetcha z Supabase. */}
+            <ZamyslowAgentChip
+              agent={ZAMYSLOW_AGENT_FALLBACK}
+              tone="dark"
+              label="Odbierze i oddzwoni"
+              className="mb-6"
+            />
             <div className="flex flex-col gap-1.5 text-[15px]">
               <a href={`tel:${ZAMYSLOW_PHONE.tel}`} className="text-white transition-colors hover:text-accent-400">
                 {ZAMYSLOW_PHONE.display}

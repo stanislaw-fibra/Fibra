@@ -12,7 +12,12 @@ import { UnitLayout } from "@/components/investments/zamyslow/offer/UnitLayout";
 import { UnitPlanViewer } from "@/components/investments/zamyslow/offer/UnitPlanViewer";
 import { UnitContact } from "@/components/investments/zamyslow/offer/UnitContact";
 import { UnitStickyBar } from "@/components/investments/zamyslow/offer/UnitStickyBar";
-import { ZAMYSLOW_PHONE } from "@/lib/investments/zamyslow-data";
+import { AgentAvatar } from "@/components/offers/AgentAvatar";
+import { getPublicTeamMember } from "@/lib/team-query";
+import {
+  ZAMYSLOW_PHONE,
+  ZAMYSLOW_AGENT_FALLBACK,
+} from "@/lib/investments/zamyslow-data";
 import {
   getZamyslowUnit,
   formatPln,
@@ -62,9 +67,20 @@ export default async function UnitPage(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const data = await getZamyslowUnit(id);
+  const [data, arek] = await Promise.all([
+    getZamyslowUnit(id),
+    getPublicTeamMember(ZAMYSLOW_AGENT_FALLBACK.name),
+  ]);
   if (!data) notFound();
   const { unit, all } = data;
+
+  // Opiekun inwestycji przy każdym punkcie kontaktu (telefon, formularz,
+  // sticky bar) - dane z bazy z fallbackiem, żeby twarz była zawsze.
+  const agent = {
+    name: arek?.name ?? ZAMYSLOW_AGENT_FALLBACK.name,
+    role: arek?.role ?? ZAMYSLOW_AGENT_FALLBACK.role,
+    photoUrl: arek?.photoUrl ?? ZAMYSLOW_AGENT_FALLBACK.photoUrl,
+  };
 
   const n = Number(unit.id.slice(1));
   const prev = all.find((u) => Number(u.id.slice(1)) === n - 1) ?? null;
@@ -189,10 +205,18 @@ export default async function UnitPage(
                           <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </a>
+                      {/* Twarz opiekuna w pigułce z numerem - widać, kto odbierze. */}
                       <a
                         href={`tel:${ZAMYSLOW_PHONE.tel}`}
-                        className="inline-flex items-center gap-2 rounded-full border border-ink-950/15 px-6 py-3.5 text-[14px] font-medium text-ink-800 transition-colors hover:border-ink-950/40"
+                        title={`${agent.name} · ${ZAMYSLOW_PHONE.display}`}
+                        className="inline-flex items-center gap-2.5 rounded-full border border-ink-950/15 py-3.5 pl-2.5 pr-6 text-[14px] font-medium text-ink-800 transition-colors hover:border-ink-950/40"
                       >
+                        <AgentAvatar
+                          photoUrl={agent.photoUrl}
+                          name={agent.name}
+                          size="sm"
+                          className="!h-7 !w-7 ring-1 ring-ink-950/10"
+                        />
                         {ZAMYSLOW_PHONE.display}
                       </a>
                     </div>
@@ -403,6 +427,7 @@ export default async function UnitPage(
           areaLabel={unit.areaLabel}
           floorLabel={unit.floorLabel}
           sold={unit.availability === "sold"}
+          agent={agent}
         />
       </main>
 
@@ -411,6 +436,7 @@ export default async function UnitPage(
         areaLabel={unit.areaLabel}
         rooms={unit.rooms}
         priceLabel={priceLabel}
+        agent={agent}
       />
       <ZamyslowFooter />
     </>

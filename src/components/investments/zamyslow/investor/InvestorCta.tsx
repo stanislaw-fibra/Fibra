@@ -6,10 +6,14 @@ import { motion, useInView } from "framer-motion";
 import { submitLead } from "@/lib/leads-client";
 import { useFormGuards, GUARD_NOT_READY_MESSAGE } from "@/components/forms/FormGuards";
 import { ZAMYSLOW_PHONE } from "@/lib/investments/zamyslow-data";
+import {
+  ZamyslowAgentChip,
+  type ZamyslowAgentInfo,
+} from "@/components/investments/zamyslow/ZamyslowAgentChip";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-export function InvestorCta() {
+export function InvestorCta({ agent }: { agent?: ZamyslowAgentInfo | null }) {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +50,17 @@ export function InvestorCta() {
               budżetu. Bez presji i bez zobowiązań.
             </p>
 
-            <div className="mt-14 flex flex-col gap-3">
+            {/* Twarz przy formularzu: kto odbierze telefon i oddzwoni. */}
+            {agent ? (
+              <ZamyslowAgentChip
+                agent={agent}
+                tone="dark"
+                label="Odbierze i oddzwoni"
+                className="mt-14 border-t border-white/10 pt-8"
+              />
+            ) : null}
+
+            <div className={`${agent ? "mt-7" : "mt-14"} flex flex-col gap-3`}>
               <a href={`tel:${ZAMYSLOW_PHONE.tel}`} className="group flex items-center gap-4 text-white">
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/5 transition-colors duration-300 group-hover:bg-accent-400 group-hover:text-ink-950">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>

@@ -11,9 +11,13 @@ import { WhichApartment } from "@/components/investments/zamyslow/investor/Which
 import { ZamyslowApartmentsList } from "@/components/investments/zamyslow/ZamyslowApartmentsList";
 import { InvestorCta } from "@/components/investments/zamyslow/investor/InvestorCta";
 import { InvestorStickyCta } from "@/components/investments/zamyslow/investor/InvestorStickyCta";
-import { getPublicFounder } from "@/lib/team-query";
+import { getPublicFounder, getPublicTeamMember } from "@/lib/team-query";
 import { FOUNDER_VIDEO_OVERRIDE } from "@/lib/investments/zamyslow-proof";
 import { getZamyslowUnitsSummary } from "@/lib/investments/zamyslow-units";
+import {
+  ZAMYSLOW_AGENT_BIO,
+  ZAMYSLOW_AGENT_FALLBACK,
+} from "@/lib/investments/zamyslow-data";
 
 // Jak /o-fibrze: dane założyciela (film) lecą z Supabase, więc odświeżamy stronę
 // co minutę zamiast zamrażać ją na buildzie.
@@ -31,8 +35,9 @@ export default async function ZamyslowPage() {
   // film, co na /o-fibrze; osobne nagranie pod inwestora wpisuje się w
   // FOUNDER_VIDEO_OVERRIDE. Bez filmu blok się nie pokazuje.
   // Metraże w tekstach lecą z arkusza mieszkań - żadnych widełek na sztywno.
-  const [founder, units] = await Promise.all([
+  const [founder, arek, units] = await Promise.all([
     getPublicFounder(),
+    getPublicTeamMember(ZAMYSLOW_AGENT_FALLBACK.name),
     getZamyslowUnitsSummary(),
   ]);
   const founderVideoId = FOUNDER_VIDEO_OVERRIDE ?? founder?.cloudflareVideoId ?? null;
@@ -48,19 +53,30 @@ export default async function ZamyslowPage() {
       }
     : null;
 
+  // Opiekun inwestycji (Arek) - twarz przy każdym miejscu kontaktu. Dane z bazy
+  // (zdjęcie/rola/przyszłe wideo), z fallbackiem na stałe wartości, gdyby
+  // Supabase chwilowo nie odpowiedział.
+  const zamyslowAgent = {
+    name: arek?.name ?? ZAMYSLOW_AGENT_FALLBACK.name,
+    role: arek?.role ?? ZAMYSLOW_AGENT_FALLBACK.role,
+    photoUrl: arek?.photoUrl ?? ZAMYSLOW_AGENT_FALLBACK.photoUrl,
+    videoId: arek?.cloudflareVideoId,
+    bio: ZAMYSLOW_AGENT_BIO,
+  };
+
   return (
     <>
       <ZamyslowNav experience="investor" />
       <main className="flex-1 pt-[72px]">
         <InvestorHero />
         <ProofStrip />
-        <TrustSection founder={trustFounder} />
+        <TrustSection founder={trustFounder} agent={zamyslowAgent} />
         <WhyRybnik />
         <WhyZamyslow areaFromToLabel={units?.areaFromToLabel ?? null} />
         <ReturnsSection />
         <WhichApartment />
         <ZamyslowApartmentsList />
-        <InvestorCta />
+        <InvestorCta agent={zamyslowAgent} />
       </main>
       <InvestorStickyCta />
       <ZamyslowFooter experience="investor" />

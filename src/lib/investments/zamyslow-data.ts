@@ -103,6 +103,27 @@ export const ZAMYSLOW_PHONE = {
   tel: "+48881431800",
 } as const;
 
+/**
+ * Opiekun inwestycji na stronach Zamysłowa - fallback, gdy Supabase (tabela
+ * `agents`) chwilowo nie odpowie. Normalnie zdjęcie/rolę/wideo dociągamy
+ * z bazy przez `getPublicTeamMember("Arkadiusz Jezusek")`, więc podmiana
+ * zdjęcia albo dogranie autoprezentacji nie wymaga zmian w kodzie.
+ */
+export const ZAMYSLOW_AGENT_FALLBACK = {
+  name: "Arkadiusz Jezusek",
+  role: "Agent Nieruchomości | Specjalista ds. Inwestycji",
+  photoUrl:
+    "https://yrkvochsziertbvzbnol.supabase.co/storage/v1/object/public/agent-photos/Arkadiusz%20Jezusek.png",
+} as const;
+
+/**
+ * Skrót autoprezentacji Arka do panelu „Twój opiekun inwestycji" - wyciąg
+ * z jego bio (pełna wersja żyje w bazie i na /agent/arkadiusz), przycięty
+ * do wątków Zamysłowa.
+ */
+export const ZAMYSLOW_AGENT_BIO =
+  "Od 9 lat łączę sprzedaż, najem i inwestycje. Na Osiedlu Zamysłów odpowiadam za cały cykl życia nieruchomości: od doradztwa przy zakupie mieszkania, po jego późniejszy wynajem i pełną obsługę najemców.";
+
 export type ZamyslowData = {
   name: string;
   images: {

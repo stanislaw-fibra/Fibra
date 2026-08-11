@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AgentAvatar } from "@/components/offers/AgentAvatar";
 import { ZAMYSLOW_PHONE } from "@/lib/investments/zamyslow-data";
+import type { ZamyslowAgentInfo } from "@/components/investments/zamyslow/ZamyslowAgentChip";
 
 /**
  * Dyskretny pasek CTA przyklejony do dołu ekranu. Pojawia się dopiero, gdy
@@ -13,11 +15,13 @@ export function UnitStickyBar({
   areaLabel,
   rooms,
   priceLabel,
+  agent,
 }: {
   unitId: string;
   areaLabel: string;
   rooms: number;
   priceLabel: string;
+  agent?: ZamyslowAgentInfo | null;
 }) {
   const [show, setShow] = useState(false);
 
@@ -65,15 +69,36 @@ export function UnitStickyBar({
             </span>
           </div>
           <div className="flex shrink-0 items-center gap-2.5">
-            {/* Telefon pod ręką - dla części osób to niższy próg niż formularz. */}
+            {/* Telefon pod ręką - dla części osób to niższy próg niż formularz.
+                Zamiast anonimowej słuchawki twarz opiekuna (Arek) z małą plakietką
+                telefonu - widać, do kogo faktycznie się dzwoni. */}
             <a
               href={`tel:${ZAMYSLOW_PHONE.tel}`}
-              aria-label={`Zadzwoń: ${ZAMYSLOW_PHONE.display}`}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-950/15 text-ink-800 transition-colors hover:border-ink-950/40 hover:text-ink-950"
+              aria-label={`Zadzwoń${agent ? ` do: ${agent.name}` : ""}: ${ZAMYSLOW_PHONE.display}`}
+              title={agent ? `${agent.name} · ${ZAMYSLOW_PHONE.display}` : ZAMYSLOW_PHONE.display}
+              className="group relative inline-flex"
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 2.08 4.18 2 2 0 0 1 4.07 2H7a2 2 0 0 1 2 1.72c.13.9.35 1.78.66 2.62a2 2 0 0 1-.45 2.11L7.9 9.77a16 16 0 0 0 6 6l1.32-1.32a2 2 0 0 1 2.11-.45c.84.3 1.72.53 2.62.66A2 2 0 0 1 22 16.92Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              {agent?.photoUrl ? (
+                <>
+                  <AgentAvatar
+                    photoUrl={agent.photoUrl}
+                    name={agent.name}
+                    size="sm"
+                    className="!h-10 !w-10 ring-1 ring-ink-950/10 transition-opacity group-hover:opacity-90"
+                  />
+                  <span className="absolute -bottom-0.5 -right-0.5 inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-accent-400 text-ink-950 ring-2 ring-[rgba(250,250,248,0.92)]">
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" aria-hidden>
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 2.08 4.18 2 2 0 0 1 4.07 2H7a2 2 0 0 1 2 1.72c.13.9.35 1.78.66 2.62a2 2 0 0 1-.45 2.11L7.9 9.77a16 16 0 0 0 6 6l1.32-1.32a2 2 0 0 1 2.11-.45c.84.3 1.72.53 2.62.66A2 2 0 0 1 22 16.92Z" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                </>
+              ) : (
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-950/15 text-ink-800 transition-colors group-hover:border-ink-950/40 group-hover:text-ink-950">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 2.08 4.18 2 2 0 0 1 4.07 2H7a2 2 0 0 1 2 1.72c.13.9.35 1.78.66 2.62a2 2 0 0 1-.45 2.11L7.9 9.77a16 16 0 0 0 6 6l1.32-1.32a2 2 0 0 1 2.11-.45c.84.3 1.72.53 2.62.66A2 2 0 0 1 22 16.92Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              )}
             </a>
             {/* Akcentowy pomarańcz jak sticky CTA na /zamyslow - główna akcja
                 strony ma się odcinać, a nie zlewać z resztą paska. */}
