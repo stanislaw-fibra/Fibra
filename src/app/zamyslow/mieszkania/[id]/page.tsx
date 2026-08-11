@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { existsSync } from "node:fs";
+import path from "node:path";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ZamyslowNav } from "@/components/investments/zamyslow/ZamyslowNav";
@@ -70,6 +72,15 @@ export default async function UnitPage(
   const sameFloor = all.filter((u) => u.floor === unit.floor && u.id !== unit.id);
 
   const priceLabel = unit.price ? formatPln(unit.price) : "Cena na zapytanie";
+
+  // Karta lokalu (PDF) - generowana skryptem zamyslow-unit-cards.ts dla pięter
+  // 1-5 (parter dostanie własny wariant z ogródkami). Link tylko, gdy plik jest.
+  const cardPdfHref = `/investments/zamyslow/karty/karta-lokalu-${unit.id.toLowerCase()}.pdf`;
+  const cardPdf =
+    unit.floor > 0 &&
+    existsSync(path.join(process.cwd(), "public", cardPdfHref))
+      ? cardPdfHref
+      : null;
   const status = STATUS_STYLES[unit.availability];
 
   // Karta lokalu - tylko pola, które faktycznie mają wartość w arkuszu.
@@ -185,6 +196,19 @@ export default async function UnitPage(
                         {ZAMYSLOW_PHONE.display}
                       </a>
                     </div>
+
+                    {cardPdf ? (
+                      <a
+                        href={cardPdf}
+                        download={`karta-lokalu-${unit.id.toLowerCase()}.pdf`}
+                        className="mt-5 inline-flex items-center gap-2 text-[13.5px] font-medium text-ink-500 transition-colors hover:text-ink-950"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+                          <path d="M7 2v7M3.8 6.2 7 9.4l3.2-3.2M2.5 12h9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        Pobierz kartę lokalu (PDF)
+                      </a>
+                    ) : null}
                   </div>
                 </Reveal>
               </div>
