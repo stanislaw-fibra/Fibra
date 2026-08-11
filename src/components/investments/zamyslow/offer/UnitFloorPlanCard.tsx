@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { zamyslowData } from "@/lib/investments/zamyslow-data";
+import { FloorPlanCompass } from "../FloorPlanCompass";
 
 /**
  * Położenie mieszkania na rzucie piętra - statyczna (nieinteraktywna) wersja
@@ -54,6 +55,8 @@ export function UnitFloorPlanCard({ unitId }: { unitId: string }) {
             vectorEffect="non-scaling-stroke"
           />
         </svg>
+        <FloorPlanCompass className="absolute right-1 top-1 h-11 w-11 md:h-12 md:w-12" />
+
         {/* Plakietka z numerem w środku strefy */}
         <span
           className="absolute -translate-x-1/2 -translate-y-1/2 rounded-md bg-ink-950 px-2 py-0.5 font-sans text-[11px] font-bold tabular-nums tracking-tight text-white shadow-lg md:text-[12.5px]"

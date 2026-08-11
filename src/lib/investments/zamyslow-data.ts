@@ -38,6 +38,20 @@ export type FloorPlanUnit = {
  * rysunku, która nie należy do żadnego mieszkania. `rotate` w stopniach dla
  * podpisów pionowych (tarasy przy bocznych ścianach).
  */
+/**
+ * Kierunek północy na rzutach, w stopniach zgodnie z ruchem wskazówek zegara
+ * od pionu ekranu (0° = w górę obrazu).
+ *
+ * Zmierzone z róży wiatrów na rzucie architektonicznym (PDF): oś strzałki
+ * „N" przechodzi przez wcięcie ogona i czubek pod kątem 43°. Wartość dotyczy
+ * WSZYSTKICH rzutów pięter - wszystkie są w tej samej orientacji co rysunek
+ * architekta (north-up), więc jedna stała wystarcza dla parteru i pięter 1-5.
+ *
+ * Gdyby kiedyś zmieniła się orientacja obrazów rzutów, wystarczy poprawić tę
+ * liczbę - kompas na stronie obróci się sam.
+ */
+export const FLOOR_PLAN_NORTH_DEG = 43;
+
 export type FloorPlanAnnotation = {
   text: string;
   x: number;

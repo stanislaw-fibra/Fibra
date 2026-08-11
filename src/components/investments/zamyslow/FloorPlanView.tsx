@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
+import { FloorPlanCompass } from "./FloorPlanCompass";
 import type {
   FloorPlanUnit,
   UnitStatus,
@@ -442,6 +443,10 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
                     </div>
                   );
                 })}
+
+              {/* Róża wiatrów - kierunek świata bywa argumentem przy wyborze
+                  mieszkania, więc trzymamy ją zawsze przy rzucie. */}
+              <FloorPlanCompass className="absolute right-3 top-3 h-11 w-11 md:right-4 md:top-4 md:h-14 md:w-14" />
 
               {/* Wskaźnik ładowania na klikniętym mieszkaniu */}
               {plan.units
