@@ -240,6 +240,19 @@ export default async function UnitPage(
                     Piętro, metraż, liczba pokoi i status sprzedaży - zebrane w
                     jednym miejscu.
                   </p>
+
+                  {cardPdf ? (
+                    <a
+                      href={cardPdf}
+                      download={`karta-lokalu-${unit.id.toLowerCase()}.pdf`}
+                      className="mt-8 inline-flex items-center gap-2.5 rounded-full bg-ink-900 px-6 py-3.5 text-[14px] font-medium text-white transition-colors duration-300 hover:bg-brand-500"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 14 14" fill="none" aria-hidden>
+                        <path d="M7 2v7M3.8 6.2 7 9.4l3.2-3.2M2.5 12h9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      Pobierz kartę lokalu (PDF)
+                    </a>
+                  ) : null}
                 </Reveal>
               </div>
 
