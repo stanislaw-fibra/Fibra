@@ -174,8 +174,10 @@ async function main() {
       const meta = await sharp(unitImgPath).metadata();
       const unitImg = b64(unitImgPath, "image/webp");
 
-      // kadr rzutu: mieści się w 430x520, chipy w % - bez letterboxa
-      const maxW = 438, maxH = 560;
+      // Kadr rzutu liczony z geometrii strony (A4 794px):
+      // 794 - 2*44 (padding) - 248 (lewa kolumna) - 26 (odstęp) = 432 na kolumnę,
+      // minus 2*24 ramy = 384. W pionie zostaje ~556. Rama NIGDY nie wystaje.
+      const maxW = 384, maxH = 556;
       const s = Math.min(maxW / meta.width!, maxH / meta.height!);
       const planW = Math.round(meta.width! * s), planH = Math.round(meta.height! * s);
 
@@ -226,8 +228,8 @@ body{width:794px;height:1123px;overflow:hidden;font-family:'Inter',sans-serif;co
 .hero .tag .id{font-size:30px;font-weight:700;letter-spacing:-0.02em;margin-top:3px;line-height:1}
 .hero .tag .id i{font-style:normal;color:var(--accent)}
 .hero .tag .ar{font-size:12px;color:rgba(255,255,255,0.75);margin-top:4px;font-variant-numeric:tabular-nums}
-.main{flex:1;display:flex;gap:30px;padding:30px 44px 24px;background:#fff}
-.left{width:264px;flex-shrink:0;display:flex;flex-direction:column}
+.main{flex:1;display:flex;gap:26px;padding:30px 44px 24px;background:#fff}
+.left{width:248px;flex-shrink:0;display:flex;flex-direction:column}
 .eyebrow{font-size:9.5px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink4);display:flex;align-items:center;gap:9px}
 .eyebrow::before{content:"";display:block;width:26px;height:1px;background:var(--brand)}
 h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:27px;line-height:1.12;margin-top:12px}
@@ -251,8 +253,8 @@ h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:27px;line-heig
 .mini .map img{width:100%;display:block}
 .mini .map svg.ov{position:absolute;inset:0;width:100%;height:100%}
 .mini .compass{position:absolute;right:7px;top:7px}
-.right{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.planframe{position:relative;border:1px solid var(--line);border-radius:16px;background:#fff;padding:30px 26px 26px;box-shadow:0 1px 2px rgba(11,15,20,0.04),0 18px 40px -22px rgba(11,15,20,0.16)}
+.right{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+.planframe{position:relative;border:1px solid var(--line);border-radius:16px;background:#fff;padding:28px 24px 24px;max-width:100%;box-shadow:0 1px 2px rgba(11,15,20,0.04),0 18px 40px -22px rgba(11,15,20,0.16)}
 .planwrap{position:relative;width:${planW}px;height:${planH}px}
 .planwrap img{width:100%;height:100%;display:block}
 .chip{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px}
@@ -312,7 +314,7 @@ h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:27px;line-heig
         </div>
         <div style="position:absolute;left:12px;top:12px">${compassSvg(32)}</div>
       </div>
-      <div class="plan-cap" style="width:${planW + 52}px"><span>Rzut mieszkania ${unit.id}</span><span>Skala poglądowa</span></div>
+      <div class="plan-cap" style="width:${planW + 48}px;max-width:100%"><span>Rzut mieszkania ${unit.id}</span><span>Skala poglądowa</span></div>
     </div>
   </div>
 
