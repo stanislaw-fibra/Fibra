@@ -27,11 +27,15 @@ export function UnitLayout({ unit }: { unit: ZamyslowUnitListing }) {
   return (
     <div>
       <ul className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        {unit.roomsList.map((room) => (
+        {unit.roomsList.map((room, i) => (
           <li
             key={room.name}
             className="rounded-[var(--radius-lg)] border border-ink-200/70 bg-white px-5 py-6 shadow-[var(--shadow-soft)] transition-colors duration-300 hover:border-brand-300 md:px-6 md:py-7"
           >
+            {/* Numer spójny ze znacznikiem tego pokoju na rzucie powyżej. */}
+            <span className="mb-4 flex h-6 w-6 items-center justify-center rounded-full bg-ink-950 text-[11.5px] font-semibold text-white">
+              {i + 1}
+            </span>
             <p className="font-display text-[30px] leading-none tabular-nums text-ink-950 md:text-[34px]">
               {fmtArea(room.areaM2)}
               <span className="ml-1.5 font-sans text-[13.5px] font-medium tracking-normal text-ink-400">
@@ -46,6 +50,9 @@ export function UnitLayout({ unit }: { unit: ZamyslowUnitListing }) {
 
         {outdoor ? (
           <li className="rounded-[var(--radius-lg)] border border-ink-200/70 bg-paper-warm px-5 py-6 md:px-6 md:py-7">
+            <span className="mb-4 flex h-6 w-6 items-center justify-center rounded-full border border-ink-300 text-[11px] text-ink-400">
+              +
+            </span>
             <p className="font-display text-[30px] leading-none tabular-nums text-ink-800 md:text-[34px]">
               {fmtArea(outdoor.areaM2)}
               <span className="ml-1.5 font-sans text-[13.5px] font-medium tracking-normal text-ink-400">
