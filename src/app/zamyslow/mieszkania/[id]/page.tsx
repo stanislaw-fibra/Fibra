@@ -7,6 +7,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { RentalsGallery } from "@/components/rentals/RentalsGallery";
 import { UnitFloorPlanCard } from "@/components/investments/zamyslow/offer/UnitFloorPlanCard";
 import { UnitLayout } from "@/components/investments/zamyslow/offer/UnitLayout";
+import { UnitOwnPlan } from "@/components/investments/zamyslow/offer/UnitOwnPlan";
 import { UnitContact } from "@/components/investments/zamyslow/offer/UnitContact";
 import { UnitStickyBar } from "@/components/investments/zamyslow/offer/UnitStickyBar";
 import { ZAMYSLOW_PHONE } from "@/lib/investments/zamyslow-data";
@@ -277,8 +278,14 @@ export default async function UnitPage(
                   ) : null}
                 </Reveal>
               </div>
+              {/* Rzut mieszkania dostaje pełną szerokość kolumny - to główny
+                  element, po którym kupujący ocenia układ. Metraże pomieszczeń
+                  siadają pod nim w rzędzie kafelków. */}
               <div className="lg:col-span-8">
                 <Reveal delay={80}>
+                  <UnitOwnPlan unitId={unit.id} areaLabel={unit.areaLabel} />
+                </Reveal>
+                <Reveal delay={140} className="mt-6">
                   <UnitLayout unit={unit} />
                 </Reveal>
               </div>
