@@ -1,12 +1,37 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Logo } from "@/components/site/Logo";
 import { isZamyslowGatedPath } from "@/lib/zamyslow-gate";
+import { isZamyslowLaunched, ZAMYSLOW_LAUNCH_ISO } from "@/lib/zamyslow-launch";
+import { Countdown } from "./Countdown";
 import { zamyslowGateAction } from "./actions";
 
+const LAUNCH_AT = new Date(ZAMYSLOW_LAUNCH_ISO);
+
+/** np. „czwartek, 3 września 2026" - zawsze w czasie polskim. */
+const LAUNCH_DATE = new Intl.DateTimeFormat("pl-PL", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "Europe/Warsaw",
+}).format(LAUNCH_AT);
+
+/** np. „16:00". */
+const LAUNCH_TIME = new Intl.DateTimeFormat("pl-PL", {
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Europe/Warsaw",
+}).format(LAUNCH_AT);
+
 export const metadata: Metadata = {
-  title: "Zamysłów - dostęp",
+  title: "Osiedle Zamysłów - przedsprzedaż z pierwszeństwem zakupu",
   robots: { index: false, follow: false },
 };
+
+// Bramka musi liczyć czas przy każdym wejściu - inaczej po godzinie otwarcia
+// dałoby się trafić na zapisaną w cache wersję z licznikiem zamiast wpuszczenia.
+export const dynamic = "force-dynamic";
 
 export default async function ZamyslowGatePage({
   searchParams,
@@ -19,6 +44,12 @@ export default async function ZamyslowGatePage({
   const hasError = sp.error === "1";
   const configError = sp.error === "config";
 
+  // Po godzinie otwarcia bramka jest zdjęta - nie pokazujemy już licznika,
+  // tylko wpuszczamy odwiedzającego tam, dokąd szedł.
+  if (isZamyslowLaunched()) {
+    redirect(next);
+  }
+
   return (
     <div className="grain-on-dark relative min-h-screen bg-ink-950 text-white">
       <div className="grad-radial-hero pointer-events-none absolute inset-0" />
@@ -29,17 +60,39 @@ export default async function ZamyslowGatePage({
         </header>
 
         <main className="container-xl flex flex-1 items-center justify-center py-10">
-          <div className="w-full max-w-[440px]">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-7 shadow-[var(--shadow-cinematic)] sm:p-8">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-300">
-                Projekt Zamysłów
+          <div className="w-full max-w-[520px] text-center">
+            <p className="eyebrow eyebrow-on-dark inline-flex items-center justify-center gap-3">
+              <span className="inline-block h-px w-8 bg-accent-400" />
+              Osiedle Zamysłów · Rybnik
+            </p>
+            <h1 className="mt-4 font-display text-[2.2rem] leading-[1.05] text-white sm:text-[2.8rem]">
+              Oferta w fazie <em className="italic text-accent-400">przedsprzedaży</em>
+            </h1>
+            <p className="mx-auto mt-4 max-w-[27rem] text-[15px] leading-relaxed text-ink-300">
+              Strona inwestycji jest w tej chwili dostępna dla osób, które uzyskały
+              pierwszeństwo zakupu.
+            </p>
+
+            <div className="mt-11">
+              <p className="text-[10.5px] font-medium uppercase tracking-[0.2em] text-ink-400">
+                Otwarcie dla wszystkich
               </p>
-              <h1 className="mt-3 font-display text-[2rem] leading-[1.05] text-white sm:text-[2.3rem]">
-                Dostęp do materiałów
-              </h1>
-              <p className="mt-3 text-[14.5px] leading-relaxed text-ink-300">
-                Ta sekcja jest w przygotowaniu. Podaj hasło dostępu, aby zobaczyć materiały
-                projektu Zamysłów.
+              <p className="mt-2.5 font-display text-[1.35rem] leading-none text-white sm:text-[1.5rem]">
+                {LAUNCH_DATE}, godz. {LAUNCH_TIME}
+              </p>
+
+              <div className="mt-7">
+                <Countdown next={next} />
+              </div>
+            </div>
+
+            <div className="mx-auto mt-12 max-w-[420px] rounded-2xl border border-white/10 bg-white/[0.02] p-6 text-left shadow-[var(--shadow-cinematic)] sm:p-7">
+              <p className="font-display text-[1.3rem] leading-tight text-white">
+                Masz hasło dostępu?
+              </p>
+              <p className="mt-2 text-[13.5px] leading-relaxed text-ink-300">
+                Osoby z pierwszeństwem zakupu dostały hasło od swojego opiekuna.
+                Wpisz je poniżej, żeby zobaczyć pełną ofertę.
               </p>
 
               {hasError && (
@@ -83,8 +136,8 @@ export default async function ZamyslowGatePage({
               </form>
             </div>
 
-            <p className="mt-5 text-center text-[12.5px] leading-relaxed text-ink-400">
-              Problem z dostępem? Napisz na{" "}
+            <p className="mx-auto mt-6 max-w-[420px] text-[12.5px] leading-relaxed text-ink-400">
+              Nie masz hasła, a chcesz dołączyć do przedsprzedaży? Napisz na{" "}
               <a
                 href="mailto:biuro@grupafibra.pl"
                 className="text-brand-300 underline-offset-2 hover:underline"
@@ -98,7 +151,7 @@ export default async function ZamyslowGatePage({
         <footer className="hairline-dark-t">
           <div className="container-xl flex flex-col gap-2 py-8 text-[12.5px] text-ink-400 sm:flex-row sm:items-center sm:justify-between">
             <p className="font-display text-[1.3rem] leading-none text-white">Fibra</p>
-            <p>Projekt Zamysłów - materiały w przygotowaniu</p>
+            <p>Osiedle Zamysłów · przedsprzedaż z pierwszeństwem zakupu</p>
           </div>
         </footer>
       </div>

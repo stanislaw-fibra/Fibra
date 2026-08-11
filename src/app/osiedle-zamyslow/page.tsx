@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Osiedle Zamysłów - Inwestycja premium | Fibra Nieruchomości",
   description:
     "Poznaj Osiedle Zamysłów: interaktywny podgląd pięter, rzuty mieszkań i aktualne statusy lokali.",
-  robots: { index: false, follow: false },
+  alternates: { canonical: "/osiedle-zamyslow" },
 };
 
 export default function OsiedleZamyslowPage() {

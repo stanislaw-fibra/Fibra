@@ -14,6 +14,7 @@ import {
   verifySiteGateToken,
 } from "@/lib/site-gate";
 import { isLaunched } from "@/lib/site-launch";
+import { isZamyslowLaunched } from "@/lib/zamyslow-launch";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -37,10 +38,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ---- Bramka projektu „Zamysłów" ----
-  // Strony projektu są usunięte z menu i dostępne tylko przez bezpośredni link,
-  // a i tak najpierw trzeba podać wspólne hasło (ZAMYSLOW_GATE_PASSWORD).
-  if (isZamyslowGatedPath(pathname)) {
+  // ---- Bramka projektu „Zamysłów" (przedsprzedaż z pierwszeństwem) ----
+  // Do publicznego otwarcia strony inwestycji są usunięte z menu i dostępne
+  // tylko dla osób z pierwszeństwem zakupu - po wspólnym haśle
+  // (ZAMYSLOW_GATE_PASSWORD).
+  //
+  // AUTO-ZDJĘCIE: po godzinie otwarcia (ZAMYSLOW_LAUNCH_AT) warunek gaśnie i cały
+  // ruch przechodzi bez hasła - strony stają się publiczne same, bez crona.
+  if (!isZamyslowLaunched() && isZamyslowGatedPath(pathname)) {
     const token = request.cookies.get(ZAMYSLOW_ACCESS_COOKIE)?.value;
     if (await verifyZamyslowToken(token)) {
       return NextResponse.next();

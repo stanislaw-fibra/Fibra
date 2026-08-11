@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getZamyslowUnits } from "@/lib/investments/zamyslow-units";
 import { getAllActiveOffers } from "@/lib/offers-query";
 import { getPublicTeamMembers } from "@/lib/team-query";
 
@@ -18,6 +19,16 @@ const STATIC_ROUTES: {
   { path: "/kontakt", priority: 0.6, changeFrequency: "yearly" },
   { path: "/kurs-20-lekcji-inwestora", priority: 0.6, changeFrequency: "monthly" },
   { path: "/cookies", priority: 0.2, changeFrequency: "yearly" },
+
+  // Osiedle Zamysłów. Do publicznego otwarcia (patrz `src/lib/zamyslow-launch.ts`)
+  // crawler dostaje z bramki 307 i strony po prostu czekają; po jej zdjęciu
+  // wchodzą do indeksu bez żadnej zmiany w kodzie.
+  { path: "/zamyslow", priority: 0.9, changeFrequency: "weekly" },
+  { path: "/osiedle-zamyslow", priority: 0.7, changeFrequency: "weekly" },
+  { path: "/przewodnik-inwestora", priority: 0.7, changeFrequency: "monthly" },
+  { path: "/zarzadzanie-najmem", priority: 0.7, changeFrequency: "monthly" },
+  { path: "/galeria-inwestycji", priority: 0.5, changeFrequency: "monthly" },
+  { path: "/prospekt-informacyjny", priority: 0.3, changeFrequency: "yearly" },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -64,5 +75,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-  return [...staticEntries, ...offerEntries, ...agentEntries];
+  // Strony lokali Zamysłowa (`/zamyslow/mieszkania/m1`…). Lista leci z tego
+  // samego arkusza co same strony, więc sitemap nadąża za zmianami w ofercie.
+  let units: NonNullable<Awaited<ReturnType<typeof getZamyslowUnits>>>["units"] = [];
+  try {
+    units = (await getZamyslowUnits())?.units ?? [];
+  } catch {
+    units = [];
+  }
+
+  const unitEntries: MetadataRoute.Sitemap = units.map((u) => ({
+    url: `${SITE_URL}/zamyslow/mieszkania/${u.id.toLowerCase()}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
+
+  return [...staticEntries, ...offerEntries, ...agentEntries, ...unitEntries];
 }

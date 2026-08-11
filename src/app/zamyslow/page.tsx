@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   title: "Zainwestuj w Rybniku - Osiedle Zamysłów | Fibra Nieruchomości",
   description:
     "Mieszkanie na wynajem na Osiedlu Zamysłów w Rybniku. Komu zaufać, dlaczego Rybnik, szacowana rentowność najmu i wybór mieszkania - wszystko, co inwestor chce wiedzieć.",
-  robots: { index: false, follow: false },
+  alternates: { canonical: "/zamyslow" },
 };
 
 export default async function ZamyslowPage() {

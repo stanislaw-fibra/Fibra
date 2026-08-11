@@ -59,7 +59,7 @@ export async function generateMetadata(
   return {
     title: `Mieszkanie ${unit.id} - ${unit.areaLabel.replace(".", ",")}, ${unit.rooms} ${roomsWord(unit.rooms)} | Osiedle Zamysłów`,
     description: `Mieszkanie ${unit.id} ${floorLocative(unit.floor)} - ${unit.areaLabel.replace(".", ",")}, ${unit.rooms} ${roomsWord(unit.rooms)}. Osiedle Zamysłów, Rybnik.`,
-    robots: { index: false, follow: false },
+    alternates: { canonical: `/zamyslow/mieszkania/${unit.id.toLowerCase()}` },
   };
 }
 
