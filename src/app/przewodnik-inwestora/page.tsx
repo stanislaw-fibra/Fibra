@@ -63,8 +63,9 @@ const MODEL_STEPS = [
   {
     n: "01",
     title: "Kup",
+    // Jak na /zamyslow: kuchnia i AGD to opcja do domówienia, nie część ceny.
     body:
-      "Kupujesz lokal z pełnym wykończeniem pod klucz - łazienka, kuchnia, AGD w cenie.",
+      "Kupujesz lokal wykończony, z gotową łazienką. Kuchnię i AGD możesz zamówić dodatkowo.",
   },
   {
     n: "02",

@@ -55,7 +55,9 @@ export const buildZamyslowAdvantages = (areaFromToLabel: string | null) => [
   },
   {
     title: "Standard, który skraca szukanie najemcy",
-    body: "Mieszkania oddajemy wykończone pod klucz, z łazienką, kuchnią i AGD w cenie. W standardzie klimatyzacja i rolety elektryczne, trzyszybowe okna oraz izolacja do 30 cm, więc najemca płaci niższe rachunki.",
+    // Kuchnia i AGD to opcja do domówienia, nie element ceny mieszkania -
+    // piszemy o nich jako o możliwości, nigdy jako o czymś „w cenie".
+    body: "Mieszkania oddajemy wykończone, z gotową łazienką. W standardzie klimatyzacja, rolety elektryczne, trzyszybowe okna oraz izolacja do 30 cm, więc najemca płaci niższe rachunki. Kuchnię i AGD możesz zamówić dodatkowo.",
   },
   {
     // Bez wzmianki o miejscach postojowych: klient potwierdził, że nie są
