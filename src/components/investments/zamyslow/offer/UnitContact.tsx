@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { submitLead } from "@/lib/leads-client";
 import { useFormGuards, GUARD_NOT_READY_MESSAGE } from "@/components/forms/FormGuards";
 import { ZAMYSLOW_PHONE } from "@/lib/investments/zamyslow-data";
+import {
+  KITCHEN_CONTACT_HASH,
+  KITCHEN_MESSAGE_PREFILL,
+} from "@/lib/investments/zamyslow-kitchen";
 import {
   ZamyslowAgentChip,
   type ZamyslowAgentInfo,
@@ -31,13 +35,31 @@ export function UnitContact({
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
   const { guards, getGuardData, ready } = useFormGuards();
+
+  // „Zapytaj o kuchnię" (panel z opcją dodatkową) prowadzi tu hashem, więc
+  // wiadomość jest już napisana - wystarczy zostawić imię i numer. Tego, co
+  // użytkownik zdążył wpisać sam, nie nadpisujemy.
+  useEffect(() => {
+    const applyFromHash = () => {
+      const h = window.location.hash.replace(/^#/, "").toLowerCase();
+      if (h !== KITCHEN_CONTACT_HASH) return;
+      setMessage((m) => (m.trim().length ? m : KITCHEN_MESSAGE_PREFILL));
+    };
+    applyFromHash();
+    window.addEventListener("hashchange", applyFromHash);
+    return () => window.removeEventListener("hashchange", applyFromHash);
+  }, []);
 
   return (
     <section
       id="kontakt"
       className="relative scroll-mt-[72px] overflow-hidden bg-ink-950 py-20 text-ink-100 md:py-28"
     >
+      {/* Kotwica dla linku „Zapytaj o kuchnię" - sekcja ma już własne id,
+          a ten hash dodatkowo wypełnia wiadomość w formularzu. */}
+      <span id={KITCHEN_CONTACT_HASH} className="absolute left-0 top-0 scroll-mt-[72px]" aria-hidden />
       <div className="absolute inset-0 grad-radial-brand opacity-70" />
       <div className="container-xl relative">
         <div className="grid items-start gap-12 lg:grid-cols-12 lg:gap-20">
@@ -175,6 +197,8 @@ export function UnitContact({
                       <textarea
                         name="message"
                         rows={3}
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
                         placeholder={`Np. pytanie o termin odbioru albo rezerwację ${unitId}.`}
                         className="mt-2 w-full resize-none rounded-[var(--radius-sm)] border border-ink-200 bg-ink-50 px-4 py-3 text-[14px] outline-none transition-colors focus:border-brand-500 focus:bg-white"
                       />

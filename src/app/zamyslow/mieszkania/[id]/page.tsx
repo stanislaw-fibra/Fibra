@@ -10,6 +10,7 @@ import { RentalsGallery } from "@/components/rentals/RentalsGallery";
 import { UnitFloorPlanCard } from "@/components/investments/zamyslow/offer/UnitFloorPlanCard";
 import { UnitLayout } from "@/components/investments/zamyslow/offer/UnitLayout";
 import { UnitPlanViewer } from "@/components/investments/zamyslow/offer/UnitPlanViewer";
+import { UnitKitchenOffer } from "@/components/investments/zamyslow/offer/UnitKitchenOffer";
 import { UnitContact } from "@/components/investments/zamyslow/offer/UnitContact";
 import { UnitStickyBar } from "@/components/investments/zamyslow/offer/UnitStickyBar";
 import { AgentAvatar } from "@/components/offers/AgentAvatar";
@@ -24,6 +25,7 @@ import {
   type ZamyslowUnitListing,
   type UnitAvailability,
 } from "@/lib/investments/zamyslow-units";
+import { kitchenPriceDigits } from "@/lib/investments/zamyslow-kitchen";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Strona oferty pojedynczego mieszkania (36 lokali, wspólny szablon).
@@ -98,6 +100,11 @@ export default async function UnitPage(
       ? cardPdfHref
       : null;
   const status = STATUS_STYLES[unit.availability];
+
+  // Kuchnia na wymiar: opcja dodatkowa przy każdej ofercie. Przy sprzedanym
+  // lokalu nie ma czego zamawiać, więc panel wypada razem z resztą CTA.
+  const kitchenPrice =
+    unit.availability === "sold" ? null : unit.kitchenPrice;
 
   // Karta lokalu - tylko pola, które faktycznie mają wartość w arkuszu.
   const facts: { label: string; value: string }[] = [
@@ -221,11 +228,38 @@ export default async function UnitPage(
                       </a>
                     </div>
 
+                    {/* Kuchnia jest opcją, nie częścią ceny - dlatego pod ceną
+                        stoi tylko sygnał z kwotą i link do panelu niżej. */}
+                    {kitchenPrice ? (
+                      <a
+                        href="#kuchnia"
+                        className="group mt-6 inline-flex items-center gap-2.5 rounded-full border border-ink-950/12 bg-white/70 py-2 pl-4 pr-3.5 text-[13px] text-ink-600 transition-colors hover:border-brand-400 hover:text-ink-950"
+                      >
+                        <span>
+                          Kuchnia z zabudową i AGD{" "}
+                          <span className="font-medium tabular-nums text-ink-900">
+                            +{kitchenPriceDigits(kitchenPrice)} zł
+                          </span>{" "}
+                          <span className="text-ink-400">jako opcja</span>
+                        </span>
+                        <svg
+                          className="text-ink-400 transition-transform duration-300 group-hover:translate-y-0.5"
+                          width="13"
+                          height="13"
+                          viewBox="0 0 14 14"
+                          fill="none"
+                          aria-hidden
+                        >
+                          <path d="M7 3v8M3.8 7.8 7 11l3.2-3.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </a>
+                    ) : null}
+
                     {cardPdf ? (
                       <a
                         href={cardPdf}
                         download={`karta-lokalu-${unit.id.toLowerCase()}.pdf`}
-                        className="mt-5 inline-flex items-center gap-2 text-[13.5px] font-medium text-ink-500 transition-colors hover:text-ink-950"
+                        className="mt-5 flex w-fit items-center gap-2 text-[13.5px] font-medium text-ink-500 transition-colors hover:text-ink-950"
                       >
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                           <path d="M7 2v7M3.8 6.2 7 9.4l3.2-3.2M2.5 12h9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -362,6 +396,13 @@ export default async function UnitPage(
             </div>
           </div>
         </section>
+
+        {/* ── Kuchnia na wymiar (opcja dodatkowa) ──────────────────────────
+            Siada zaraz pod rozkładem: kupujący dopiero co zobaczył salon
+            z aneksem, więc to moment, w którym pytanie „a kuchnia?" pada samo. */}
+        {kitchenPrice ? (
+          <UnitKitchenOffer unitId={unit.id} price={kitchenPrice} agent={agent} />
+        ) : null}
 
         {/* ── Galeria ──────────────────────────────────────────────────── */}
         <section className="border-t border-ink-950/8 bg-paper py-16 md:py-24">

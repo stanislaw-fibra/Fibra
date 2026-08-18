@@ -1,5 +1,7 @@
 import "server-only";
 
+import { zamyslowKitchenPrice } from "./zamyslow-kitchen";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Mieszkania nowej inwestycji Zamysłów (Etap II, budynek 128G) - 36 lokali.
 //
@@ -51,6 +53,12 @@ export interface ZamyslowUnitListing {
   parkingSpot: string;
   parkingPrice: number | null;
   storageRoom: string;
+  /**
+   * Cena kuchni na wymiar (opcja dodatkowa, poza ceną mieszkania).
+   * Z arkusza, gdy jest kolumna „Cena kuchni"; inaczej z tabeli Arka
+   * w `zamyslow-kitchen.ts`. `null` = nie pokazujemy oferty kuchni.
+   */
+  kitchenPrice: number | null;
   /** Linki do materiałów (uzupełniane w arkuszu, gdy będą gotowe). */
   links: { floorPlanPdf: string; visualization: string; tour3d: string };
   updatedAt: string;
@@ -185,6 +193,9 @@ export async function getZamyslowUnits(): Promise<ZamyslowUnitsListing | null> {
     parking: col("miejsce postojowe"),
     parkingPrice: colLike("cena miejsca"),
     storage: col("komórka lokatorska"),
+    // Kolumny jeszcze nie ma w arkuszu - gdy Arek ją doda („Cena kuchni"),
+    // przejmie pierwszeństwo nad tabelą w zamyslow-kitchen.ts.
+    kitchenPrice: colLike("cena kuchni"),
     publish: colLike("publikować"),
     linkPlan: colLike("link – rzut"),
     linkViz: colLike("link – wizualizacja"),
@@ -257,6 +268,7 @@ export async function getZamyslowUnits(): Promise<ZamyslowUnitsListing | null> {
       parkingSpot: get(row, c.parking),
       parkingPrice: toPrice(get(row, c.parkingPrice)),
       storageRoom: get(row, c.storage),
+      kitchenPrice: toPrice(get(row, c.kitchenPrice)) ?? zamyslowKitchenPrice(id),
       links: {
         floorPlanPdf: get(row, c.linkPlan),
         visualization: get(row, c.linkViz),
