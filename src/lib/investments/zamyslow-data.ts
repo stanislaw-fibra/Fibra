@@ -1,10 +1,12 @@
-export type UnitStatus = "Dostępne" | "Rezerwacja" | "Sprzedane";
+import { AREK_ROLE } from "@/lib/team-roles";
 
+// Statusu lokalu NIE ma w tym pliku - „Dostępne"/„Zarezerwowane"/„Sprzedane"
+// leci wyłącznie z arkusza Arka (`getZamyslowUnitStatuses`). Wpisany na sztywno
+// status potrafił twierdzić, że zarezerwowane mieszkanie jest wolne.
 export type ZamyslowUnit = {
   id: string;
   areaM2: number;
   rooms: number;
-  status: UnitStatus;
 };
 
 export type FloorPolygons = {
@@ -28,7 +30,6 @@ export type FloorPlanUnit = {
   href?: string;
   areaM2: number;
   rooms: number;
-  status: UnitStatus;
   roomsList: FloorPlanRoom[];
   label: { x: number; y: number };
 };
@@ -111,7 +112,7 @@ export const ZAMYSLOW_PHONE = {
  */
 export const ZAMYSLOW_AGENT_FALLBACK = {
   name: "Arkadiusz Jezusek",
-  role: "Agent Nieruchomości | Specjalista ds. Inwestycji",
+  role: AREK_ROLE,
   photoUrl:
     "https://yrkvochsziertbvzbnol.supabase.co/storage/v1/object/public/agent-photos/Arkadiusz%20Jezusek.png",
 } as const;
@@ -162,7 +163,6 @@ function buildFloorData(floorIndex: number, slots: PlanSlot[]) {
     id: `M${base + i + 1}`,
     areaM2: s.area,
     rooms: s.rooms,
-    status: "Dostępne",
   }));
   return { units };
 }
@@ -255,7 +255,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M502.2 87.7L502.2 175.7L559.2 175.7L559.2 200.7L559.2 230.7L703.2 230.7L703.2 87.7Z",
             areaM2: 31.12,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 584.1, y: 169.8 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 20.23 },
@@ -269,7 +268,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M620.2 237.7L620.2 325.7L723.2 325.7L723.2 410.7L816.2 410.7L816.2 87.7L710.2 87.7L710.2 237.7Z",
             areaM2: 49.15,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 717.4, y: 265.4 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 27.04 },
@@ -284,7 +282,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M501.2 278.7L501.2 411.7L717.2 411.7L717.2 331.7L613.2 331.7L613.2 278.7Z",
             areaM2: 27.44,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 610.5, y: 340.7 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 16.4 },
@@ -298,7 +295,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M223.2 288.7L223.2 411.7L413.2 411.7L413.2 279.7L318.2 279.7L318.2 288.7Z",
             areaM2: 28.69,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 318.2, y: 326.7 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 17.4 },
@@ -312,7 +308,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M88.2 87.7L88.2 411.7L218.2 411.7L218.2 283.7L313.2 283.7L313.2 236.7L218.2 236.7L218.2 87.7Z",
             areaM2: 55.42,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 209.5, y: 255 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 27.82 },
@@ -327,7 +322,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M224.2 87.7L224.2 231.7L412.2 231.7L412.2 99.7L413.2 99.7L413.2 87.7Z",
             areaM2: 32.34,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 349.9, y: 139.7 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 18.47 },
@@ -348,12 +342,12 @@ export const zamyslowData: ZamyslowData = {
           "M1519 1116.5L2236 978L2234.5 1061.5L2083 1106L1800 1187.5L1659.5 1220L1519 1259.5L1519 1116.5Z",
       },
       units: [
-        { id: "M7", areaM2: 31.12, rooms: 2, status: "Dostępne" },
-        { id: "M8", areaM2: 49.15, rooms: 3, status: "Dostępne" },
-        { id: "M9", areaM2: 27.44, rooms: 2, status: "Dostępne" },
-        { id: "M10", areaM2: 28.52, rooms: 2, status: "Dostępne" },
-        { id: "M11", areaM2: 55.33, rooms: 3, status: "Dostępne" },
-        { id: "M12", areaM2: 40.8, rooms: 3, status: "Dostępne" },
+        { id: "M7", areaM2: 31.12, rooms: 2 },
+        { id: "M8", areaM2: 49.15, rooms: 3 },
+        { id: "M9", areaM2: 27.44, rooms: 2 },
+        { id: "M10", areaM2: 28.52, rooms: 2 },
+        { id: "M11", areaM2: 55.33, rooms: 3 },
+        { id: "M12", areaM2: 40.8, rooms: 3 },
       ],
       // Interaktywny rzut 1. piętra. Obraz: eksport z Illustratora nowej architektury
       // (13.07.2026, bez numerów/tekstów), obrócony -90° i wpasowany w ramkę z zapasem,
@@ -372,7 +366,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M460.2 47.2L460.2 135.2L517.2 135.2L517.2 159.2L517.2 190.2L662.2 190.2L662.2 47.2Z",
             areaM2: 31.12,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 570.2, y: 113.2 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 20.23 },
@@ -386,7 +379,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M578.2 196.2L578.2 284.2L682.2 284.2L682.2 370.2L774.2 370.2L774.2 47.2L669.2 47.2L669.2 196.2Z",
             areaM2: 49.15,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 705.2, y: 213.2 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 27.04 },
@@ -401,7 +393,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M459.2 237.2L459.2 370.2L674.2 370.2L674.2 290.2L571.2 290.2L571.2 237.2Z",
             areaM2: 27.44,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 555.2, y: 314.2 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 16.4 },
@@ -415,7 +406,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M181.2 247.2L181.2 370.2L368.2 370.2L371.2 238.2L277.2 238.2L277.2 247.2Z",
             areaM2: 28.52,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 278.2, y: 307.2 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 17.23 },
@@ -429,7 +419,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M46.2 46.2L46.2 371.2L176.2 371.2L176.2 242.2L271.2 242.2L271.2 196.2L176.2 196.2L176.2 46.2Z",
             areaM2: 55.33,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 121.2, y: 209.2 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 27.82 },
@@ -444,7 +433,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M181.2 46.2L181.2 191.2L371.2 191.2L371.2 134.2L454.2 134.2L454.2 46.2Z",
             areaM2: 40.8,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 305.2, y: 113.2 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 19.14 },
@@ -476,7 +464,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M460.2 47.2L460.2 134.2L516.2 134.2L516.2 159.2L516.2 189.2L662.2 189.2L662.2 47.2Z",
             areaM2: 31.03,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 541.9, y: 128.6 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 20.14 },
@@ -490,7 +477,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M577.2 196.2L577.2 284.2L682.2 284.2L682.2 370.2L774.2 370.2L774.2 47.2L668.2 47.2L668.2 196.2Z",
             areaM2: 48.97,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 675.4, y: 224.5 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 27.04 },
@@ -505,7 +491,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M460.2 238.2L460.2 370.2L675.2 370.2L675.2 291.2L571.2 291.2L571.2 238.2Z",
             areaM2: 27.44,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 568.9, y: 299.9 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 16.4 },
@@ -519,7 +504,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M182.2 247.2L182.2 370.2L368.2 370.2L371.2 238.2L312.2 238.2L312.2 247.2Z",
             areaM2: 28.43,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 288, y: 285.2 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 17.14 },
@@ -533,7 +517,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M46.2 47.2L46.2 371.2L176.2 371.2L176.2 242.2L271.2 242.2L271.2 196.2L176.2 196.2L176.2 47.2Z",
             areaM2: 55.24,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 167.5, y: 214.2 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 27.82 },
@@ -548,7 +531,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M181.2 47.2L181.2 190.2L371.2 190.2L371.2 134.2L454.2 134.2L454.2 47.2Z",
             areaM2: 40.6,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 335.5, y: 123.9 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 19.14 },
@@ -581,7 +563,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M460.0 47.2L460.0 135.2L516.0 135.2L516.0 159.2L516.0 190.2L661.0 190.2L661.0 47.2Z",
             areaM2: 31.03,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 541.4, y: 129.2 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 20.14 },
@@ -595,7 +576,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M577.0 196.2L577.0 284.2L682.0 284.2L682.0 369.2L774.0 369.2L774.0 47.2L668.0 47.2L668.0 196.2Z",
             areaM2: 48.71,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 675.3, y: 224.2 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 27.04 },
@@ -610,7 +590,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M459.0 238.2L459.0 370.2L675.0 370.2L675.0 290.2L571.0 290.2L571.0 238.2Z",
             areaM2: 27.18,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 568.3, y: 299.5 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 16.14 },
@@ -624,7 +603,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M182.0 248.2L182.0 370.2L368.0 370.2L372.0 238.2L319.0 238.2L319.0 248.2Z",
             areaM2: 28.26,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 290.3, y: 285.5 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 16.97 },
@@ -638,7 +616,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M46.0 46.2L46.0 370.2L176.0 370.2L176.0 242.2L271.0 242.2L271.0 196.2L176.0 196.2L176.0 46.2Z",
             areaM2: 55.15,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 167.3, y: 213.7 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 27.82 },
@@ -653,7 +630,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M182.0 46.2L182.0 190.2L370.0 190.2L370.0 134.2L454.0 134.2L454.0 46.2Z",
             areaM2: 40.6,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 335.3, y: 123.5 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 19.14 },
@@ -686,7 +662,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M460.0 47.2L460.0 135.2L516.0 135.2L516.0 159.2L516.0 190.2L662.0 190.2L662.0 47.2Z",
             areaM2: 30.94,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 541.7, y: 129.2 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 20.05 },
@@ -700,7 +675,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M577.0 196.2L577.0 284.2L682.0 284.2L682.0 370.2L774.0 370.2L774.0 47.2L668.0 47.2L668.0 196.2Z",
             areaM2: 48.53,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 675.3, y: 224.5 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 27.04 },
@@ -715,7 +689,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M460.0 238.2L460.0 370.2L675.0 370.2L675.0 290.2L571.0 290.2L571.0 238.2Z",
             areaM2: 27.18,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 568.7, y: 299.5 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 16.14 },
@@ -729,7 +702,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M182.0 247.2L182.0 370.2L368.0 370.2L372.0 238.2L319.0 238.2L319.0 247.2Z",
             areaM2: 28.17,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 290.3, y: 285.2 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 16.88 },
@@ -743,7 +715,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M46.0 46.2L46.0 370.2L176.0 370.2L176.0 242.2L271.0 242.2L271.0 196.2L176.0 196.2L176.0 46.2Z",
             areaM2: 55.06,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 167.3, y: 213.7 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 27.82 },
@@ -758,7 +729,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M181.0 46.2L181.0 190.2L370.0 190.2L370.0 134.2L453.0 134.2L453.0 46.2Z",
             areaM2: 40.42,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 334.7, y: 123.5 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 19.14 },
@@ -791,7 +761,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M460.0 47.2L460.0 134.2L516.0 134.2L516.0 159.2L516.0 190.2L661.0 190.2L661.0 47.2Z",
             areaM2: 30.94,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 541.4, y: 128.9 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 20.05 },
@@ -805,7 +774,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M577.0 196.2L577.0 284.2L682.0 284.2L682.0 369.2L774.0 369.2L774.0 47.2L668.0 47.2L668.0 196.2Z",
             areaM2: 48.53,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 675.3, y: 224.2 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 27.04 },
@@ -820,7 +788,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M459.0 238.2L459.0 370.2L675.0 370.2L675.0 290.2L571.0 290.2L571.0 238.2Z",
             areaM2: 27.18,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 568.3, y: 299.5 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 16.14 },
@@ -834,7 +801,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M181.0 248.2L181.0 370.2L368.0 370.2L372.0 238.2L319.0 238.2L319.0 248.2Z",
             areaM2: 28.17,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 290, y: 285.5 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 16.88 },
@@ -848,7 +814,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M46.0 46.2L46.0 370.2L176.0 370.2L176.0 242.2L271.0 242.2L271.0 196.2L176.0 196.2L176.0 46.2Z",
             areaM2: 54.97,
             rooms: 3,
-            status: "Dostępne",
             label: { x: 167.3, y: 213.7 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 27.82 },
@@ -863,7 +828,6 @@ export const zamyslowData: ZamyslowData = {
             d: "M182.0 46.2L182.0 190.2L371.0 190.2L371.0 56.2L371.0 56.2L371.0 46.2Z",
             areaM2: 32.16,
             rooms: 2,
-            status: "Dostępne",
             label: { x: 308, y: 97.5 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 19.14 },

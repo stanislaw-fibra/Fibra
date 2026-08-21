@@ -1,6 +1,12 @@
 import "server-only";
 
 import { zamyslowKitchenPrice } from "./zamyslow-kitchen";
+import {
+  AVAILABILITY_LABEL,
+  availabilityFromLabel,
+  type UnitAvailability,
+  type UnitStatusMap,
+} from "./zamyslow-status";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mieszkania nowej inwestycji Zamysłów (Etap II, budynek 128G) - 36 lokali.
@@ -17,7 +23,7 @@ import { zamyslowKitchenPrice } from "./zamyslow-kitchen";
 //   C) publikujemy tylko wiersze z „Publikować na stronie" = TAK.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type UnitAvailability = "available" | "reserved" | "sold";
+export type { UnitAvailability } from "./zamyslow-status";
 
 export interface ZamyslowUnitListing {
   /** „M1"…„M36" - klucz i slug (małymi literami w URL). */
@@ -44,7 +50,12 @@ export interface ZamyslowUnitListing {
   outdoorArea: string;
   exposure: string;
   availability: UnitAvailability;
-  /** Etykieta statusu z arkusza, np. „Dostępne". */
+  /**
+   * Etykieta statusu do wyświetlenia - JEDNO brzmienie na całej stronie
+   * („Dostępne" / „Zarezerwowane" / „Sprzedane"), niezależnie od tego, jak
+   * dany stan zapisał w arkuszu Arek. Surowy zapis służy tylko do rozpoznania
+   * stanu (`availabilityFromLabel`) i nie trafia na stronę.
+   */
   statusLabel: string;
   /** Cena w zł (null = cena na zapytanie). */
   price: number | null;
@@ -220,11 +231,8 @@ export async function getZamyslowUnits(): Promise<ZamyslowUnitsListing | null> {
     const publish = norm(get(row, c.publish));
     if (c.publish !== -1 && publish !== "tak") continue;
 
-    const statusLabel = get(row, c.status) || "Dostępne";
-    let availability: UnitAvailability;
-    if (/sprzeda/i.test(statusLabel)) availability = "sold";
-    else if (/rezerw|umowa/i.test(statusLabel)) availability = "reserved";
-    else availability = "available";
+    const availability = availabilityFromLabel(get(row, c.status));
+    const statusLabel = AVAILABILITY_LABEL[availability];
 
     const floor = Math.max(0, Math.min(5, Math.round(toNumber(get(row, c.floor)))));
     const areaM2 = toNumber(get(row, c.area));
@@ -333,9 +341,19 @@ export function getZamyslowUnitsSummaryFrom(
   listing: ZamyslowUnitsListing,
 ): ZamyslowUnitsSummary {
   const areas = listing.units.map((u) => u.areaM2).filter((a) => a > 0);
-  const prices = listing.units
-    .map((u) => u.price)
+
+  // Widełki ceny liczymy z lokali, które REALNIE można kupić - inaczej strona
+  // obiecywałaby „od 296 tys.", gdy najtańsze mieszkanie jest już zarezerwowane.
+  // Metraże zostają ze wszystkich lokali: to opis budynku, a nie obietnica ceny.
+  const priceOf = (u: ZamyslowUnitListing) => u.price;
+  const availablePrices = listing.units
+    .filter((u) => u.availability === "available")
+    .map(priceOf)
     .filter((p): p is number => typeof p === "number" && p > 0);
+  const allPrices = listing.units
+    .map(priceOf)
+    .filter((p): p is number => typeof p === "number" && p > 0);
+  const prices = availablePrices.length ? availablePrices : allPrices;
 
   const areaMin = areas.length ? plNumber(Math.floor(Math.min(...areas))) : "";
   const areaMax = areas.length ? plNumber(Math.ceil(Math.max(...areas) * 2) / 2) : "";
@@ -361,4 +379,33 @@ export function getZamyslowUnitsSummaryFrom(
 export async function getZamyslowUnitsSummary(): Promise<ZamyslowUnitsSummary | null> {
   const listing = await getZamyslowUnits();
   return listing ? getZamyslowUnitsSummaryFrom(listing) : null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Statusy dla komponentów klienckich (interaktywny rzut piętra, lista mieszkań).
+//
+// Interaktywny eksplorator jest komponentem klienckim i ma własny, statyczny
+// opis budynku (obrazy rzutów + strefy). Statusu i ceny NIE trzymamy już tam na
+// sztywno - jedno i drugie leci z arkusza tą mapą. Gdy arkusz nie odpowie,
+// zwracamy pustą mapę: strona pokaże rzut bez statusów zamiast wypisać
+// wszystkim „Dostępne" (dokładnie ten błąd zgłosił klient).
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Mapa „M4" → { availability, priceLabel }. Cena jest już sformatowana, a przy
+ * rezerwacji/sprzedaży wynosi `null` - kwota nie opuszcza serwera, więc nie da
+ * się jej odczytać z HTML-a strony.
+ */
+export async function getZamyslowUnitStatuses(): Promise<UnitStatusMap> {
+  const listing = await getZamyslowUnits();
+  if (!listing) return {};
+  const map: UnitStatusMap = {};
+  for (const u of listing.units) {
+    map[u.id] = {
+      availability: u.availability,
+      priceLabel:
+        u.availability === "available" && u.price ? formatPln(u.price) : null,
+    };
+  }
+  return map;
 }

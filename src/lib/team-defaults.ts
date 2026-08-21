@@ -13,6 +13,10 @@
  * agenta nie pasuje do żadnego klucza - wracamy do tego, co jest w DB (puste lub nie).
  */
 
+import { AREK_ROLE } from "./team-roles";
+
+export { AREK_ROLE };
+
 export type TeamDefaults = {
   role: string;
   bio: string;
@@ -53,7 +57,7 @@ const DEFAULTS: Record<string, TeamDefaults> = {
     order: 10,
   },
   "arkadiusz jezusek": {
-    role: "Agent Nieruchomości | Specjalista ds. Inwestycji",
+    role: AREK_ROLE,
     bio: AREK_BIO,
     isVisible: true,
     order: 20,

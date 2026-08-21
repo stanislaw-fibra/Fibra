@@ -14,22 +14,14 @@ import {
 import {
   buildingViewBox,
   zamyslowData,
-  type UnitStatus,
   type ZamyslowFloor,
 } from "@/lib/investments/zamyslow-data";
+import {
+  AVAILABILITY_LABEL,
+  AVAILABILITY_STYLE,
+  type UnitStatusMap,
+} from "@/lib/investments/zamyslow-status";
 import { FloorPlanView } from "./FloorPlanView";
-
-const statusStyles: Record<UnitStatus, string> = {
-  Dostępne: "bg-emerald-50 text-emerald-700",
-  Rezerwacja: "bg-amber-50 text-amber-700",
-  Sprzedane: "bg-ink-100 text-ink-500",
-};
-
-const statusDot: Record<UnitStatus, string> = {
-  Dostępne: "bg-emerald-500",
-  Rezerwacja: "bg-amber-500",
-  Sprzedane: "bg-ink-400",
-};
 
 const formatArea = (value: number) => `${String(value).replace(".", ",")} m²`;
 
@@ -70,7 +62,7 @@ const titleItem: Variants = {
   },
 };
 
-export function ZamyslowBuilding() {
+export function ZamyslowBuilding({ statuses }: { statuses: UnitStatusMap }) {
   const floors = zamyslowData.floors;
   const floorsTopDown = useMemo(() => [...floors].reverse(), [floors]);
   const centers = useMemo(
@@ -322,6 +314,7 @@ export function ZamyslowBuilding() {
                 onSelect={selectFloor}
                 building={zamyslowData.images.building}
                 onBack={clearSelection}
+                statuses={statuses}
               />
             )}
           </AnimatePresence>
@@ -476,6 +469,13 @@ export function ZamyslowBuilding() {
                             );
                             const expandable = Boolean(plan?.roomsList?.length);
                             const isOpen = expandedUnit === unit.id;
+                            // Status i cena wyłącznie z arkusza. Brak wpisu =
+                            // arkusz nie odpowiedział; wtedy nie pokazujemy nic,
+                            // zamiast zgadywać „Dostępne".
+                            const status = statuses[unit.id] ?? null;
+                            const style = status
+                              ? AVAILABILITY_STYLE[status.availability]
+                              : null;
                             return (
                               <li key={unit.id}>
                                 <button
@@ -505,17 +505,24 @@ export function ZamyslowBuilding() {
                                       {unit.rooms === 1 ? "pokój" : "pokoje"}
                                     </span>
                                   </span>
-                                  <span
-                                    className={[
-                                      "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold",
-                                      statusStyles[unit.status],
-                                    ].join(" ")}
-                                  >
+                                  {/* Cena znika, gdy lokal jest zajęty - w jej
+                                      miejsce zostaje sam status. */}
+                                  {status?.priceLabel ? (
+                                    <span className="hidden shrink-0 whitespace-nowrap text-[14px] font-medium tabular-nums text-ink-900 sm:inline">
+                                      {status.priceLabel}
+                                    </span>
+                                  ) : null}
+                                  {status && style ? (
                                     <span
-                                      className={`h-1.5 w-1.5 rounded-full ${statusDot[unit.status]}`}
-                                    />
-                                    {unit.status}
-                                  </span>
+                                      className={[
+                                        "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold",
+                                        style.chip,
+                                      ].join(" ")}
+                                    >
+                                      <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+                                      {AVAILABILITY_LABEL[status.availability]}
+                                    </span>
+                                  ) : null}
                                   {expandable && (
                                     <svg
                                       width="16"

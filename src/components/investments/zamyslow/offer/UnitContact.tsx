@@ -13,6 +13,10 @@ import {
   ZamyslowAgentChip,
   type ZamyslowAgentInfo,
 } from "@/components/investments/zamyslow/ZamyslowAgentChip";
+import {
+  isAvailable,
+  type UnitAvailability,
+} from "@/lib/investments/zamyslow-status";
 
 /**
  * Sekcja kontaktowa strony oferty. Ten sam pipeline leadów co reszta
@@ -23,15 +27,17 @@ export function UnitContact({
   unitId,
   areaLabel,
   floorLabel,
-  sold,
+  availability,
   agent,
 }: {
   unitId: string;
   areaLabel: string;
   floorLabel: string;
-  sold: boolean;
+  availability: UnitAvailability;
   agent?: ZamyslowAgentInfo | null;
 }) {
+  const forSale = isAvailable(availability);
+  const reserved = availability === "reserved";
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,25 +72,32 @@ export function UnitContact({
           <div className="lg:col-span-5">
             <p className="eyebrow eyebrow-on-dark mb-8 flex items-center gap-3">
               <span className="inline-block h-px w-8 bg-accent-400" />
-              {sold ? "Porozmawiajmy" : `Mieszkanie ${unitId}`}
+              {forSale ? `Mieszkanie ${unitId}` : "Porozmawiajmy"}
             </p>
             <h2 className="font-display fluid-display max-w-[16ch] text-white">
-              {sold ? (
-                <>
-                  To mieszkanie znalazło już{" "}
-                  <em className="italic text-accent-400">właściciela.</em>
-                </>
-              ) : (
+              {forSale ? (
                 <>
                   Zapytaj o to{" "}
                   <em className="italic text-accent-400">mieszkanie.</em>
                 </>
+              ) : reserved ? (
+                <>
+                  To mieszkanie jest{" "}
+                  <em className="italic text-accent-400">zarezerwowane.</em>
+                </>
+              ) : (
+                <>
+                  To mieszkanie znalazło już{" "}
+                  <em className="italic text-accent-400">właściciela.</em>
+                </>
               )}
             </h2>
             <p className="mt-6 max-w-[44ch] text-[16px] leading-relaxed text-white/60">
-              {sold
-                ? "Zostaw kontakt, a pokażemy dostępne mieszkania o zbliżonym układzie i metrażu."
-                : `${unitId} · ${floorLabel} · ${areaLabel.replace(".", ",")}. Zostaw numer - oddzwonimy i odpowiemy na pytania o to mieszkanie.`}
+              {forSale
+                ? `${unitId} · ${floorLabel} · ${areaLabel.replace(".", ",")}. Zostaw numer - oddzwonimy i odpowiemy na pytania o to mieszkanie.`
+                : reserved
+                  ? `${unitId} · ${floorLabel} · ${areaLabel.replace(".", ",")}. Zostaw numer - pokażemy dostępne mieszkania o zbliżonym układzie i metrażu.`
+                  : "Zostaw kontakt, a pokażemy dostępne mieszkania o zbliżonym układzie i metrażu."}
             </p>
 
             {/* Co się stanie po wysłaniu - zdjęcie obaw przed pierwszym krokiem.
@@ -94,7 +107,9 @@ export function UnitContact({
               {[
                 "Oddzwaniamy zwykle w kilka godzin w dni robocze",
                 "Rozmowa bez zobowiązań - pytasz, sprawdzasz, decydujesz",
-                "Wybrane mieszkanie możemy zarezerwować dla Ciebie na 48 godzin",
+                forSale
+                  ? "Wybrane mieszkanie możemy zarezerwować dla Ciebie na 48 godzin"
+                  : "Podpowiemy, które z dostępnych mieszkań ma najbardziej zbliżony układ",
               ].map((t) => (
                 <li key={t} className="flex items-start gap-3">
                   <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-400/15 text-accent-400">
@@ -155,7 +170,9 @@ export function UnitContact({
                     phone,
                     email: email.length ? email : null,
                     // Kontekst mieszkania zawsze na początku wiadomości.
-                    message: `[Mieszkanie ${unitId}, ${floorLabel}, ${areaLabel}]${message.length ? ` ${message}` : ""}`,
+                    message: `[Mieszkanie ${unitId}, ${floorLabel}, ${areaLabel}${
+                      forSale ? "" : reserved ? ", ZAREZERWOWANE" : ", SPRZEDANE"
+                    }]${message.length ? ` ${message}` : ""}`,
                     ...getGuardData(),
                   });
                   setSent(true);
@@ -199,7 +216,11 @@ export function UnitContact({
                         rows={3}
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        placeholder={`Np. pytanie o termin odbioru albo rezerwację ${unitId}.`}
+                        placeholder={
+                          forSale
+                            ? `Np. pytanie o termin odbioru albo rezerwację ${unitId}.`
+                            : `Np. szukam czegoś o układzie zbliżonym do ${unitId}.`
+                        }
                         className="mt-2 w-full resize-none rounded-[var(--radius-sm)] border border-ink-200 bg-ink-50 px-4 py-3 text-[14px] outline-none transition-colors focus:border-brand-500 focus:bg-white"
                       />
                     </label>

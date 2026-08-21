@@ -1,3 +1,4 @@
+import { AREK_ROLE } from "@/lib/team-roles";
 import Link from "next/link";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
@@ -70,7 +71,7 @@ const FALLBACK_TEAM: TeamMember[] = [
   {
     id: "fallback-arek",
     name: "Arkadiusz Jezusek",
-    role: "Agent Nieruchomości | Specjalista ds. Inwestycji",
+    role: AREK_ROLE,
     bio:
       "Od 9 lat skutecznie łączę świat sprzedaży, najmu i inwestycji. Jako agent 360° nie tylko znajduję nieruchomości, ale pomagam zamieniać metry kwadratowe w realny, stabilny dochód dla moich klientów.\n\nNa Osiedlu Zamysłów odpowiadam za cały cykl życia nieruchomości: od doradztwa przy zakupie mieszkania, po jego późniejszy wynajem i pełną obsługę najemców. Wspieram inwestorów w budowaniu zyskownych portfeli, stawiając na relacje i umiejętność słuchania potrzeb. Moim celem jest Twój zysk i bezpieczeństwo – od kawalerek po hale i magazyny.\n\nZapraszam do współpracy.",
     phone: "881 431 800",

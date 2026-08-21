@@ -2,21 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { zamyslowData } from "@/lib/investments/zamyslow-data";
 import {
-  zamyslowData,
-  type UnitStatus,
-} from "@/lib/investments/zamyslow-data";
-
-const statusStyles: Record<UnitStatus, string> = {
-  Dostępne: "bg-emerald-50 text-emerald-700",
-  Rezerwacja: "bg-amber-50 text-amber-700",
-  Sprzedane: "bg-ink-100 text-ink-500",
-};
-const statusDot: Record<UnitStatus, string> = {
-  Dostępne: "bg-emerald-500",
-  Rezerwacja: "bg-amber-500",
-  Sprzedane: "bg-ink-400",
-};
+  AVAILABILITY_LABEL,
+  AVAILABILITY_STYLE,
+  type UnitAvailability,
+  type UnitStatusMap,
+} from "@/lib/investments/zamyslow-status";
 
 const formatArea = (v: number) => `${v.toFixed(2).replace(".", ",")} m²`;
 const roomsWord = (n: number) => (n === 1 ? "pokój" : n >= 2 && n <= 4 ? "pokoje" : "pokoi");
@@ -25,24 +17,29 @@ type Row = {
   id: string;
   areaM2: number;
   rooms: number;
-  status: UnitStatus;
+  /** null = arkusz nie odpowiedział; nie zgadujemy statusu. */
+  availability: UnitAvailability | null;
+  /** Cena tylko dla lokali w sprzedaży (serwer nie wysyła kwot zajętych). */
+  priceLabel: string | null;
   floorLabel: string;
   floorIndex: number;
   href?: string;
 };
 
 // Płaska lista mieszkań ze wszystkich pięter + link do oferty tam, gdzie jest gotowa.
-function buildRows(): Row[] {
+function buildRows(statuses: UnitStatusMap): Row[] {
   const rows: Row[] = [];
   zamyslowData.floors.forEach((floor, floorIndex) => {
     const planUnits = floor.floorPlan?.units ?? [];
     floor.units.forEach((u) => {
       const plan = planUnits.find((p) => p.id === u.id);
+      const status = statuses[u.id] ?? null;
       rows.push({
         id: u.id,
         areaM2: u.areaM2,
         rooms: u.rooms,
-        status: u.status,
+        availability: status?.availability ?? null,
+        priceLabel: status?.priceLabel ?? null,
         floorLabel: floor.label,
         floorIndex,
         href: plan?.href,
@@ -62,14 +59,24 @@ const SORTS: { value: SortKey; label: string }[] = [
   { value: "rooms-desc", label: "Pokoje: malejąco" },
 ];
 
-export function ZamyslowApartmentsList() {
+const GRID =
+  "grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.25fr)_auto]";
+
+export function ZamyslowApartmentsList({ statuses }: { statuses: UnitStatusMap }) {
   const [sort, setSort] = useState<SortKey>("floor");
   const [onlyAvailable, setOnlyAvailable] = useState(false);
 
-  const allRows = useMemo(buildRows, []);
+  const allRows = useMemo(() => buildRows(statuses), [statuses]);
+
+  // Filtr „Dostępne" ma sens tylko wtedy, gdy znamy statusy. Gdy arkusz nie
+  // odpowiedział, chowamy go zamiast pokazywać „Dostępne 0".
+  const hasStatuses = allRows.some((r) => r.availability !== null);
 
   const rows = useMemo(() => {
-    let r = onlyAvailable ? allRows.filter((x) => x.status === "Dostępne") : [...allRows];
+    const r =
+      onlyAvailable && hasStatuses
+        ? allRows.filter((x) => x.availability === "available")
+        : [...allRows];
     switch (sort) {
       case "area-asc":
         r.sort((a, b) => a.areaM2 - b.areaM2);
@@ -87,9 +94,9 @@ export function ZamyslowApartmentsList() {
         r.sort((a, b) => a.floorIndex - b.floorIndex);
     }
     return r;
-  }, [allRows, sort, onlyAvailable]);
+  }, [allRows, sort, onlyAvailable, hasStatuses]);
 
-  const availableCount = allRows.filter((r) => r.status === "Dostępne").length;
+  const availableCount = allRows.filter((r) => r.availability === "available").length;
 
   return (
     <section id="lista-mieszkan" className="scroll-mt-[80px] bg-paper-warm py-20 md:py-28">
@@ -110,34 +117,38 @@ export function ZamyslowApartmentsList() {
 
         {/* Pasek narzędzi: filtr + sortowanie */}
         <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="inline-flex rounded-full border border-ink-200 bg-white p-1 text-[13px]">
-            <button
-              type="button"
-              onClick={() => setOnlyAvailable(true)}
-              className={[
-                "rounded-full px-4 py-2 font-medium transition-colors",
-                onlyAvailable ? "bg-ink-900 text-white" : "text-ink-600 hover:text-ink-900",
-              ].join(" ")}
-            >
-              Dostępne
-              <span className={onlyAvailable ? "ml-1.5 text-white/55" : "ml-1.5 text-ink-400"}>
-                {availableCount}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setOnlyAvailable(false)}
-              className={[
-                "rounded-full px-4 py-2 font-medium transition-colors",
-                !onlyAvailable ? "bg-ink-900 text-white" : "text-ink-600 hover:text-ink-900",
-              ].join(" ")}
-            >
-              Wszystkie
-              <span className={!onlyAvailable ? "ml-1.5 text-white/55" : "ml-1.5 text-ink-400"}>
-                {allRows.length}
-              </span>
-            </button>
-          </div>
+          {hasStatuses ? (
+            <div className="inline-flex rounded-full border border-ink-200 bg-white p-1 text-[13px]">
+              <button
+                type="button"
+                onClick={() => setOnlyAvailable(true)}
+                className={[
+                  "rounded-full px-4 py-2 font-medium transition-colors",
+                  onlyAvailable ? "bg-ink-900 text-white" : "text-ink-600 hover:text-ink-900",
+                ].join(" ")}
+              >
+                Dostępne
+                <span className={onlyAvailable ? "ml-1.5 text-white/55" : "ml-1.5 text-ink-400"}>
+                  {availableCount}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setOnlyAvailable(false)}
+                className={[
+                  "rounded-full px-4 py-2 font-medium transition-colors",
+                  !onlyAvailable ? "bg-ink-900 text-white" : "text-ink-600 hover:text-ink-900",
+                ].join(" ")}
+              >
+                Wszystkie
+                <span className={!onlyAvailable ? "ml-1.5 text-white/55" : "ml-1.5 text-ink-400"}>
+                  {allRows.length}
+                </span>
+              </button>
+            </div>
+          ) : (
+            <span />
+          )}
 
           <label className="flex items-center gap-2.5 text-[13px] text-ink-500">
             <span className="hidden sm:inline">Sortuj:</span>
@@ -158,17 +169,20 @@ export function ZamyslowApartmentsList() {
         {/* Tabela / lista */}
         <div className="mt-6 overflow-hidden rounded-[var(--radius-lg)] border border-ink-200/80 bg-white shadow-[var(--shadow-card)]">
           {/* Nagłówek (desktop) */}
-          <div className="hidden grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.1fr)_auto] gap-4 border-b border-ink-200/70 bg-paper-warm/60 px-5 py-3 text-[11px] uppercase tracking-[0.1em] text-ink-400 md:grid">
+          <div
+            className={`hidden ${GRID} gap-4 border-b border-ink-200/70 bg-paper-warm/60 px-5 py-3 text-[11px] uppercase tracking-[0.1em] text-ink-400 md:grid`}
+          >
             <span>Mieszkanie</span>
             <span>Piętro</span>
             <span>Metraż</span>
             <span>Pokoje</span>
-            <span>Status</span>
+            <span>Cena</span>
             <span className="text-right">Oferta</span>
           </div>
 
           <ul className="divide-y divide-ink-200/70">
             {rows.map((r) => {
+              const taken = r.availability === "reserved" || r.availability === "sold";
               const inner = (
                 <>
                   {/* Mobile */}
@@ -179,16 +193,27 @@ export function ZamyslowApartmentsList() {
                       </span>
                       <span className="text-[12.5px] text-ink-500">{r.floorLabel}</span>
                     </div>
-                    <StatusPill status={r.status} />
+                    <StatusPill availability={r.availability} />
                   </div>
                   <div className="mt-1.5 flex items-center justify-between gap-3 md:hidden">
                     <span className="text-[14px] text-ink-600">
                       <span className="font-medium text-ink-900">{formatArea(r.areaM2)}</span>
                       <span className="text-ink-400"> · {r.rooms} {roomsWord(r.rooms)}</span>
                     </span>
+                    {/* Status stoi już wyżej w wierszu - tu zostaje sama cena
+                        (albo nic, gdy lokalu nie da się kupić). */}
+                    {r.priceLabel ? (
+                      <span className="text-[14px] font-semibold tabular-nums text-ink-950">
+                        {r.priceLabel}
+                      </span>
+                    ) : !r.availability || r.availability === "available" ? (
+                      <span className="text-[13px] text-ink-400">Cena na zapytanie</span>
+                    ) : null}
+                  </div>
+                  <div className="mt-1 flex justify-end md:hidden">
                     {r.href ? (
                       <span className="inline-flex items-center gap-1 text-[13px] font-medium text-brand-600">
-                        Zobacz
+                        {taken ? "Zobacz szczegóły" : "Zobacz ofertę"}
                         <Arrow />
                       </span>
                     ) : (
@@ -197,7 +222,7 @@ export function ZamyslowApartmentsList() {
                   </div>
 
                   {/* Desktop */}
-                  <div className="hidden grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.1fr)_auto] items-center gap-4 md:grid">
+                  <div className={`hidden ${GRID} items-center gap-4 md:grid`}>
                     <span className="font-sans text-[16px] font-bold tabular-nums tracking-tight text-ink-950">
                       {r.id}
                     </span>
@@ -208,7 +233,7 @@ export function ZamyslowApartmentsList() {
                     <span className="text-[14px] text-ink-600">
                       {r.rooms} {roomsWord(r.rooms)}
                     </span>
-                    <StatusPill status={r.status} />
+                    <PriceCell priceLabel={r.priceLabel} availability={r.availability} />
                     <span className="text-right text-[13px] font-medium">
                       {r.href ? (
                         <span className="inline-flex items-center gap-1 text-brand-600">
@@ -228,7 +253,10 @@ export function ZamyslowApartmentsList() {
                   {r.href ? (
                     <Link
                       href={r.href}
-                      className="block px-5 py-4 transition-colors hover:bg-paper-warm/50"
+                      className={[
+                        "block px-5 py-4 transition-colors hover:bg-paper-warm/50",
+                        taken ? "bg-ink-50/40" : "",
+                      ].join(" ")}
                     >
                       {inner}
                     </Link>
@@ -253,16 +281,43 @@ function Arrow() {
   );
 }
 
-function StatusPill({ status }: { status: UnitStatus }) {
+/**
+ * Kolumna „Cena": kwota dla lokali w sprzedaży, a dla zajętych - plakietka
+ * statusu DOKŁADNIE w miejscu ceny. Kwoty zajętych lokali w ogóle nie
+ * przychodzą z serwera, więc nie ma czego ukrywać w HTML-u.
+ */
+function PriceCell({
+  priceLabel,
+  availability,
+}: {
+  priceLabel: string | null;
+  availability: UnitAvailability | null;
+}) {
+  if (priceLabel) {
+    return (
+      <span className="text-[14px] font-semibold tabular-nums text-ink-950">{priceLabel}</span>
+    );
+  }
+  if (availability && availability !== "available") {
+    return <StatusPill availability={availability} />;
+  }
+  return <span className="text-[13.5px] text-ink-400">Cena na zapytanie</span>;
+}
+
+function StatusPill({ availability }: { availability: UnitAvailability | null }) {
+  // Brak statusu = arkusz nie odpowiedział. Wtedy nic nie pokazujemy, tak samo
+  // jak rzut nie kreskuje wtedy żadnej strefy - nie zgadujemy.
+  if (!availability) return null;
+  const style = AVAILABILITY_STYLE[availability];
   return (
     <span
       className={[
         "inline-flex w-fit items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold",
-        statusStyles[status],
+        style.chip,
       ].join(" ")}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${statusDot[status]}`} />
-      {status}
+      <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+      {AVAILABILITY_LABEL[availability]}
     </span>
   );
 }

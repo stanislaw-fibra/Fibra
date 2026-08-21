@@ -23,8 +23,12 @@ import {
   getZamyslowUnit,
   formatPln,
   type ZamyslowUnitListing,
-  type UnitAvailability,
 } from "@/lib/investments/zamyslow-units";
+import {
+  AVAILABILITY_LABEL,
+  AVAILABILITY_STYLE,
+  isAvailable,
+} from "@/lib/investments/zamyslow-status";
 import { kitchenPriceDigits } from "@/lib/investments/zamyslow-kitchen";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -44,12 +48,6 @@ const roomsWord = (n: number) =>
 /** Miejscownik: „na parterze" / „na 3. piętrze" (do zdań w metadanych). */
 const floorLocative = (floor: number) =>
   floor === 0 ? "na parterze" : `na ${floor}. piętrze`;
-
-const STATUS_STYLES: Record<UnitAvailability, { chip: string; dot: string }> = {
-  available: { chip: "bg-emerald-50 text-emerald-700 ring-emerald-600/10", dot: "bg-emerald-500" },
-  reserved: { chip: "bg-amber-50 text-amber-700 ring-amber-600/10", dot: "bg-amber-500" },
-  sold: { chip: "bg-ink-100 text-ink-500 ring-ink-950/5", dot: "bg-ink-400" },
-};
 
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> },
@@ -89,7 +87,15 @@ export default async function UnitPage(
   const next = all.find((u) => Number(u.id.slice(1)) === n + 1) ?? null;
   const sameFloor = all.filter((u) => u.floor === unit.floor && u.id !== unit.id);
 
-  const priceLabel = unit.price ? formatPln(unit.price) : "Cena na zapytanie";
+  // Cena pokazuje się WYŁĄCZNIE przy lokalu w sprzedaży. Zarezerwowany albo
+  // sprzedany lokal ma w miejscu ceny sam status (feedback klienta 08.2026):
+  // kwota po rezerwacji nie jest już ofertą, więc znika ze strony.
+  const forSale = isAvailable(unit.availability);
+  const priceLabel = forSale
+    ? unit.price
+      ? formatPln(unit.price)
+      : "Cena na zapytanie"
+    : AVAILABILITY_LABEL[unit.availability];
 
   // Karta lokalu (PDF) - generowana skryptem zamyslow-unit-cards.ts dla pięter
   // 1-5 (parter dostanie własny wariant z ogródkami). Link tylko, gdy plik jest.
@@ -99,12 +105,12 @@ export default async function UnitPage(
     existsSync(path.join(process.cwd(), "public", cardPdfHref))
       ? cardPdfHref
       : null;
-  const status = STATUS_STYLES[unit.availability];
+  const status = AVAILABILITY_STYLE[unit.availability];
 
-  // Kuchnia na wymiar: opcja dodatkowa przy każdej ofercie. Przy sprzedanym
-  // lokalu nie ma czego zamawiać, więc panel wypada razem z resztą CTA.
-  const kitchenPrice =
-    unit.availability === "sold" ? null : unit.kitchenPrice;
+  // Kuchnia na wymiar: opcja dodatkowa przy każdej ofercie. Przy lokalu, którego
+  // nie da się już kupić, nie ma czego zamawiać - a jej cena jest ceną na
+  // stronie, więc znika razem z ceną mieszkania.
+  const kitchenPrice = forSale ? unit.kitchenPrice : null;
 
   // Karta lokalu - tylko pola, które faktycznie mają wartość w arkuszu.
   const facts: { label: string; value: string }[] = [
@@ -122,7 +128,7 @@ export default async function UnitPage(
     { label: "Miejsce postojowe", value: unit.parkingSpot },
     {
       label: "Cena miejsca postojowego",
-      value: unit.parkingPrice ? formatPln(unit.parkingPrice) : "",
+      value: forSale && unit.parkingPrice ? formatPln(unit.parkingPrice) : "",
     },
     { label: "Komórka lokatorska", value: unit.storageRoom },
     { label: "Status", value: unit.statusLabel },
@@ -183,23 +189,39 @@ export default async function UnitPage(
                     <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
                       <div>
                         <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-ink-400">
-                          Cena
+                          {forSale ? "Cena" : "Status"}
                         </p>
-                        <p className="mt-1.5 font-sans text-[clamp(26px,3vw,34px)] font-bold tabular-nums tracking-tight text-ink-950">
+                        <p
+                          className={[
+                            "mt-1.5 font-sans text-[clamp(26px,3vw,34px)] font-bold tabular-nums tracking-tight",
+                            forSale ? "text-ink-950" : status.text,
+                          ].join(" ")}
+                        >
                           {priceLabel}
                         </p>
-                        {unit.pricePerM2 ? (
+                        {forSale && unit.pricePerM2 ? (
                           <p className="mt-1 text-[13.5px] tabular-nums text-ink-500">
                             {formatPln(unit.pricePerM2)}/m²
                           </p>
                         ) : null}
+                        {!forSale ? (
+                          <p className="mt-1.5 max-w-[34ch] text-[13.5px] leading-snug text-ink-500">
+                            Pokażemy dostępne mieszkania o zbliżonym układzie
+                            i metrażu.
+                          </p>
+                        ) : null}
                       </div>
-                      <span
-                        className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold ring-1 ${status.chip}`}
-                      >
-                        <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
-                        {unit.statusLabel}
-                      </span>
+                      {/* Przy zajętym lokalu status niesie już wielki napis
+                          w miejscu ceny - plakietka obok byłaby trzecim
+                          powtórzeniem tego samego słowa na jednym ekranie. */}
+                      {forSale ? (
+                        <span
+                          className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold ${status.chip}`}
+                        >
+                          <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
+                          {unit.statusLabel}
+                        </span>
+                      ) : null}
                     </div>
 
                     <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -207,7 +229,7 @@ export default async function UnitPage(
                         href="#kontakt"
                         className="inline-flex items-center gap-2.5 rounded-full bg-ink-900 px-7 py-3.5 text-[14px] font-medium text-white transition-colors duration-300 hover:bg-brand-500"
                       >
-                        Zapytaj o to mieszkanie
+                        {forSale ? "Zapytaj o to mieszkanie" : "Zapytaj o podobne mieszkania"}
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                           <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
@@ -215,7 +237,7 @@ export default async function UnitPage(
                       {/* Twarz opiekuna w pigułce z numerem - widać, kto odbierze. */}
                       <a
                         href={`tel:${ZAMYSLOW_PHONE.tel}`}
-                        title={`${agent.name} · ${ZAMYSLOW_PHONE.display}`}
+                        title={`${agent.name}, ${agent.role} · ${ZAMYSLOW_PHONE.display}`}
                         className="inline-flex items-center gap-2.5 rounded-full border border-ink-950/15 py-3.5 pl-2.5 pr-6 text-[14px] font-medium text-ink-800 transition-colors hover:border-ink-950/40"
                       >
                         <AgentAvatar
@@ -467,7 +489,7 @@ export default async function UnitPage(
           unitId={unit.id}
           areaLabel={unit.areaLabel}
           floorLabel={unit.floorLabel}
-          sold={unit.availability === "sold"}
+          availability={unit.availability}
           agent={agent}
         />
       </main>
@@ -477,6 +499,7 @@ export default async function UnitPage(
         areaLabel={unit.areaLabel}
         rooms={unit.rooms}
         priceLabel={priceLabel}
+        availability={unit.availability}
         agent={agent}
       />
       <ZamyslowFooter />
@@ -518,22 +541,36 @@ function PagerLink({
 }
 
 function SiblingCard({ unit }: { unit: ZamyslowUnitListing }) {
-  const s = STATUS_STYLES[unit.availability];
+  const s = AVAILABILITY_STYLE[unit.availability];
+  const taken = !isAvailable(unit.availability);
   return (
     <Link
       href={`/zamyslow/mieszkania/${unit.id.toLowerCase()}`}
-      className="group flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-ink-200/70 bg-white px-5 py-4 shadow-[var(--shadow-soft)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[var(--shadow-card)]"
+      className={[
+        "group flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-ink-200/70 px-5 py-4 shadow-[var(--shadow-soft)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[var(--shadow-card)]",
+        taken ? "bg-ink-50/60" : "bg-white",
+      ].join(" ")}
     >
       <div className="min-w-0">
         <p className="flex items-center gap-2">
           <span className="font-sans text-[16px] font-bold tabular-nums tracking-tight text-ink-950">
             {unit.id}
           </span>
-          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${s.dot}`} title={unit.statusLabel} />
+          {/* Przy zajętym lokalu status stoi słowem pod spodem - tooltip na
+              kropce byłby powtórzeniem; dla dostępnego niesie go sama kropka. */}
+          <span
+            className={`h-1.5 w-1.5 shrink-0 rounded-full ${s.dot}`}
+            title={taken ? undefined : unit.statusLabel}
+          />
         </p>
         <p className="mt-0.5 truncate text-[12.5px] tabular-nums text-ink-500">
           {unit.areaLabel.replace(".", ",")} · {unit.rooms} pok.
         </p>
+        {taken ? (
+          <p className={`mt-0.5 text-[11.5px] font-medium ${s.text}`}>
+            {AVAILABILITY_LABEL[unit.availability]}
+          </p>
+        ) : null}
       </div>
       <svg
         className="shrink-0 text-ink-300 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-brand-600"

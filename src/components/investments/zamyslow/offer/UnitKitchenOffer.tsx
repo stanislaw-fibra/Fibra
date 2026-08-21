@@ -220,7 +220,11 @@ export function UnitKitchenOffer({
                   </a>
                   <a
                     href={`tel:${ZAMYSLOW_PHONE.tel}`}
-                    title={agent ? `${agent.name} · ${ZAMYSLOW_PHONE.display}` : ZAMYSLOW_PHONE.display}
+                    title={
+                      agent
+                        ? `${agent.name}, ${agent.role} · ${ZAMYSLOW_PHONE.display}`
+                        : ZAMYSLOW_PHONE.display
+                    }
                     className="inline-flex items-center gap-2.5 rounded-full border border-white/20 py-3.5 pl-2.5 pr-6 text-[14px] font-medium text-white transition-colors hover:border-white/50"
                   >
                     {agent ? (
@@ -236,6 +240,7 @@ export function UnitKitchenOffer({
                   {agent ? (
                     <p className="text-[13px] leading-snug text-white/45">
                       Ceny kuchni prowadzi {agent.name.split(" ")[0]}
+                      <span className="block text-white/35">{agent.role}</span>
                     </p>
                   ) : null}
                 </div>

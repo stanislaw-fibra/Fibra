@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { zamyslowData } from "@/lib/investments/zamyslow-data";
+import { getZamyslowUnitStatuses } from "@/lib/investments/zamyslow-units";
 import { FloorPlanCompass } from "../FloorPlanCompass";
 
 /**
@@ -7,8 +8,12 @@ import { FloorPlanCompass } from "../FloorPlanCompass";
  * eksploratora: pełny rzut kondygnacji z PODŚWIETLONĄ strefą tego mieszkania.
  * Obraz i polygon pochodzą z tych samych danych co interaktywny rzut na
  * /zamyslow, więc zaznaczenie jest zawsze spójne z eksploratorem.
+ *
+ * Sąsiednie lokale, które są już zajęte, kreskujemy tak samo jak w
+ * eksploratorze - patrząc na to piętro widać od razu, co jeszcze zostało.
  */
-export function UnitFloorPlanCard({ unitId }: { unitId: string }) {
+export async function UnitFloorPlanCard({ unitId }: { unitId: string }) {
+  const statuses = await getZamyslowUnitStatuses();
   const floor = zamyslowData.floors.find((f) =>
     f.floorPlan?.units.some((u) => u.id === unitId),
   );
@@ -17,6 +22,9 @@ export function UnitFloorPlanCard({ unitId }: { unitId: string }) {
   if (!floor || !plan || !unit) return null;
 
   const { width: vbW, height: vbH } = plan.viewBox;
+  const taken = plan.units.filter(
+    (u) => u.id !== unitId && (statuses[u.id]?.availability ?? "available") !== "available",
+  );
 
   return (
     <div className="overflow-hidden rounded-[var(--radius-xl)] border border-ink-200/70 bg-white shadow-[var(--shadow-cinematic)]">
@@ -41,12 +49,27 @@ export function UnitFloorPlanCard({ unitId }: { unitId: string }) {
           className="absolute inset-0 h-full w-full"
           aria-hidden
         >
+          <defs>
+            <pattern
+              id="zamyslow-card-hatch"
+              width="7"
+              height="7"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(45)"
+            >
+              <line x1="0" y1="0" x2="0" y2="7" stroke="rgba(120,113,108,0.5)" strokeWidth="2.2" />
+            </pattern>
+          </defs>
           {/* Delikatne wyciszenie reszty piętra + akcent na tym mieszkaniu. */}
           <path
             d={`M0 0H${vbW}V${vbH}H0Z ${unit.d}`}
             fill="rgba(250,250,248,0.55)"
             fillRule="evenodd"
           />
+          {/* Zajęci sąsiedzi - to samo kreskowanie co na interaktywnym rzucie. */}
+          {taken.map((u) => (
+            <path key={`taken-${u.id}`} d={u.d} fill="url(#zamyslow-card-hatch)" />
+          ))}
           <path
             d={unit.d}
             fill="rgba(0,221,214,0.16)"
@@ -70,8 +93,18 @@ export function UnitFloorPlanCard({ unitId }: { unitId: string }) {
       </div>
 
       <div className="flex items-center justify-between gap-4 border-t border-ink-200/60 bg-paper-warm/50 px-6 py-3.5 md:px-7">
-        <p className="text-[12.5px] text-ink-500">
-          Sąsiednie mieszkania zobaczysz na interaktywnym rzucie
+        <p className="flex items-center gap-2 text-[12.5px] text-ink-500">
+          {taken.length ? (
+            <>
+              <span
+                aria-hidden
+                className="inline-block h-2.5 w-2.5 shrink-0 rounded-[2px] bg-[repeating-linear-gradient(45deg,rgba(120,113,108,0.55)_0_2px,transparent_2px_4px)] ring-1 ring-ink-300"
+              />
+              <span>Kreskowane mieszkania są już zajęte</span>
+            </>
+          ) : (
+            <span>Sąsiednie mieszkania zobaczysz na interaktywnym rzucie</span>
+          )}
         </p>
         {/* #pietro-<id> otwiera na /zamyslow rzut DOKŁADNIE tego piętra
             (ZamyslowBuilding czyta hash i przewija do sceny). */}

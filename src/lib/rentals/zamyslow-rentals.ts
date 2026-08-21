@@ -1,5 +1,7 @@
 import "server-only";
 
+import { AREK_ROLE } from "@/lib/team-roles";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Mieszkania na wynajem - Zamysłów, Niedobczycka 128F.
 //
@@ -22,7 +24,7 @@ import "server-only";
 /** Kontakt do osoby prowadzącej najem (stopka strony + powiadomienie biura). */
 export const RENTAL_AGENT = {
   name: "Arkadiusz Jezusek",
-  role: "Specjalista ds. zarządzania najmem",
+  role: AREK_ROLE,
   // Numer w formacie do wyświetlenia oraz do deep-linków tel:/sms: (E.164).
   phoneDisplay: "881 431 800",
   phoneTel: "+48881431800",

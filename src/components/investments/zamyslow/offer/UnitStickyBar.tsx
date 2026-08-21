@@ -4,6 +4,11 @@ import { useEffect, useState } from "react";
 import { AgentAvatar } from "@/components/offers/AgentAvatar";
 import { ZAMYSLOW_PHONE } from "@/lib/investments/zamyslow-data";
 import type { ZamyslowAgentInfo } from "@/components/investments/zamyslow/ZamyslowAgentChip";
+import {
+  AVAILABILITY_STYLE,
+  isAvailable,
+  type UnitAvailability,
+} from "@/lib/investments/zamyslow-status";
 
 /**
  * Dyskretny pasek CTA przyklejony do dołu ekranu. Pojawia się dopiero, gdy
@@ -15,14 +20,18 @@ export function UnitStickyBar({
   areaLabel,
   rooms,
   priceLabel,
+  availability,
   agent,
 }: {
   unitId: string;
   areaLabel: string;
   rooms: number;
+  /** Cena albo - przy zajętym lokalu - jego status („Zarezerwowane"). */
   priceLabel: string;
+  availability: UnitAvailability;
   agent?: ZamyslowAgentInfo | null;
 }) {
+  const forSale = isAvailable(availability);
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -64,7 +73,12 @@ export function UnitStickyBar({
             <span className="hidden truncate text-[13.5px] text-ink-500 sm:inline">
               {areaLabel.replace(".", ",")} · {rooms} pokoje
             </span>
-            <span className="truncate text-[13.5px] font-medium text-ink-800">
+            <span
+              className={[
+                "truncate text-[13.5px] font-medium",
+                forSale ? "text-ink-800" : AVAILABILITY_STYLE[availability].text,
+              ].join(" ")}
+            >
               {priceLabel}
             </span>
           </div>
@@ -75,7 +89,11 @@ export function UnitStickyBar({
             <a
               href={`tel:${ZAMYSLOW_PHONE.tel}`}
               aria-label={`Zadzwoń${agent ? ` do: ${agent.name}` : ""}: ${ZAMYSLOW_PHONE.display}`}
-              title={agent ? `${agent.name} · ${ZAMYSLOW_PHONE.display}` : ZAMYSLOW_PHONE.display}
+              title={
+                agent
+                  ? `${agent.name}, ${agent.role} · ${ZAMYSLOW_PHONE.display}`
+                  : ZAMYSLOW_PHONE.display
+              }
               className="group relative inline-flex"
             >
               {agent?.photoUrl ? (
@@ -106,7 +124,7 @@ export function UnitStickyBar({
               href="#kontakt"
               className="inline-flex items-center gap-2 rounded-full bg-accent-400 px-5 py-2.5 text-[13.5px] font-semibold text-ink-950 ring-1 ring-ink-950/10 shadow-[0_10px_28px_-8px_rgba(242,101,34,0.5)] transition-colors hover:bg-ink-950 hover:text-white"
             >
-              Zapytaj o mieszkanie
+              {forSale ? "Zapytaj o mieszkanie" : "Zapytaj o podobne"}
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden>
                 <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>

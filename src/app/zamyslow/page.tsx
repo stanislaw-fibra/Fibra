@@ -13,7 +13,10 @@ import { InvestorCta } from "@/components/investments/zamyslow/investor/Investor
 import { InvestorStickyCta } from "@/components/investments/zamyslow/investor/InvestorStickyCta";
 import { getPublicFounder, getPublicTeamMember } from "@/lib/team-query";
 import { FOUNDER_VIDEO_OVERRIDE } from "@/lib/investments/zamyslow-proof";
-import { getZamyslowUnitsSummary } from "@/lib/investments/zamyslow-units";
+import {
+  getZamyslowUnitStatuses,
+  getZamyslowUnitsSummary,
+} from "@/lib/investments/zamyslow-units";
 import {
   ZAMYSLOW_AGENT_BIO,
   ZAMYSLOW_AGENT_FALLBACK,
@@ -35,10 +38,13 @@ export default async function ZamyslowPage() {
   // film, co na /o-fibrze; osobne nagranie pod inwestora wpisuje się w
   // FOUNDER_VIDEO_OVERRIDE. Bez filmu blok się nie pokazuje.
   // Metraże w tekstach lecą z arkusza mieszkań - żadnych widełek na sztywno.
-  const [founder, arek, units] = await Promise.all([
+  const [founder, arek, units, unitStatuses] = await Promise.all([
     getPublicFounder(),
     getPublicTeamMember(ZAMYSLOW_AGENT_FALLBACK.name),
     getZamyslowUnitsSummary(),
+    // Statusy i ceny lokali do listy mieszkań - to samo źródło (arkusz Arka),
+    // co interaktywny rzut piętra i strony ofert.
+    getZamyslowUnitStatuses(),
   ]);
   const founderVideoId = FOUNDER_VIDEO_OVERRIDE ?? founder?.cloudflareVideoId ?? null;
   const trustFounder = founderVideoId
@@ -75,7 +81,7 @@ export default async function ZamyslowPage() {
         <WhyZamyslow areaFromToLabel={units?.areaFromToLabel ?? null} />
         <ReturnsSection />
         <WhichApartment />
-        <ZamyslowApartmentsList />
+        <ZamyslowApartmentsList statuses={unitStatuses} />
         <InvestorCta agent={zamyslowAgent} />
       </main>
       <InvestorStickyCta />

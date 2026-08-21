@@ -1,26 +1,105 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { FloorPlanCompass } from "./FloorPlanCompass";
-import type {
-  FloorPlanUnit,
-  UnitStatus,
-  ZamyslowFloor,
-} from "@/lib/investments/zamyslow-data";
-
-const statusDot: Record<UnitStatus, string> = {
-  Dostępne: "bg-emerald-400",
-  Rezerwacja: "bg-amber-400",
-  Sprzedane: "bg-white/40",
-};
+import type { FloorPlanUnit, ZamyslowFloor } from "@/lib/investments/zamyslow-data";
+import {
+  AVAILABILITY_LABEL,
+  type UnitAvailability,
+  type UnitStatusInfo,
+  type UnitStatusMap,
+} from "@/lib/investments/zamyslow-status";
 
 const fmt = (v: number, dec: number) => v.toFixed(dec).replace(".", ",");
 const roomsWord = (n: number) => (n === 1 ? "pokój" : n >= 2 && n <= 4 ? "pokoje" : "pokoi");
 
 const shortLabel = (index: number) => (index === 0 ? "P" : String(index));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Język statusów na rzucie.
+//
+// Feedback klienta (08.2026): zarezerwowany lokal ma być widoczny JAKO
+// zarezerwowany już na rzucie piętra - wyszarzony, opisany i inaczej
+// reagujący na najechanie niż mieszkanie w sprzedaży. Stąd trzy warstwy:
+//   1. wypełnienie strefy (stała „zasłona" na zajętych lokalach),
+//   2. plakietka z numerem (kolor + słowo „Zarezerwowane"/„Sprzedane"),
+//   3. karta szczegółów (status + cena albo jej brak).
+// ─────────────────────────────────────────────────────────────────────────────
+
+type ZoneStyle = {
+  /** Wypełnienie strefy bez najechania - „wyszarzenie" zajętych lokali. */
+  rest: string;
+  /** Wypełnienie po najechaniu / na dotyk. */
+  hover: string;
+  /** Obrys po najechaniu. */
+  stroke: string;
+  /** Delikatny obrys bez najechania (zajęte lokale mają go zawsze). */
+  restStroke: string;
+  /** Ukośne kreskowanie nakładane na zajęte strefy (id wzorca w <defs>). */
+  hatch: string | null;
+};
+
+const ZONE: Record<UnitAvailability, ZoneStyle> = {
+  available: {
+    rest: "rgba(255,255,255,0.001)",
+    hover: "rgba(0,221,214,0.30)",
+    stroke: "rgba(0,221,214,0.95)",
+    restStroke: "rgba(255,255,255,0)",
+    hatch: null,
+  },
+  reserved: {
+    rest: "rgba(15,18,24,0.34)",
+    hover: "rgba(217,119,6,0.34)",
+    stroke: "rgba(180,83,9,0.95)",
+    restStroke: "rgba(15,18,24,0.22)",
+    hatch: "zamyslow-hatch-reserved",
+  },
+  sold: {
+    rest: "rgba(15,18,24,0.50)",
+    hover: "rgba(15,18,24,0.62)",
+    stroke: "rgba(15,18,24,0.75)",
+    restStroke: "rgba(15,18,24,0.3)",
+    hatch: "zamyslow-hatch-sold",
+  },
+};
+
+/**
+ * Plakietka z numerem lokalu leżąca na rzucie.
+ *
+ * Tła zajętych lokali są NIEPRZEZROCZYSTE, a kolory tekstu ciemne: plakietka
+ * leży na rysunku rzutu (kreski ścian) i dodatkowo na wyszarzeniu strefy, więc
+ * przy 6-9,5 px każde prześwitywanie zbijało kontrast poniżej progu WCAG AA.
+ */
+const BADGE: Record<UnitAvailability, { box: string; id: string; meta: string; word: string }> = {
+  available: {
+    box: "bg-white/70 ring-black/[0.05]",
+    id: "text-ink-950",
+    meta: "text-ink-600",
+    word: "",
+  },
+  reserved: {
+    box: "bg-amber-50 ring-amber-700/30",
+    id: "text-amber-900",
+    meta: "text-amber-800",
+    word: "text-amber-900",
+  },
+  sold: {
+    box: "bg-ink-100 ring-ink-950/15",
+    id: "text-ink-700",
+    meta: "text-ink-600",
+    word: "text-ink-700",
+  },
+};
+
+/** Kropka statusu w legendzie i na karcie szczegółów (ciemne tło). */
+const DOT: Record<UnitAvailability, string> = {
+  available: "bg-emerald-400",
+  reserved: "bg-amber-400",
+  sold: "bg-white/35",
+};
 
 type Props = {
   floors: ZamyslowFloor[];
@@ -28,9 +107,18 @@ type Props = {
   onSelect: (id: string) => void;
   onBack: () => void;
   building: string;
+  /** Statusy z arkusza. Pusta mapa = arkusz nie odpowiedział - nie zgadujemy. */
+  statuses: UnitStatusMap;
 };
 
-export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }: Props) {
+export function FloorPlanView({
+  floors,
+  selectedId,
+  onSelect,
+  onBack,
+  building,
+  statuses,
+}: Props) {
   const router = useRouter();
 
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -159,6 +247,22 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
   const vbH = plan?.viewBox.height ?? 1;
   const active = plan?.units.find((u) => u.id === activeId) ?? null;
 
+  const statusOf = (id: string): UnitStatusInfo | null => statuses[id] ?? null;
+  const availabilityOf = (id: string): UnitAvailability =>
+    statuses[id]?.availability ?? "available";
+
+  // Legenda pod rzutem: pokazujemy tylko te stany, które faktycznie są na tym
+  // piętrze - pusta rubryka „Sprzedane: 0" niczego nie wnosi.
+  const tally = useMemo(() => {
+    const counts: Record<UnitAvailability, number> = { available: 0, reserved: 0, sold: 0 };
+    for (const u of plan?.units ?? []) {
+      const s = statuses[u.id];
+      if (s) counts[s.availability] += 1;
+    }
+    return counts;
+  }, [plan, statuses]);
+  const hasStatuses = tally.available + tally.reserved + tally.sold > 0;
+
   // Rozmiary etykiet proporcjonalne do szerokości rzutu (px), z sensownymi widełkami.
   const clamp = (min: number, v: number, max: number) => Math.max(min, Math.min(max, v));
   const lbl = {
@@ -202,8 +306,8 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
   };
 
   const navigate = (unit: FloorPlanUnit) => {
-    // Mieszkania bez gotowej oferty (piętra 0, 2-5) nie przekierowują - klik/tap
-    // pokazuje tylko kartę ze szczegółami (metraż, rozkład pokoi).
+    // Mieszkania bez gotowej oferty nie przekierowują - klik/tap pokazuje tylko
+    // kartę ze szczegółami (metraż, rozkład pokoi).
     if (!unit.href) {
       showUnit(unit);
       return;
@@ -213,7 +317,8 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
   };
 
   // Jeden klik/tap = od razu oferta (klient: „jak ktoś klika - to klika").
-  // Box szczegółów to tylko podgląd po najechaniu (desktop, hover) - nie blokuje.
+  // Zajęte lokale też otwieramy: strona lokalu mówi wprost, że jest
+  // zarezerwowany, i proponuje podobne mieszkania - to lepsze niż martwy klik.
   const onUnitClick = (unit: FloorPlanUnit) => navigate(unit);
 
   const view = (
@@ -356,16 +461,57 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
                 preserveAspectRatio="xMidYMid meet"
                 className="absolute inset-0 h-full w-full"
               >
+                <defs>
+                  {/* Ukośne kreskowanie zajętych lokali - czytelne także wtedy,
+                      gdy ktoś nie odróżnia kolorów (a przy druku/screenshocie
+                      zostaje jedynym sygnałem). */}
+                  <pattern
+                    id="zamyslow-hatch-reserved"
+                    width="7"
+                    height="7"
+                    patternUnits="userSpaceOnUse"
+                    patternTransform="rotate(45)"
+                  >
+                    <line x1="0" y1="0" x2="0" y2="7" stroke="rgba(180,83,9,0.42)" strokeWidth="2.2" />
+                  </pattern>
+                  <pattern
+                    id="zamyslow-hatch-sold"
+                    width="6"
+                    height="6"
+                    patternUnits="userSpaceOnUse"
+                    patternTransform="rotate(45)"
+                  >
+                    <line x1="0" y1="0" x2="0" y2="6" stroke="rgba(255,255,255,0.28)" strokeWidth="2.4" />
+                  </pattern>
+                </defs>
+
                 {plan.units.map((unit) => {
                   const isActive = activeId === unit.id;
+                  const availability = availabilityOf(unit.id);
+                  const zone = ZONE[availability];
+                  const known = Boolean(statuses[unit.id]);
+                  // Kreskowanie tylko wtedy, gdy arkusz FAKTYCZNIE podał status -
+                  // przy niedostępnym arkuszu rzut zostaje czysty.
+                  const hatch = known ? zone.hatch : null;
                   return (
                     <g
                       key={unit.id}
                       role="button"
                       tabIndex={0}
-                      aria-label={`Mieszkanie ${unit.id}, ${fmt(unit.areaM2, 2)} m², ${unit.rooms} ${roomsWord(unit.rooms)}`}
+                      aria-label={[
+                        `Mieszkanie ${unit.id}`,
+                        `${fmt(unit.areaM2, 2)} m²`,
+                        `${unit.rooms} ${roomsWord(unit.rooms)}`,
+                        known ? AVAILABILITY_LABEL[availability] : null,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
                       onPointerEnter={(e) => e.pointerType === "mouse" && showUnit(unit)}
                       onPointerLeave={(e) => e.pointerType === "mouse" && scheduleHide()}
+                      // Tab po strefach: `outline-none` gasi natywny pierścień,
+                      // więc podświetlenie strefy + karta SĄ sygnałem focusu.
+                      onFocus={() => showUnit(unit)}
+                      onBlur={scheduleHide}
                       onClick={(e) => {
                         e.stopPropagation();
                         onUnitClick(unit);
@@ -382,13 +528,22 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
                         d={unit.d}
                         className="transition-[fill,stroke] duration-150"
                         style={{
-                          fill: isActive ? "rgba(0,221,214,0.28)" : "rgba(255,255,255,0.001)",
-                          stroke: isActive ? "rgba(0,221,214,0.95)" : "rgba(255,255,255,0)",
-                          strokeWidth: 2,
+                          fill: isActive ? zone.hover : zone.rest,
+                          stroke: isActive ? zone.stroke : zone.restStroke,
+                          strokeWidth: isActive ? 2 : 1,
                           pointerEvents: "all",
                         }}
                         vectorEffect="non-scaling-stroke"
                       />
+                      {hatch && (
+                        <path
+                          d={unit.d}
+                          fill={`url(#${hatch})`}
+                          pointerEvents="none"
+                          style={{ opacity: isActive ? 0.5 : 1 }}
+                          className="transition-opacity duration-150"
+                        />
+                      )}
                     </g>
                   );
                 })}
@@ -399,6 +554,7 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
               {plan.annotations?.map((a, i) => (
                 <div
                   key={`ann-${i}`}
+                  aria-hidden
                   className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap font-sans font-medium uppercase text-ink-400"
                   style={{
                     left: `${(a.x / vbW) * 100}%`,
@@ -412,16 +568,27 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
                 </div>
               ))}
 
-              {/* Stałe etykiety: małe, półprzezroczyste plakietki skalujące się z
-                  rzutem (jednostki cqw → proporcjonalne na desktopie i mobile).
+              {/* Stałe etykiety: małe plakietki skalujące się z rzutem. Kolor i
+                  trzeci wiersz („ZAREZERWOWANE") niosą status bez najeżdżania -
+                  po to, żeby zajęty lokal było widać od pierwszego spojrzenia.
                   Można je ukryć przełącznikiem „Etykiety". */}
               {showLabels &&
                 plan.units.map((unit) => {
                   if (activeId === unit.id) return null;
+                  const availability = availabilityOf(unit.id);
+                  const known = Boolean(statuses[unit.id]);
+                  const badge = BADGE[known ? availability : "available"];
+                  const showWord = known && availability !== "available";
                   return (
                     <div
                       key={`label-${unit.id}`}
-                      className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-[5px] bg-white/65 text-center leading-[1.12] ring-1 ring-black/[0.04] backdrop-blur-[1.5px]"
+                      // Plakietka powtarza to, co niesie już aria-label strefy -
+                      // bez tego czytnik ekranu ogłaszałby każde mieszkanie dwa razy.
+                      aria-hidden
+                      className={[
+                        "pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-[5px] text-center leading-[1.12] ring-1 backdrop-blur-[1.5px]",
+                        badge.box,
+                      ].join(" ")}
                       style={{
                         left: `${(unit.label.x / vbW) * 100}%`,
                         top: `${(unit.label.y / vbH) * 100}%`,
@@ -429,17 +596,25 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
                       }}
                     >
                       <span
-                        className="block font-sans font-bold tabular-nums tracking-tight text-ink-950"
+                        className={`block font-sans font-bold tabular-nums tracking-tight ${badge.id}`}
                         style={{ fontSize: `${lbl.num}px` }}
                       >
                         {unit.id}
                       </span>
                       <span
-                        className="block tabular-nums text-ink-600"
+                        className={`block tabular-nums ${badge.meta}`}
                         style={{ fontSize: `${lbl.det}px` }}
                       >
                         {fmt(unit.areaM2, 1)} m² · {unit.rooms} pok.
                       </span>
+                      {showWord && (
+                        <span
+                          className={`block font-semibold uppercase ${badge.word}`}
+                          style={{ fontSize: `${lbl.det}px`, letterSpacing: "0.06em" }}
+                        >
+                          {AVAILABILITY_LABEL[availability]}
+                        </span>
+                      )}
                     </div>
                   );
                 })}
@@ -473,7 +648,7 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
               <p className="font-display text-2xl text-white md:text-3xl">{floor.label}</p>
               <p className="mt-3 text-sm text-white/65">
                 Interaktywny rzut tego piętra przygotowujemy. Wybierz inne piętro z windy
-                obok - rzut pierwszego piętra jest już gotowy.
+                obok.
               </p>
             </motion.div>
           )}
@@ -482,7 +657,7 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
       </div>
       {/* /Środek */}
 
-      {/* Dolny pasek: winda (mobile) + instrukcja - POD rzutem, nic nie zasłania */}
+      {/* Dolny pasek: winda (mobile) + legenda + instrukcja - POD rzutem */}
       <div className="flex shrink-0 flex-col items-center gap-2.5 px-4 pb-5 pt-2">
       {/* Mobile: pozioma „winda" */}
       <div className="flex justify-center md:hidden">
@@ -507,6 +682,22 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
           })}
         </div>
       </div>
+
+      {/* Legenda - tłumaczy kolory stref i plakietek. Pokazujemy tylko stany,
+          które są na tym piętrze, i tylko gdy arkusz podał statusy. */}
+      {plan && hasStatuses && (
+        <div className="flex flex-wrap items-center justify-center gap-x-3.5 gap-y-1.5 rounded-full bg-black/45 px-4 py-1.5 backdrop-blur-md">
+          {(["available", "reserved", "sold"] as const)
+            .filter((k) => tally[k] > 0)
+            .map((k) => (
+              <span key={k} className="inline-flex items-center gap-1.5 text-[12px] text-white/75">
+                <span className={`h-1.5 w-1.5 rounded-full ${DOT[k]}`} />
+                {AVAILABILITY_LABEL[k]}
+                <span className="tabular-nums text-white/45">{tally[k]}</span>
+              </span>
+            ))}
+        </div>
+      )}
 
       {/* Instrukcja kontekstowa: zachęta do pełnego ekranu / „obróć telefon" / podpowiedź */}
       <div className="flex justify-center">
@@ -557,6 +748,7 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
             {active && anchor && (
               <DetailCard
                 unit={active}
+                status={statusOf(active.id)}
                 anchor={anchor}
                 loading={navigatingId === active.id}
                 onKeepAlive={cancelHide}
@@ -577,6 +769,7 @@ export function FloorPlanView({ floors, selectedId, onSelect, onBack, building }
 
 function DetailCard({
   unit,
+  status,
   anchor,
   loading,
   onKeepAlive,
@@ -584,6 +777,7 @@ function DetailCard({
   onOpen,
 }: {
   unit: FloorPlanUnit;
+  status: UnitStatusInfo | null;
   anchor: { x: number; y: number };
   loading: boolean;
   onKeepAlive: () => void;
@@ -597,6 +791,9 @@ function DetailCard({
   const xT = openRight ? "translateX(16px)" : "translateX(calc(-100% - 16px))";
   const yT = yReg === "top" ? "translateY(-12px)" : yReg === "bottom" ? "translateY(calc(-100% + 12px))" : "translateY(-50%)";
 
+  const availability = status?.availability ?? "available";
+  const taken = Boolean(status) && availability !== "available";
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -609,20 +806,38 @@ function DetailCard({
       // pointerEnter/Leave + zwłoka 260ms tworzą „most" mieszkanie<->karta bez migotania.
       onPointerEnter={onKeepAlive}
       onPointerLeave={onRelease}
-      className="pointer-events-auto fixed z-[200] w-[230px] max-w-[82vw] overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-ink-950/95 text-white shadow-2xl shadow-black/60 backdrop-blur-md"
+      className="pointer-events-auto fixed z-[200] w-[236px] max-w-[82vw] overflow-hidden rounded-[var(--radius-lg)] border border-white/10 bg-ink-950/95 text-white shadow-2xl shadow-black/60 backdrop-blur-md"
       style={{ left: anchor.x, top: anchor.y, transform: `${xT} ${yT}` }}
     >
       <div className="px-4 pt-3.5">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <span className="font-sans text-[17px] font-semibold tracking-tight">{unit.id}</span>
-          <span className="inline-flex items-center gap-1.5 text-[11px] text-white/70">
-            <span className={`h-1.5 w-1.5 rounded-full ${statusDot[unit.status]}`} />
-            {unit.status}
-          </span>
+          {status && (
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[11px] text-white/70">
+              <span className={`h-1.5 w-1.5 rounded-full ${DOT[availability]}`} />
+              {AVAILABILITY_LABEL[availability]}
+            </span>
+          )}
         </div>
         <p className="mt-0.5 text-[13px] text-white/75">
           {fmt(unit.areaM2, 2)} m² · {unit.rooms} {roomsWord(unit.rooms)}
         </p>
+
+        {/* Cena tylko przy lokalu w sprzedaży. Przy zajętym status stoi już
+            w plakietce obok numeru, więc tutaj nie powtarzamy tego słowa -
+            brak kwoty jest komunikatem sam w sobie. Lokal dostępny bez ceny
+            w arkuszu dostaje to samo brzmienie co lista i strona oferty. */}
+        {status && !taken && (
+          <p
+            className={
+              status.priceLabel
+                ? "mt-2 font-sans text-[15px] font-semibold tabular-nums tracking-tight text-white"
+                : "mt-2 text-[13px] text-white/70"
+            }
+          >
+            {status.priceLabel ?? "Cena na zapytanie"}
+          </p>
+        )}
       </div>
 
       <div className="mt-3 border-t border-white/10 px-4 py-2.5">
@@ -645,9 +860,14 @@ function DetailCard({
         <button
           type="button"
           onClick={onOpen}
-          className="flex w-full items-center justify-center gap-1.5 border-t border-white/10 bg-white/[0.06] px-3 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-accent-400 hover:text-ink-950"
+          className={[
+            "flex w-full items-center justify-center gap-1.5 border-t border-white/10 px-3 py-2.5 text-[12.5px] font-semibold transition-colors",
+            taken
+              ? "bg-white/[0.04] text-white/65 hover:bg-white/10 hover:text-white"
+              : "bg-white/[0.06] text-white hover:bg-accent-400 hover:text-ink-950",
+          ].join(" ")}
         >
-          Zobacz ofertę
+          {taken ? "Zobacz szczegóły" : "Zobacz ofertę"}
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
             <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
