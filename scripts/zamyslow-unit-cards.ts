@@ -1,10 +1,13 @@
 /**
- * Karty lokali (PDF, A4) dla mieszkań pięter 1-5 - M7..M36.
+ * Karty lokali (PDF, A4) - wszystkie 36 mieszkań, M1..M36.
  *
  *   npx tsx scripts/zamyslow-unit-cards.ts [--only=m12]
  *
- * Parter celowo pominięty: mieszkania z ogródkami/tarasami dostaną osobny
- * wariant karty, gdy będzie gotowa koncepcja ogródków.
+ * Parter (M1-M6) doszedł 29.08.2026, gdy architekci przysłali aranżację
+ * z ogródkami. Różni się od pięter dwiema rzeczami: ogródek jest osobną
+ * pozycją w zestawieniu powierzchni (POZA powierzchnią użytkową, tak samo
+ * jak taras) i jest zaznaczony na miniaturze kondygnacji, bo „gdzie dokładnie
+ * jest mój ogród" to najczęstsze pytanie kupujących o parter.
  *
  * Układ wzorowany na kartach z poprzedniego etapu (Galactica), ale w języku
  * wizualnym strony: Instrument Serif + Inter, papier/atrament/akcent, czysty
@@ -13,6 +16,13 @@
  *
  * Render: HTML (wszystkie zasoby wbudowane base64) -> Chrome headless
  * --print-to-pdf. Wynik: public/investments/zamyslow/karty/karta-lokalu-mX.pdf
+ *
+ * PUŁAPKA: Chrome headless potrafi raz na jakiś czas wypuścić PDF, w którym
+ * część napisów jest wektorem zamiast tekstem - karta wygląda tak samo, ale
+ * traci możliwość zaznaczania i wyszukiwania. Po przegenerowaniu warto
+ * sprawdzić `pdftotext karta.pdf - | wc -c` (zdrowa karta ma ~500 znaków);
+ * przy wyraźnie mniejszej liczbie po prostu wygenerować kartę ponownie.
+ * Dlatego też nie regenerujemy wszystkich kart bez potrzeby - `--only=mX`.
  */
 import sharp from "sharp";
 import { execFileSync } from "node:child_process";
@@ -23,6 +33,7 @@ import {
   buildingViewBox,
   FLOOR_PLAN_NORTH_DEG,
   ZAMYSLOW_PHONE,
+  zamyslowGardenFor,
 } from "../src/lib/investments/zamyslow-data";
 import roomPositions from "../src/lib/investments/zamyslow-unit-rooms.json";
 
@@ -137,6 +148,8 @@ async function heroForFloor(floorId: string): Promise<string> {
 }
 
 const fmt = (v: number) => v.toFixed(2).replace(".", ",");
+/** Metraż ogródka podajemy z dokładnością z projektu (jedno miejsce), nie udajemy centymetrów. */
+const fmt1 = (v: number) => v.toFixed(1).replace(".", ",");
 const floorLabel = (n: number) => (n === 0 ? "Parter" : `${n}. piętro`);
 
 async function main() {
@@ -151,14 +164,15 @@ async function main() {
 
   let made = 0;
   for (const floor of zamyslowData.floors) {
-    if (floor.id === "ground") continue; // parter: osobny wariant, gdy będą ogródki
     const plan = floor.floorPlan!;
     if (!heroCache.has(floor.id)) heroCache.set(floor.id, await heroForFloor(floor.id));
     const hero = heroCache.get(floor.id)!;
-    const floorNo = Number(floor.id.replace("floor-", ""));
+    const floorNo = floor.id === "ground" ? 0 : Number(floor.id.replace("floor-", ""));
 
     if (!miniCache.has(floor.id)) {
-      const src = `public/investments/zamyslow/floorplans/${floor.id === "floor-1" ? "floor-1-plan-v3-north" : `${floor.id}-plan`}.webp`;
+      // Miniatura bierze DOKŁADNIE ten obraz, który jest na stronie - inaczej
+      // obrys lokalu z `plan.viewBox` nie siadłby na rysunku.
+      const src = `public${plan.image}`;
       const buf = await sharp(src).resize({ width: 760 }).flatten({ background: "#ffffff" }).jpeg({ quality: 82, mozjpeg: true }).toBuffer();
       miniCache.set(floor.id, `data:image/jpeg;base64,${buf.toString("base64")}`);
     }
@@ -202,6 +216,8 @@ async function main() {
         </div>`;
       }).join("");
 
+      // Ogródek: pozycja dodatkowa obok tarasu, nigdy w powierzchni użytkowej.
+      const garden = zamyslowGardenFor(unit.id);
       const rows = su.rooms.map((room, i) => `
         <div class="room">
           <span class="room-n">${i + 1}</span>
@@ -253,6 +269,7 @@ h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:27px;line-heig
 .mini .map img{width:100%;display:block}
 .mini .map svg.ov{position:absolute;inset:0;width:100%;height:100%}
 .mini .compass{position:absolute;right:7px;top:7px}
+.mini .hint{margin-top:6px;font-size:8.5px;line-height:1.4;color:var(--ink4)}
 .right{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
 .planframe{position:relative;border:1px solid var(--line);border-radius:16px;background:#fff;padding:28px 24px 24px;max-width:100%;box-shadow:0 1px 2px rgba(11,15,20,0.04),0 18px 40px -22px rgba(11,15,20,0.16)}
 .planwrap{position:relative;width:${planW}px;height:${planH}px}
@@ -288,6 +305,7 @@ h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:27px;line-heig
       <h2>Pomieszczenia.</h2>
       <div class="rooms">${rows}
         <div class="extra"><span class="plus">+</span><span>${su.outdoor || "Balkon"}${su.outdoorArea ? ` · ${su.outdoorArea.replace(".", ",")}` : ""}</span></div>
+        ${garden ? `<div class="extra"><span class="plus">+</span><span>Ogródek · ${fmt1(garden.areaM2)} m²</span></div>` : ""}
       </div>
       <div class="total">
         <div class="l">Powierzchnia użytkowa</div>
@@ -299,11 +317,13 @@ h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:27px;line-heig
         <div class="map">
           <img src="${floorPlanImg}" alt="">
           <svg class="ov" viewBox="0 0 ${plan.viewBox.width} ${plan.viewBox.height}" preserveAspectRatio="none">
-            <path d="M0 0H${plan.viewBox.width}V${plan.viewBox.height}H0Z ${unit.d}" fill="rgba(250,250,248,0.55)" fill-rule="evenodd"/>
+            <path d="M0 0H${plan.viewBox.width}V${plan.viewBox.height}H0Z ${unit.d}${garden ? ` ${garden.d}` : ""}" fill="rgba(250,250,248,0.55)" fill-rule="evenodd"/>
+            ${garden ? `<path d="${garden.d}" fill-rule="evenodd" fill="rgba(0,221,214,0.12)" stroke="rgba(13,148,143,0.8)" stroke-width="2.5" stroke-dasharray="9 6"/>` : ""}
             <path d="${unit.d}" fill="rgba(0,221,214,0.18)" stroke="rgba(13,148,143,0.95)" stroke-width="3"/>
           </svg>
           <div class="compass">${compassSvg(26)}</div>
         </div>
+        ${garden ? `<div class="hint">Przerywana linia to granica ogródka</div>` : ""}
       </div>
     </div>
     <div class="right">

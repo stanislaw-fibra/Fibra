@@ -97,14 +97,13 @@ export default async function UnitPage(
       : "Cena na zapytanie"
     : AVAILABILITY_LABEL[unit.availability];
 
-  // Karta lokalu (PDF) - generowana skryptem zamyslow-unit-cards.ts dla pięter
-  // 1-5 (parter dostanie własny wariant z ogródkami). Link tylko, gdy plik jest.
+  // Karta lokalu (PDF) - generowana skryptem zamyslow-unit-cards.ts dla
+  // wszystkich 36 lokali (parter doszedł razem z ogródkami). Warunkiem jest
+  // wyłącznie obecność pliku, więc brakująca karta nie daje martwego linku.
   const cardPdfHref = `/investments/zamyslow/karty/karta-lokalu-${unit.id.toLowerCase()}.pdf`;
-  const cardPdf =
-    unit.floor > 0 &&
-    existsSync(path.join(process.cwd(), "public", cardPdfHref))
-      ? cardPdfHref
-      : null;
+  const cardPdf = existsSync(path.join(process.cwd(), "public", cardPdfHref))
+    ? cardPdfHref
+    : null;
   const status = AVAILABILITY_STYLE[unit.availability];
 
   // Kuchnia na wymiar: opcja dodatkowa przy każdej ofercie. Przy lokalu, którego
