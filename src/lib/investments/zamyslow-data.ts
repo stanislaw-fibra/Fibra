@@ -65,11 +65,26 @@ export type FloorPlanAnnotation = {
  * Współrzędne stref żyją w `viewBox` (naturalny układ obrazu 1x), a SVG siada na
  * obrazie 1:1 (oba object-contain / xMidYMid meet o tym samym aspekcie).
  */
+/**
+ * Ogródek przynależny do lokalu na parterze (aranżacja architekta 26.08.2026).
+ * `d` bywa ścieżką z KILKU podścieżek - ogródek M6 jest przecięty tarasem na
+ * dwa kawałki, a kupujący ma jeden ogródek, nie dwa.
+ */
+export type FloorPlanGarden = {
+  /** Id lokalu, do którego ogródek należy („M5"). */
+  unit: string;
+  areaM2: number;
+  d: string;
+  label: { x: number; y: number };
+};
+
 export type FloorPlan = {
   image: string;
   viewBox: { width: number; height: number };
   units: FloorPlanUnit[];
   annotations?: FloorPlanAnnotation[];
+  /** Tylko parter - pozostałe kondygnacje nie mają ogródków. */
+  gardens?: FloorPlanGarden[];
 };
 
 export type ZamyslowFloor = {
@@ -236,26 +251,67 @@ export const zamyslowData: ZamyslowData = {
       // (z kompensacją przesunięcia arkusza) i dociągnięte do granic kolorów.
       // M6 jest mniejsze niż M12 na piętrach (wejście + wózkownia).
       floorPlan: {
-        image: "/investments/zamyslow/floorplans/floor-ground-plan.webp",
-        viewBox: { width: 906, height: 500.5 },
+        image: "/investments/zamyslow/floorplans/floor-ground-plan-ogrody.webp",
+        viewBox: { width: 1166.5, height: 600 },
         // Podpisy tarasów - na rzucie architekta są opisane, a same prostokąty
         // bez opisu wyglądałyby jak przypadkowe ramki. Boczne obrócone o -90°.
         annotations: [
-          { text: "Taras", x: 319, y: 40 },
-          { text: "Taras", x: 690, y: 40 },
-          { text: "Taras", x: 336, y: 458 },
-          { text: "Taras", x: 582, y: 458 },
-          { text: "Taras", x: 40, y: 350, rotate: -90 },
-          { text: "Taras", x: 865, y: 352, rotate: -90 },
+          { text: "Taras", x: 394, y: 45 },
+          { text: "Taras", x: 765, y: 45 },
+          { text: "Taras", x: 411, y: 461 },
+          { text: "Taras", x: 657, y: 461 },
+          { text: "Taras", x: 115, y: 354, rotate: -90 },
+          { text: "Taras", x: 940, y: 356, rotate: -90 },
+        ],
+        // Ogródki przynależne do lokali parteru (aranżacja z 26.08.2026).
+        // Powierzchnie z opisów architekta, obrysy wytrasowane z rysunku -
+        // patrz `scripts/zamyslow-parter-ogrody.mjs`.
+        gardens: [
+          {
+            unit: "M1",
+            areaM2: 22.6,
+            d: "M577.0 9.8L691.7 9.8L691.7 79.7L577.0 79.7Z",
+            label: { x: 634.4, y: 44.8 },
+          },
+          {
+            unit: "M2",
+            areaM2: 153.1,
+            d: "M826.5 422.4L862.4 422.4L862.9 428.3L898.2 428.3L898.7 243.1L903.2 243.1L903.8 428.3L904.3 151.3L1156.1 151.3L1156.1 593.3L826.5 586.0Z",
+            label: { x: 1020.6, y: 387.1 },
+          },
+          {
+            unit: "M3",
+            areaM2: 60.5,
+            d: "M513.7 428.0L584.2 428.3L584.8 499.0L725.8 499.0L726.4 428.3L825.4 428.3L825.4 586.0L513.7 579.3Z",
+            label: { x: 675, y: 516.6 },
+          },
+          {
+            unit: "M4",
+            areaM2: 52.7,
+            d: "M229.2 428.3L340.5 428.3L341.1 499.0L482.1 499.0L482.7 428.3L512.3 428.3L512.3 579.3L229.2 572.9Z",
+            label: { x: 359.4, y: 514.4 },
+          },
+          {
+            unit: "M5",
+            areaM2: 81.4,
+            d: "M9.8 182.4L150.3 182.4L150.8 428.3L151.4 198.3L155.9 198.3L156.4 428.3L191.7 428.3L192.2 422.7L228.0 422.4L228.0 573.1L9.8 568.4Z",
+            label: { x: 95.6, y: 407.1 },
+          },
+          {
+            unit: "M6",
+            areaM2: 19.1,
+            d: "M248.5 9.8L319.0 9.8L319.0 74.1L255.7 74.1L255.2 79.7L248.5 79.7Z M467.6 9.8L486.0 9.8L486.0 79.7L468.1 79.7L467.6 76.6Z",
+            label: { x: 283.6, y: 42.2 },
+          },
         ],
         units: [
           {
             id: "M1",
             href: "/zamyslow/mieszkania/m1",
-            d: "M502.2 87.7L502.2 175.7L559.2 175.7L559.2 200.7L559.2 230.7L703.2 230.7L703.2 87.7Z",
+            d: "M577.5 92.1L577.5 179.9L634.5 179.9L634.5 204.8L634.5 234.7L778.5 234.7L778.5 92.1Z",
             areaM2: 31.12,
             rooms: 2,
-            label: { x: 584.1, y: 169.8 },
+            label: { x: 659.4, y: 174 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 20.23 },
               { name: "Sypialnia", areaM2: 7.19 },
@@ -265,10 +321,10 @@ export const zamyslowData: ZamyslowData = {
           {
             id: "M2",
             href: "/zamyslow/mieszkania/m2",
-            d: "M620.2 237.7L620.2 325.7L723.2 325.7L723.2 410.7L816.2 410.7L816.2 87.7L710.2 87.7L710.2 237.7Z",
+            d: "M695.5 241.7L695.5 329.5L798.5 329.5L798.5 414.2L891.5 414.2L891.5 92.1L785.5 92.1L785.5 241.7Z",
             areaM2: 49.15,
             rooms: 3,
-            label: { x: 717.4, y: 265.4 },
+            label: { x: 792.7, y: 269.3 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 27.04 },
               { name: "Pokój", areaM2: 7.28 },
@@ -279,10 +335,10 @@ export const zamyslowData: ZamyslowData = {
           {
             id: "M3",
             href: "/zamyslow/mieszkania/m3",
-            d: "M501.2 278.7L501.2 411.7L717.2 411.7L717.2 331.7L613.2 331.7L613.2 278.7Z",
+            d: "M576.5 282.6L576.5 415.2L792.5 415.2L792.5 335.5L688.5 335.5L688.5 282.6Z",
             areaM2: 27.44,
             rooms: 2,
-            label: { x: 610.5, y: 340.7 },
+            label: { x: 685.8, y: 344.4 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 16.4 },
               { name: "Sypialnia", areaM2: 7.48 },
@@ -292,10 +348,10 @@ export const zamyslowData: ZamyslowData = {
           {
             id: "M4",
             href: "/zamyslow/mieszkania/m4",
-            d: "M223.2 288.7L223.2 411.7L413.2 411.7L413.2 279.7L318.2 279.7L318.2 288.7Z",
+            d: "M298.5 292.6L298.5 415.2L488.5 415.2L488.5 283.6L393.5 283.6L393.5 292.6Z",
             areaM2: 28.69,
             rooms: 2,
-            label: { x: 318.2, y: 326.7 },
+            label: { x: 393.5, y: 330.5 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 17.4 },
               { name: "Łazienka", areaM2: 4.13 },
@@ -305,10 +361,10 @@ export const zamyslowData: ZamyslowData = {
           {
             id: "M5",
             href: "/zamyslow/mieszkania/m5",
-            d: "M88.2 87.7L88.2 411.7L218.2 411.7L218.2 283.7L313.2 283.7L313.2 236.7L218.2 236.7L218.2 87.7Z",
+            d: "M163.5 92.1L163.5 415.2L293.5 415.2L293.5 287.6L388.5 287.6L388.5 240.7L293.5 240.7L293.5 92.1Z",
             areaM2: 55.42,
             rooms: 3,
-            label: { x: 209.5, y: 255 },
+            label: { x: 284.8, y: 259 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 27.82 },
               { name: "Pokój", areaM2: 10.24 },
@@ -319,10 +375,10 @@ export const zamyslowData: ZamyslowData = {
           {
             id: "M6",
             href: "/zamyslow/mieszkania/m6",
-            d: "M224.2 87.7L224.2 231.7L412.2 231.7L412.2 99.7L413.2 99.7L413.2 87.7Z",
+            d: "M299.5 92.1L299.5 235.7L487.5 235.7L487.5 104.1L488.5 104.1L488.5 92.1Z",
             areaM2: 32.34,
             rooms: 2,
-            label: { x: 349.9, y: 139.7 },
+            label: { x: 425.2, y: 144 },
             roomsList: [
               { name: "Pokój dzienny z aneksem", areaM2: 18.47 },
               { name: "Sypialnia", areaM2: 8.74 },
@@ -840,3 +896,15 @@ export const zamyslowData: ZamyslowData = {
     },
   ],
 };
+
+/**
+ * Ogródek przynależny do lokalu (tylko parter). Jedno źródło dla rzutu piętra
+ * i strony oferty, żeby metraż ogródka nie rozjechał się między nimi.
+ */
+export function zamyslowGardenFor(unitId: string): FloorPlanGarden | null {
+  for (const floor of zamyslowData.floors) {
+    const g = floor.floorPlan?.gardens?.find((x) => x.unit === unitId.toUpperCase());
+    if (g) return g;
+  }
+  return null;
+}

@@ -124,6 +124,10 @@ export default async function UnitPage(
       label: unit.outdoor || "Balkon / taras",
       value: unit.outdoorArea ? unit.outdoorArea.replace(".", ",") : unit.outdoor ? "Tak" : "",
     },
+    {
+      label: "Ogródek",
+      value: unit.gardenAreaM2 ? `${String(unit.gardenAreaM2).replace(".", ",")} m²` : "",
+    },
     { label: "Ekspozycja", value: unit.exposure },
     { label: "Miejsce postojowe", value: unit.parkingSpot },
     {
@@ -181,6 +185,11 @@ export default async function UnitPage(
                     {unit.floorLabel} · {unit.rooms} {roomsWord(unit.rooms)} ·{" "}
                     {unit.areaLabel.replace(".", ",")}
                     {unit.outdoor ? ` · ${unit.outdoor.toLowerCase()}` : ""}
+                    {/* Ogródek to najczęstsze pytanie kupujących o parter
+                        („dokąd sięga, jaki duży"), więc stoi już w nagłówku. */}
+                    {unit.gardenAreaM2
+                      ? ` · ogródek ${String(unit.gardenAreaM2).replace(".", ",")} m²`
+                      : ""}
                   </p>
                 </Reveal>
 
@@ -378,6 +387,13 @@ export default async function UnitPage(
                   {unit.outdoor && !unit.outdoorArea ? (
                     <p className="mt-4 max-w-[40ch] text-[15.5px] leading-relaxed text-ink-600">
                       Do mieszkania przynależy {unit.outdoor.toLowerCase()}.
+                    </p>
+                  ) : null}
+                  {unit.gardenAreaM2 ? (
+                    <p className="mt-4 max-w-[40ch] text-[15.5px] leading-relaxed text-ink-600">
+                      Do lokalu przynależy ogródek o powierzchni{" "}
+                      {String(unit.gardenAreaM2).replace(".", ",")} m². Jego granice
+                      zaznaczyliśmy na rzucie piętra.
                     </p>
                   ) : null}
                   {(unit.links.floorPlanPdf || unit.links.tour3d || unit.links.visualization) ? (

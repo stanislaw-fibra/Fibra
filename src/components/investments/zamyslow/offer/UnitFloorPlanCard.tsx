@@ -22,6 +22,7 @@ export async function UnitFloorPlanCard({ unitId }: { unitId: string }) {
   if (!floor || !plan || !unit) return null;
 
   const { width: vbW, height: vbH } = plan.viewBox;
+  const garden = plan.gardens?.find((g) => g.unit === unitId) ?? null;
   const taken = plan.units.filter(
     (u) => u.id !== unitId && (statuses[u.id]?.availability ?? "available") !== "available",
   );
@@ -70,6 +71,19 @@ export async function UnitFloorPlanCard({ unitId }: { unitId: string }) {
           {taken.map((u) => (
             <path key={`taken-${u.id}`} d={u.d} fill="url(#zamyslow-card-hatch)" />
           ))}
+          {/* Ogródek tego lokalu - obrys w tym samym akcencie co mieszkanie,
+              żeby od razu było widać, dokąd sięga. */}
+          {garden ? (
+            <path
+              d={garden.d}
+              fillRule="evenodd"
+              fill="rgba(0,221,214,0.14)"
+              stroke="rgba(13,148,143,0.8)"
+              strokeWidth={2}
+              strokeDasharray="7 5"
+              vectorEffect="non-scaling-stroke"
+            />
+          ) : null}
           <path
             d={unit.d}
             fill="rgba(0,221,214,0.16)"
@@ -93,19 +107,33 @@ export async function UnitFloorPlanCard({ unitId }: { unitId: string }) {
       </div>
 
       <div className="flex items-center justify-between gap-4 border-t border-ink-200/60 bg-paper-warm/50 px-6 py-3.5 md:px-7">
-        <p className="flex items-center gap-2 text-[12.5px] text-ink-500">
+        {/* Rysunek niesie teraz dwa sygnały naraz (kreskowanie = zajęte,
+            przerywana linia = granica ogródka). Tłumaczymy oba, bo sam
+            kreskowany wzór bez legendy czyta się jak usterka. */}
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-ink-500">
           {taken.length ? (
-            <>
+            <span className="inline-flex items-center gap-2">
               <span
                 aria-hidden
                 className="inline-block h-2.5 w-2.5 shrink-0 rounded-[2px] bg-[repeating-linear-gradient(45deg,rgba(120,113,108,0.55)_0_2px,transparent_2px_4px)] ring-1 ring-ink-300"
               />
-              <span>Kreskowane mieszkania są już zajęte</span>
-            </>
-          ) : (
+              Kreskowane mieszkania są już zajęte
+            </span>
+          ) : null}
+          {garden ? (
+            <span className="inline-flex items-center gap-2">
+              <span
+                aria-hidden
+                className="inline-block h-0 w-4 shrink-0 border-t-2 border-dashed border-brand-600"
+              />
+              Przerywana linia to granica ogródka
+            </span>
+          ) : null}
+          {!taken.length && !garden ? (
             <span>Sąsiednie mieszkania zobaczysz na interaktywnym rzucie</span>
-          )}
+          ) : null}
         </p>
+
         {/* #pietro-<id> otwiera na /zamyslow rzut DOKŁADNIE tego piętra
             (ZamyslowBuilding czyta hash i przewija do sceny). */}
         <Link

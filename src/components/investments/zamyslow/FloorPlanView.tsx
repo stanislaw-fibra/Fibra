@@ -5,7 +5,11 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { FloorPlanCompass } from "./FloorPlanCompass";
-import type { FloorPlanUnit, ZamyslowFloor } from "@/lib/investments/zamyslow-data";
+import type {
+  FloorPlanGarden,
+  FloorPlanUnit,
+  ZamyslowFloor,
+} from "@/lib/investments/zamyslow-data";
 import {
   AVAILABILITY_LABEL,
   type UnitAvailability,
@@ -271,6 +275,13 @@ export function FloorPlanView({
     py: clamp(1, planW * 0.005, 3),
     px: clamp(2.5, planW * 0.0105, 7),
     ann: clamp(5, planW * 0.0092, 8.5),
+    // Plakietki ogródków są CELOWO mniejsze od plakietek mieszkań: na rzucie
+    // wybiera się lokal, a ogródek jest informacją towarzyszącą. Największy
+    // tekst ogródka (metraż) jest mniejszy od najmniejszego tekstu mieszkania.
+    gname: clamp(4.5, planW * 0.0082, 6.4),
+    garea: clamp(5.5, planW * 0.0112, 8.4),
+    gpy: clamp(0.5, planW * 0.0034, 2),
+    gpx: clamp(2, planW * 0.0072, 5),
   };
 
   // Kotwica karty liczona od razu (synchronicznie), żeby karta nie „doganiała".
@@ -485,9 +496,34 @@ export function FloorPlanView({
                   </pattern>
                 </defs>
 
+                {/* Ogródki parteru. Rysujemy je POD strefami mieszkań i bez
+                    obsługi zdarzeń - klikalny zostaje lokal, a ogródek tylko
+                    podświetla się razem z nim. Trawa jest już na rysunku;
+                    obrys pokazuje, GDZIE dokładnie kończy się dany ogródek. */}
+                {plan.gardens?.map((g) => {
+                  const isActive = activeId === g.unit;
+                  return (
+                    <path
+                      key={`garden-${g.unit}`}
+                      d={g.d}
+                      fillRule="evenodd"
+                      pointerEvents="none"
+                      className="transition-[fill,stroke,stroke-width] duration-150"
+                      style={{
+                        fill: isActive ? "rgba(0,221,214,0.22)" : "rgba(255,255,255,0)",
+                        stroke: isActive ? "rgba(0,150,145,0.95)" : "rgba(21,94,89,0.45)",
+                        strokeWidth: isActive ? 2 : 1,
+                        strokeDasharray: isActive ? "none" : "5 4",
+                      }}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  );
+                })}
+
                 {plan.units.map((unit) => {
                   const isActive = activeId === unit.id;
                   const availability = availabilityOf(unit.id);
+                  const garden = plan.gardens?.find((g) => g.unit === unit.id) ?? null;
                   const zone = ZONE[availability];
                   const known = Boolean(statuses[unit.id]);
                   // Kreskowanie tylko wtedy, gdy arkusz FAKTYCZNIE podał status -
@@ -503,6 +539,7 @@ export function FloorPlanView({
                         `${fmt(unit.areaM2, 2)} m²`,
                         `${unit.rooms} ${roomsWord(unit.rooms)}`,
                         known ? AVAILABILITY_LABEL[availability] : null,
+                        garden ? `ogródek ${fmt(garden.areaM2, 1)} m²` : null,
                       ]
                         .filter(Boolean)
                         .join(", ")}
@@ -618,6 +655,35 @@ export function FloorPlanView({
                     </div>
                   );
                 })}
+
+              {/* Podpisy ogródków - powód całej zmiany: kupujący pytali „gdzie
+                  jest mój ogród i jaki duży". Metraż stoi wprost na trawie. */}
+              {showLabels &&
+                plan.gardens?.map((g) => (
+                  <div
+                    key={`garden-label-${g.unit}`}
+                    aria-hidden
+                    className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-[4px] bg-emerald-950/70 text-center leading-[1.2] ring-1 ring-emerald-950/15 backdrop-blur-[1.5px]"
+                    style={{
+                      left: `${(g.label.x / vbW) * 100}%`,
+                      top: `${(g.label.y / vbH) * 100}%`,
+                      padding: `${lbl.gpy}px ${lbl.gpx}px`,
+                    }}
+                  >
+                    <span
+                      className="block font-sans font-medium uppercase text-emerald-100/70"
+                      style={{ fontSize: `${lbl.gname}px`, letterSpacing: "0.06em" }}
+                    >
+                      Ogródek {g.unit}
+                    </span>
+                    <span
+                      className="block font-sans font-semibold tabular-nums text-white"
+                      style={{ fontSize: `${lbl.garea}px` }}
+                    >
+                      {fmt(g.areaM2, 1)} m²
+                    </span>
+                  </div>
+                ))}
 
               {/* Róża wiatrów - kierunek świata bywa argumentem przy wyborze
                   mieszkania, więc trzymamy ją zawsze przy rzucie. */}
@@ -748,6 +814,7 @@ export function FloorPlanView({
             {active && anchor && (
               <DetailCard
                 unit={active}
+                garden={plan?.gardens?.find((g) => g.unit === active.id) ?? null}
                 status={statusOf(active.id)}
                 anchor={anchor}
                 loading={navigatingId === active.id}
@@ -769,6 +836,7 @@ export function FloorPlanView({
 
 function DetailCard({
   unit,
+  garden,
   status,
   anchor,
   loading,
@@ -777,6 +845,7 @@ function DetailCard({
   onOpen,
 }: {
   unit: FloorPlanUnit;
+  garden: FloorPlanGarden | null;
   status: UnitStatusInfo | null;
   anchor: { x: number; y: number };
   loading: boolean;
@@ -839,6 +908,15 @@ function DetailCard({
           </p>
         )}
       </div>
+
+      {garden ? (
+        <div className="mt-3 flex items-baseline justify-between gap-3 border-t border-white/10 bg-emerald-500/10 px-4 py-2 text-[12px]">
+          <span className="text-emerald-200/85">Ogródek</span>
+          <span className="shrink-0 font-semibold tabular-nums text-emerald-100">
+            {fmt(garden.areaM2, 1)} m²
+          </span>
+        </div>
+      ) : null}
 
       <div className="mt-3 border-t border-white/10 px-4 py-2.5">
         <ul className="space-y-1">

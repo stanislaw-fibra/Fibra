@@ -1,6 +1,7 @@
 import "server-only";
 
 import { zamyslowKitchenPrice } from "./zamyslow-kitchen";
+import { zamyslowGardenFor } from "./zamyslow-data";
 import {
   AVAILABILITY_LABEL,
   availabilityFromLabel,
@@ -70,6 +71,12 @@ export interface ZamyslowUnitListing {
    * w `zamyslow-kitchen.ts`. `null` = nie pokazujemy oferty kuchni.
    */
   kitchenPrice: number | null;
+  /**
+   * Powierzchnia ogródka w m² (tylko parter; `null` na piętrach).
+   * Z arkusza, gdy jest kolumna „Ogródek"; inaczej z aranżacji architekta
+   * w `zamyslow-data.ts` - ta sama liczba, co na rzucie piętra.
+   */
+  gardenAreaM2: number | null;
   /** Linki do materiałów (uzupełniane w arkuszu, gdy będą gotowe). */
   links: { floorPlanPdf: string; visualization: string; tour3d: string };
   updatedAt: string;
@@ -207,6 +214,9 @@ export async function getZamyslowUnits(): Promise<ZamyslowUnitsListing | null> {
     // Kolumny jeszcze nie ma w arkuszu - gdy Arek ją doda („Cena kuchni"),
     // przejmie pierwszeństwo nad tabelą w zamyslow-kitchen.ts.
     kitchenPrice: colLike("cena kuchni"),
+    // Kolumny jeszcze nie ma w arkuszu - gdy Arek doda „Ogródek", przejmie
+    // pierwszeństwo nad metrażem z aranżacji.
+    garden: colLike("ogród"),
     publish: colLike("publikować"),
     linkPlan: colLike("link – rzut"),
     linkViz: colLike("link – wizualizacja"),
@@ -277,6 +287,7 @@ export async function getZamyslowUnits(): Promise<ZamyslowUnitsListing | null> {
       parkingPrice: toPrice(get(row, c.parkingPrice)),
       storageRoom: get(row, c.storage),
       kitchenPrice: toPrice(get(row, c.kitchenPrice)) ?? zamyslowKitchenPrice(id),
+      gardenAreaM2: toNumber(get(row, c.garden)) || zamyslowGardenFor(id)?.areaM2 || null,
       links: {
         floorPlanPdf: get(row, c.linkPlan),
         visualization: get(row, c.linkViz),
