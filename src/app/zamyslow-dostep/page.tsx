@@ -8,7 +8,7 @@ import { zamyslowGateAction } from "./actions";
 
 const LAUNCH_AT = new Date(ZAMYSLOW_LAUNCH_ISO);
 
-/** np. „czwartek, 3 września 2026" - zawsze w czasie polskim. */
+/** np. „poniedziałek, 7 września 2026" - zawsze w czasie polskim. */
 const LAUNCH_DATE = new Intl.DateTimeFormat("pl-PL", {
   weekday: "long",
   day: "numeric",

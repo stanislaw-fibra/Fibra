@@ -16,7 +16,7 @@
  * Strefa: offset +02:00 = czas polski we wrześniu (CEST), więc timestamp jest
  * jednoznaczny niezależnie od strefy serwera/Vercela.
  */
-export const ZAMYSLOW_LAUNCH_ISO = "2026-09-03T16:00:00+02:00";
+export const ZAMYSLOW_LAUNCH_ISO = "2026-09-07T16:00:00+02:00";
 
 /** Otwarcie jako epoch (ms) - tak porównujemy z `Date.now()`. */
 export const ZAMYSLOW_LAUNCH_AT = Date.parse(ZAMYSLOW_LAUNCH_ISO);
