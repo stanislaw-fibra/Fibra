@@ -154,22 +154,50 @@ function parseCsv(text: string): string[][] {
 }
 
 /**
+ * Twardy limit na odpowiedź arkusza. BEZ NIEGO BUILD POTRAFI STANĄĆ: Google
+ * czasem przytrzymuje połączenie z datacenter (3.09.2026 prerender
+ * /osiedle-zamyslow wisiał na Vercelu 3x po 60 s i wywalił deploy). `fetch`
+ * bez sygnału nie ma własnego timeoutu, więc czeka w nieskończoność.
+ * Dwie próby po 8 s mieszczą się w 60-sekundowym limicie Next na stronę.
+ */
+const SHEET_TIMEOUT_MS = 8_000;
+const SHEET_ATTEMPTS = 2;
+
+/**
+ * Surowy CSV arkusza albo null. `signal` wyłącza memoizację fetcha w obrębie
+ * jednego renderu (patrz docs `fetch`), ale cache danych (revalidate 300 s)
+ * działa dalej - drugie wywołanie na tej samej stronie i tak nie idzie do sieci.
+ */
+async function fetchSheetCsv(): Promise<string | null> {
+  const url = csvUrl();
+  for (let attempt = 1; attempt <= SHEET_ATTEMPTS; attempt += 1) {
+    try {
+      const res = await fetch(url, {
+        next: { revalidate: 300 },
+        signal: AbortSignal.timeout(SHEET_TIMEOUT_MS),
+      });
+      if (!res.ok) {
+        console.error("[zamyslow-units] Arkusz odpowiedział statusem", res.status);
+        return null;
+      }
+      return await res.text();
+    } catch (e) {
+      console.error(
+        `[zamyslow-units] Arkusz nie odpowiedział (próba ${attempt}/${SHEET_ATTEMPTS}):`,
+        e,
+      );
+    }
+  }
+  return null;
+}
+
+/**
  * Pobiera 36 mieszkań z arkusza. Zwraca null przy problemie z arkuszem -
  * strona oferty pokazuje wtedy 404/komunikat zamiast błędnych danych.
  */
 export async function getZamyslowUnits(): Promise<ZamyslowUnitsListing | null> {
-  let text: string;
-  try {
-    const res = await fetch(csvUrl(), { next: { revalidate: 300 } });
-    if (!res.ok) {
-      console.error("[zamyslow-units] Arkusz odpowiedział statusem", res.status);
-      return null;
-    }
-    text = await res.text();
-  } catch (e) {
-    console.error("[zamyslow-units] Nie udało się pobrać arkusza:", e);
-    return null;
-  }
+  const text = await fetchSheetCsv();
+  if (text === null) return null;
 
   const rows = parseCsv(text);
 
