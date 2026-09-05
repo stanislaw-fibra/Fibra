@@ -42,7 +42,7 @@ export const maxDuration = 30;
 // publikacji. Zmienna srodowiskowa (gdy ustawiona) ma pierwszenstwo: pozwala
 // podmienic arkusz bez wdrozenia.
 const PUB =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vS8KBxMHHHY7v0Ye_FpEw4MTgJwSVQD92fPf9X1KhwL17gjJk3WnfD7cneZpvgTdQ/pub";
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRywFx91ip5xRSG4NThobiHcS4XDs9JGGqK5GfDuBj7AnbcVlHD_HYX4k2r6TW0fjJf7PcRp30g-ZEc/pub";
 
 const arkusz = (gid: string, env: string | undefined) =>
   env && env.trim() ? env.trim() : `${PUB}?gid=${gid}&single=true&output=csv`;
