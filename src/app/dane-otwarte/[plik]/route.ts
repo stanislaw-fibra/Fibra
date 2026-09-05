@@ -27,6 +27,12 @@
 
 export const dynamic = "force-dynamic";
 
+// Dwie proby po 8 s na cztery arkusze to w najgorszym razie ~16 s, a domyslny
+// limit funkcji na Vercelu bywa krotszy - wtedy funkcja zostalaby ubita
+// dokladnie wtedy, gdy retry ma pomoc, a harvester dostalby 504 zamiast
+// danych. 30 s miesci sie w limicie kazdego planu.
+export const maxDuration = 30;
+
 // ---------------------------------------------------------------- konfiguracja
 
 // Arkusz Google opublikowany w sieci (Plik > Udostepnij > Opublikuj w sieci),
