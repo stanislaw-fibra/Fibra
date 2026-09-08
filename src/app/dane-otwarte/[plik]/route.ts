@@ -2,6 +2,7 @@
 //
 // Obsluguje dwa adresy:
 //   /dane-otwarte/zamyslow-128g.xml            manifest dla dane.gov.pl
+//   /dane-otwarte/zamyslow-128g.md5            suma kontrolna manifestu
 //   /dane-otwarte/ceny-128g-YYYY-MM-DD.csv     cennik na dany dzien
 //   /dane-otwarte/ceny-128g.csv                cennik na DZISIAJ (staly adres)
 //
@@ -24,6 +25,8 @@
 //
 // (repozytorium olekstomek/mcod-* to lustro zrodel portalu z dane.gov.pl/source-code)
 // Stan na 5.09.2026: manifest przechodzi walidacje schematem 1.13.
+
+import { createHash } from "node:crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +59,7 @@ const SHEETS = {
 
 const BAZA_URL = "https://fibra.pl/dane-otwarte";
 const PLIK_XML = "zamyslow-128g.xml";
+const PLIK_MD5 = PLIK_XML.replace(/\.xml$/, ".md5");
 const PREFIX_CSV = "ceny-128g-";
 
 // Cena lokalu trafia do kolumny 40 (iloczyn ceny za m2 i powierzchni).
@@ -496,6 +500,21 @@ export async function GET(
       return new Response(await zbudujCSV(dzisWarszawa()), {
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
+          "Cache-Control": "public, s-maxage=1800, stale-while-revalidate=3600",
+        },
+      });
+    }
+
+    // Suma kontrolna manifestu. Budujemy XML jeszcze raz i liczymy hash z tego
+    // samego tekstu, ktory zwraca endpoint XML - Response koduje go w UTF-8,
+    // wiec i my hashujemy UTF-8. Trzymanie gotowej sumy gdziekolwiek obok
+    // skonczyloby sie rozjazdem z plikiem przy najblizszej zmianie w arkuszu.
+    // Web Crypto nie zna MD5 (nie ma go w liscie algorytmow), stad node:crypto.
+    if (plik === PLIK_MD5) {
+      const suma = createHash("md5").update(await zbudujXML(), "utf8").digest("hex");
+      return new Response(suma, {
+        headers: {
+          "Content-Type": "text/plain",
           "Cache-Control": "public, s-maxage=1800, stale-while-revalidate=3600",
         },
       });
