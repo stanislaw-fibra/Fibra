@@ -417,8 +417,38 @@ body {
   }
 }
 
+/* -----------------------------------------------------------
+   Artykuł /czy-inwestycja-...: rozwijane pytania i rachunek najmu,
+   którego paski rosną po kolei, gdy grafika wjedzie na ekran.
+   ----------------------------------------------------------- */
+.faq-item > summary::-webkit-details-marker { display: none; }
+.faq-item > summary { list-style: none; }
+.faq-item .faq-chevron { transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.faq-item[open] .faq-chevron { transform: rotate(180deg); }
+.faq-item > summary:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.calc-bar {
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition-delay: var(--bar-delay, 0ms);
+}
+.calc-flow.is-visible .calc-bar { transform: scaleX(1); }
+
+.article-photo img {
+  transform: scale(1.04);
+  transition: transform 1600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.reveal.is-visible.article-photo img,
+.reveal.is-visible .article-photo img { transform: scale(1); }
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
   .reveal { opacity: 1; transform: none; }
+  .calc-bar, .article-photo img { transform: none; }
 }

@@ -47,3 +47,4 @@ supabase/.temp/
 
 # Lokalny backup masterów kursu (nie commitować)
 .course-backup/
+.taste-skill/

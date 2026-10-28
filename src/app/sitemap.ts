@@ -26,6 +26,7 @@ const STATIC_ROUTES: {
   { path: "/zamyslow", priority: 0.9, changeFrequency: "weekly" },
   { path: "/osiedle-zamyslow", priority: 0.7, changeFrequency: "weekly" },
   { path: "/przewodnik-inwestora", priority: 0.7, changeFrequency: "monthly" },
+  { path: "/czy-inwestycja-w-mieszkanie-jest-dla-mnie", priority: 0.6, changeFrequency: "monthly" },
   { path: "/zarzadzanie-najmem", priority: 0.7, changeFrequency: "monthly" },
   { path: "/galeria-inwestycji", priority: 0.5, changeFrequency: "monthly" },
   { path: "/prospekt-informacyjny", priority: 0.3, changeFrequency: "yearly" },
