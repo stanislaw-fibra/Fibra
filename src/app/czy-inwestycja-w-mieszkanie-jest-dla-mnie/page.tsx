@@ -302,7 +302,7 @@ export default async function CzyInwestycjaPage() {
                   <Reveal delay={120}>
                     <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-4 rounded-[var(--radius-lg)] bg-white p-5 sm:p-6">
                       <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-ink-200">
-                        <Image src={agent.photoUrl} alt="" fill sizes="48px" className="object-cover" />
+                        <Image src={agent.photoUrl} alt="" fill sizes="48px" className="object-cover object-top" />
                       </span>
                       <p className="min-w-[14rem] flex-1 text-[16px] leading-[1.5] text-ink-800">
                         Dla konkretnego mieszkania na Osiedlu Zamysłów taki rachunek przygotuje nasz specjalista{" "}
@@ -402,7 +402,7 @@ export default async function CzyInwestycjaPage() {
                   <div className="rounded-[var(--radius-lg)] bg-white p-6">
                     <div className="flex items-center gap-3.5">
                       <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-ink-200">
-                        <Image src={agent.photoUrl} alt="" fill sizes="56px" className="object-cover" />
+                        <Image src={agent.photoUrl} alt="" fill sizes="56px" className="object-cover object-top" />
                       </span>
                       <p className="text-[15px] leading-snug">
                         <span className="block font-semibold text-ink-950">{agent.name}</span>
@@ -573,7 +573,7 @@ function PullQuote({ text, photo }: { text: string; photo: string }) {
           </blockquote>
           <figcaption className="mt-7 flex items-center gap-3.5">
             <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-white/10">
-              <Image src={photo} alt="" fill sizes="44px" className="object-cover" />
+              <Image src={photo} alt="" fill sizes="44px" className="object-cover object-top" />
             </span>
             <span className="text-[15px] leading-snug text-white/70">
               <span className="block font-medium text-white">Bartosz Nosiadek</span>
