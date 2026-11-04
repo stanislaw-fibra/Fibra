@@ -300,18 +300,30 @@ export async function runVirgoImport(opts: VirgoRunOptions = {}): Promise<Import
       // które Galactica wystawia (StatusEks != 0), a których w ogóle NIE mamy w bazie,
       // zgłaszamy serwerowi - dosyła je w kolejnym GetOffers. Dzięki temu jesteśmy
       // autonomiczni: nie potrzebujemy już resetu Galactiki, by odzyskać zgubioną ofertę.
+      // Zgłaszamy też aktywne oferty bez ani jednego zdjęcia: gdy upload zdjęć padnie przy
+      // pierwszym przyjściu oferty, przyrostowy GetOffers drugi raz jej sam nie przyśle
+      // (casus FIB-DS-4234, 4.11.2026). Po ponownej wysyłce krok 4c dociąga brakujące zdjęcia.
       if (!opts.dryRun && sid && cfg && entries.length > 0) {
         try {
-          const { data: ourRows } = await supabase.from("offers").select("galactica_offer_id");
+          const { data: ourRows } = await supabase
+            .from("offers")
+            .select("galactica_offer_id, is_active, offer_images(id)");
           const ours = new Set((ourRows ?? []).map((r) => r.galactica_offer_id));
+          const withoutImages = new Set(
+            (ourRows ?? [])
+              .filter((r) => r.is_active && (r.offer_images ?? []).length === 0)
+              .map((r) => r.galactica_offer_id),
+          );
           const missingIds = entries
-            .filter((e) => e.statusEks !== "0" && !ours.has(e.symbol))
+            .filter(
+              (e) => e.statusEks !== "0" && (!ours.has(e.symbol) || withoutImages.has(e.symbol)),
+            )
             .map((e) => e.id);
           if (missingIds.length > 0) {
             await setMissingOffers(sid, missingIds, cfg);
             summary.reconcileNote =
               (summary.reconcileNote ?? "") +
-              ` SetMissingOffers: zgłoszono ${missingIds.length} brakujących (dośle GetOffers).`;
+              ` SetMissingOffers: zgłoszono ${missingIds.length} brakujących lub bez zdjęć (dośle GetOffers).`;
           }
         } catch (e) {
           summary.errors.push({ step: "virgo_set_missing", message: errMsg(e) });
