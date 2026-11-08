@@ -27,6 +27,27 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/o-nas", destination: "/o-fibrze", permanent: true },
+      // Stare zdjęcia z fibranieruchomosci.pl (`/grafika/...`). Middleware ich
+      // nie widzi, bo jego matcher pomija ścieżki z kropką (assety), więc ruch
+      // z Google Images i ze starych podglądów łapiemy tutaj, na routerze.
+      {
+        source: "/grafika/:path*",
+        has: [{ type: "host", value: "(www\\.)?fibranieruchomosci\\.pl" }],
+        destination: "https://fibra.pl/",
+        permanent: true,
+      },
+      // To samo dla zdjęć ze starej strony Zamysłowa (`/photos/investment_523/...`).
+      {
+        source: "/photos/:path*",
+        has: [
+          {
+            type: "host",
+            value: "(zamyslow\\.fibranieruchomosci\\.pl|(www\\.)?osiedlezamyslow\\.pl)",
+          },
+        ],
+        destination: "https://fibra.pl/galeria-inwestycji",
+        permanent: true,
+      },
     ];
   },
 };

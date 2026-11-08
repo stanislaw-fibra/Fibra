@@ -15,9 +15,47 @@ import {
 } from "@/lib/site-gate";
 import { isLaunched } from "@/lib/site-launch";
 import { isZamyslowLaunched } from "@/lib/zamyslow-launch";
+import {
+  carryOverParams,
+  LEGACY_HOSTS,
+  legacyOfferFallback,
+  legacyOfferId,
+  legacyTarget,
+  LEGACY_ZAMYSLOW_HOSTS,
+  legacyZamyslowTarget,
+  resolveLegacyOfferSlug,
+} from "@/lib/legacy-redirect";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // ---- Stara domena fibranieruchomosci.pl -> fibra.pl ----
+  // Po przestawieniu DNS-a starej domeny na Vercela cały jej ruch wchodzi tutaj.
+  // Odsyłamy go trwale (301) na odpowiednik na fibra.pl: oferta idzie na swoją
+  // podstronę (po numerze Galactiki z adresu), reszta na zmapowaną stronę albo
+  // na katalog. Blok jest PRZED bramkami, żeby stary ruch nigdy nie zobaczył
+  // ekranu z hasłem, i przed resztą middleware, bo dla tej domeny nic więcej
+  // nie ma sensu.
+  const host = request.headers.get("host")?.toLowerCase().split(":")[0] ?? "";
+  const isLegacyZamyslow = LEGACY_ZAMYSLOW_HOSTS.has(host);
+  if (isLegacyZamyslow || LEGACY_HOSTS.has(host)) {
+    let target: string | null;
+    if (isLegacyZamyslow) {
+      // Stara strona Zamysłowa - osobny serwis, własne nazwy podstron.
+      target = legacyZamyslowTarget(pathname);
+    } else {
+      const offerId = legacyOfferId(pathname);
+      target = legacyTarget(pathname);
+      if (offerId) {
+        const slug = await resolveLegacyOfferSlug(offerId);
+        target = slug ? `/oferty/${slug}` : legacyOfferFallback(pathname);
+      }
+    }
+    const base = process.env.NEXT_PUBLIC_SITE_URL || "https://fibra.pl";
+    const destination = new URL(target ?? "/", base);
+    carryOverParams(request.nextUrl.searchParams, destination);
+    return NextResponse.redirect(destination, 301);
+  }
 
   // ---- Bramka „Premiera strony już wkrótce" (PRZEJŚCIOWA) ----
   // Chowa CAŁĄ stronę za wspólnym hasłem do publicznego startu. Wyjątki
