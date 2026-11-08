@@ -14,8 +14,16 @@
  * więc jej nie dotykamy.
  */
 
-/** Domeny starego serwisu obsługiwane przez tę aplikację (bez subdomen). */
-export const LEGACY_HOSTS = new Set(["fibranieruchomosci.pl", "www.fibranieruchomosci.pl"]);
+/**
+ * Domeny starego serwisu obsługiwane przez tę aplikację. `m.` to dawna wersja
+ * mobilna (te same adresy co wersja główna) - dziś przekierowuje w pustkę
+ * na serwer Galactiki, więc łapiemy ją razem z resztą.
+ */
+export const LEGACY_HOSTS = new Set([
+  "fibranieruchomosci.pl",
+  "www.fibranieruchomosci.pl",
+  "m.fibranieruchomosci.pl",
+]);
 
 /**
  * Stara strona Zamysłowa - osobny serwis Galactiki („Deweloper Prestige") na
@@ -27,6 +35,7 @@ export const LEGACY_HOSTS = new Set(["fibranieruchomosci.pl", "www.fibranierucho
  */
 export const LEGACY_ZAMYSLOW_HOSTS = new Set([
   "zamyslow.fibranieruchomosci.pl",
+  "www.zamyslow.fibranieruchomosci.pl",
   // Gotowe na wypadek przestawienia DNS-u także tych domen - bez tego kroku
   // te wpisy po prostu nic nie robią.
   "osiedlezamyslow.pl",
