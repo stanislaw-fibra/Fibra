@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useFilters } from "@/app/oferty/filters-state";
 
 /**
@@ -16,13 +17,19 @@ const LISTINGS: { key: "all" | "sprzedaz" | "wynajem"; label: string }[] = [
   { key: "wynajem", label: "Wynajem" },
 ];
 
-export function HomeOffersHero() {
+/**
+ * `children` (baner Zamysłowa) stoi na samej górze, w tej samej sekcji co tytuł,
+ * żeby tło z poświatą szło pod nim płynnie, bez krawędzi między blokami.
+ */
+export function HomeOffersHero({ children }: { children?: ReactNode }) {
   const { filters, apply } = useFilters();
 
   return (
     <section className="relative overflow-hidden bg-ink-950 text-ink-100 pt-[72px]">
       <div className="absolute inset-0 grad-radial-brand opacity-70 pointer-events-none" />
       <div className="absolute inset-0 grain grain-on-dark pointer-events-none opacity-40" />
+
+      {children}
 
       <div className="container-xl relative py-5 md:py-6">
         {/* Tytuł - własny, zwięzły rząd. */}

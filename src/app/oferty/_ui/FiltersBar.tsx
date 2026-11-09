@@ -107,9 +107,14 @@ export function FiltersBar({
     if (!el) return;
     // rootMargin od góry ≈ -NAV_OFFSET → obszar nawigacji wchodzi jako
     // „poza widokiem". Kiedy sentinel jest nad Nav'em → !isIntersecting.
+    // Sentinel może też startować POD ekranem (na głównej nad katalogiem stoi
+    // baner Zamysłowa, na telefonie pasek bywa pod zgięciem). Dolny margines
+    // rozciąga obszar w dół „w nieskończoność", więc „poza obszarem" znaczy
+    // wyłącznie „nad Nav'em" - także przy skoku scrolla spod ekranu od razu
+    // nad niego, kiedy sentinel ani razu nie przecina widoku.
     const io = new IntersectionObserver(
       ([entry]) => setShowMini(!entry.isIntersecting),
-      { rootMargin: `-${NAV_OFFSET + 1}px 0px 0px 0px`, threshold: 0 },
+      { rootMargin: `-${NAV_OFFSET + 1}px 0px 100000px 0px`, threshold: 0 },
     );
     io.observe(el);
     return () => io.disconnect();

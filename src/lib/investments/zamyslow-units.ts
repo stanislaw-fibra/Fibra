@@ -369,6 +369,8 @@ export interface ZamyslowUnitsSummary {
   areaFromToLabel: string;
   /** np. „296 – 554 tys. zł". `null`, gdy w arkuszu nie ma jeszcze cen. */
   priceRangeLabel: string | null;
+  /** Sama dolna granica: „od 296 tys. zł" - do baneru na głównej. `null` jak wyżej. */
+  priceFromLabel: string | null;
 }
 
 /** 55.5 → „55,5"; 27 → „27". */
@@ -404,6 +406,9 @@ export function getZamyslowUnitsSummaryFrom(
         Math.max(...prices) / 1000,
       )} tys. zł`
     : null;
+  const priceFromLabel = prices.length
+    ? `od\u00a0${Math.floor(Math.min(...prices) / 1000)}\u00a0tys.\u00a0zł`
+    : null;
 
   return {
     total: listing.total,
@@ -411,6 +416,7 @@ export function getZamyslowUnitsSummaryFrom(
     areaRangeLabel,
     areaFromToLabel,
     priceRangeLabel,
+    priceFromLabel,
   };
 }
 
