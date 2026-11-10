@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "@/components/site/Logo";
 import {
+  useCameFromHome,
   useZamyslowExperience,
   ZAMYSLOW_EXPERIENCES,
   type ZamyslowExperience,
@@ -31,6 +32,12 @@ export function ZamyslowNav({
   const exp = useZamyslowExperience(experience);
   const cfg = ZAMYSLOW_EXPERIENCES[exp];
   const LINKS = buildLinks(cfg.mieszkania);
+  // Gość z baneru na głównej dostaje obok logo link „Wszystkie oferty". Między
+  // lg a xl nie ma na niego miejsca obok menu, więc wtedy menu chowa się pod
+  // hamburger (jak na telefonie). Pełne nazwy klas, żeby Tailwind je znalazł.
+  const fromHome = useCameFromHome();
+  const desktopNav = fromHome ? "xl:flex" : "lg:flex";
+  const mobileOnly = fromHome ? "xl:hidden" : "lg:hidden";
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -62,10 +69,27 @@ export function ZamyslowNav({
         ].join(" ")}
       >
         <div className="container-xl flex h-[72px] items-center justify-between">
-          {/* Logo -> właściwy rodzic Zamysłowa (NIE fibra.pl) */}
-          <Logo variant="ink" href={cfg.home} onNavigate={() => setOpen(false)} />
+          <div className="flex items-center">
+            {/* Logo -> właściwy rodzic Zamysłowa (NIE fibra.pl) */}
+            <Logo variant="ink" href={cfg.home} onNavigate={() => setOpen(false)} />
+            {fromHome && (
+              <>
+                <span aria-hidden className="mx-4 h-5 w-px bg-ink-900/15" />
+                <Link
+                  href="/"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex h-11 items-center gap-1.5 text-[14px] font-medium text-ink-500 transition-colors hover:text-ink-950"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+                    <path d="M11 7H3M7 3L3 7l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Wszystkie oferty
+                </Link>
+              </>
+            )}
+          </div>
 
-          <nav className="hidden items-center gap-8 lg:flex">
+          <nav className={`hidden items-center gap-8 ${desktopNav}`}>
             {LINKS.map((l) => (
               <Link
                 key={l.href}
@@ -93,7 +117,7 @@ export function ZamyslowNav({
               onClick={() => setOpen((v) => !v)}
               aria-label={open ? "Zamknij menu" : "Otwórz menu"}
               aria-expanded={open}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-ink-900 transition-colors hover:bg-ink-900/5 lg:hidden"
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-full text-ink-900 transition-colors hover:bg-ink-900/5 ${mobileOnly}`}
             >
               {open ? (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
@@ -117,7 +141,7 @@ export function ZamyslowNav({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[119] bg-ink-950/95 backdrop-blur-md lg:hidden"
+            className={`fixed inset-0 z-[119] bg-ink-950/95 backdrop-blur-md ${mobileOnly}`}
           >
             <div className="container-xl flex h-full flex-col pt-[96px]">
               <nav className="flex flex-col gap-1">

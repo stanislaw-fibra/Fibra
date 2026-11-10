@@ -1,6 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 import { buildingImage } from "@/lib/investments/zamyslow-data";
+import { HomeZamyslowBannerLink } from "@/app/HomeZamyslowBannerLink";
 
 /**
  * Baner Osiedla Zamysłów na samej górze strony głównej.
@@ -20,11 +20,7 @@ export function HomeZamyslowBanner({ priceFrom }: { priceFrom: string | null }) 
   return (
     // Renderowany wewnątrz HomeOffersHero (wspólne tło, odstęp pod nawigację już jest).
     <div className="container-xl relative pb-4 pt-5 md:pb-6 md:pt-8">
-      <Link
-        href="/zamyslow"
-        data-cta="home-zamyslow-banner"
-        className="group grid overflow-hidden rounded-2xl bg-ink-800 text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white lg:grid-cols-2"
-      >
+      <HomeZamyslowBannerLink className="group grid overflow-hidden rounded-2xl bg-ink-800 text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white lg:grid-cols-2">
         <span className="relative block h-44 overflow-hidden sm:h-56 lg:order-2 lg:h-auto lg:min-h-[240px]">
           <Image
             src={buildingImage}
@@ -62,7 +58,7 @@ export function HomeZamyslowBanner({ priceFrom }: { priceFrom: string | null }) 
             </svg>
           </span>
         </span>
-      </Link>
+      </HomeZamyslowBannerLink>
     </div>
   );
 }

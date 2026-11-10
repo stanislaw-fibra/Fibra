@@ -88,3 +88,36 @@ export function useZamyslowExperience(explicit?: ZamyslowExperience): ZamyslowEx
 
   return experience;
 }
+
+/**
+ * Wejście na Zamysłów z baneru na głównej fibra.pl (prośba Romana z 9.11.2026).
+ *
+ * Tylko taki gość dostaje w nagłówku Zamysłowa link powrotny na fibra.pl. Ruch z
+ * reklam ląduje prosto na /zamyslow, znacznika nie ma i nie widzi wyjścia do
+ * katalogu ofert. Logo zostaje przy rodzicu Zamysłowa dla wszystkich.
+ */
+const FROM_HOME_KEY = "zamyslow_from_home";
+
+/** Wywoływane przy kliknięciu baneru Zamysłowa na stronie głównej. */
+export function rememberCameFromHome(): void {
+  try {
+    sessionStorage.setItem(FROM_HOME_KEY, "1");
+  } catch {
+    /* jw. - bez sessionStorage link powrotny się po prostu nie pokaże */
+  }
+}
+
+/** `true`, gdy w tej karcie ktoś wszedł na Zamysłów z baneru. Po hydracji, jak wyżej. */
+export function useCameFromHome(): boolean {
+  const [fromHome, setFromHome] = useState(false);
+
+  useEffect(() => {
+    try {
+      setFromHome(sessionStorage.getItem(FROM_HOME_KEY) === "1");
+    } catch {
+      /* jw. */
+    }
+  }, []);
+
+  return fromHome;
+}
