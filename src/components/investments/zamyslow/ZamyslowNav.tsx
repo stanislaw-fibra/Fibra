@@ -32,7 +32,7 @@ export function ZamyslowNav({
   const exp = useZamyslowExperience(experience);
   const cfg = ZAMYSLOW_EXPERIENCES[exp];
   const LINKS = buildLinks(cfg.mieszkania);
-  // Gość z baneru na głównej dostaje obok logo link „Wszystkie oferty". Między
+  // Gość z baneru na głównej dostaje obok logo link „Strona główna" (ustalenie z Romanem 13.11). Między
   // lg a xl nie ma na niego miejsca obok menu, więc wtedy menu chowa się pod
   // hamburger (jak na telefonie). Pełne nazwy klas, żeby Tailwind je znalazł.
   const fromHome = useCameFromHome();
@@ -83,7 +83,7 @@ export function ZamyslowNav({
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                     <path d="M11 7H3M7 3L3 7l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  Wszystkie oferty
+                  Strona główna
                 </Link>
               </>
             )}
