@@ -30,6 +30,36 @@ export const LEAD_NOTIFY_RECIPIENTS: string[] = (
   .filter(Boolean);
 
 /**
+ * Dodatkowi odbiorcy zapytań z KONKRETNYCH OFERT (formularz pełny i szybki
+ * kontakt na /oferty/[slug]). Domyślnie Roman Nosiadek (prośba z 18.11.2026).
+ * `OFFER_LEAD_NOTIFY_TO` (adresy po przecinku) nadpisuje domyślną wartość.
+ * Dochodzą do LEAD_NOTIFY_RECIPIENTS i do agenta z ogłoszenia.
+ */
+export const OFFER_LEAD_EXTRA_RECIPIENTS: string[] = (
+  process.env.OFFER_LEAD_NOTIFY_TO?.trim() || "roman.nosiadek@fibra.pl"
+)
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+/** Łączy listy adresów bez duplikatów (porównanie bez wielkości liter). */
+export function uniqueRecipients(...lists: Array<Array<string | null | undefined>>): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const list of lists) {
+    for (const raw of list) {
+      const a = raw?.trim();
+      if (!a) continue;
+      const key = a.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(a);
+    }
+  }
+  return out;
+}
+
+/**
  * Główna skrzynka biura (pierwsza z listy) - używana jako domyślny Reply-To
  * oraz wszędzie, gdzie potrzebny jest pojedynczy adres biura.
  */

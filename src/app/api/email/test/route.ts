@@ -43,6 +43,7 @@ async function handle(req: Request) {
       full_name: "Test Testowy",
       email: to,
       galactica_offer_id: "FIB-TEST-0001",
+      offer: { title: "Mieszkanie testowe, 2 pokoje", url: "https://fibra.pl/oferty" },
     });
   } else if (kind === "office") {
     rendered = leadOfficeNotification({
@@ -52,6 +53,11 @@ async function handle(req: Request) {
       phone: "510 000 000",
       message: "To jest testowa wiadomość z formularza.",
       galactica_offer_id: "FIB-TEST-0001",
+      offer: {
+        title: "Mieszkanie testowe, 2 pokoje",
+        url: "https://fibra.pl/oferty",
+        agentName: "Agent Testowy",
+      },
       newsletter_consent: true,
     });
   } else {

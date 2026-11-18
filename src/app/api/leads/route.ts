@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { getSupabaseAnon } from "@/lib/supabase/server-anon";
-import { sendEmail, LEAD_NOTIFY_RECIPIENTS } from "@/lib/email/resend";
+import {
+  sendEmail,
+  LEAD_NOTIFY_RECIPIENTS,
+  OFFER_LEAD_EXTRA_RECIPIENTS,
+  uniqueRecipients,
+} from "@/lib/email/resend";
+import { getOfferBySlug } from "@/lib/offers-query";
 import {
   leadClientConfirmation,
   leadOfficeNotification,
@@ -91,6 +97,36 @@ function normalizePhonePl(raw: string | null): string | null {
   if (digits.length === 10 && digits.startsWith("0")) digits = digits.slice(1); // krajowe 0-prefix
   if (digits.length === 9) return "+48" + digits;
   return trimmed; // nieznany format - nie ryzykujemy, zostawiamy oryginał
+}
+
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://fibra.pl").replace(/\/+$/, "");
+
+/**
+ * Dane oferty do maila o zapytaniu (tytuł, link, agent). Szukamy po stronie
+ * serwera po id/numerze z formularza. Adres agenta bierzemy z bazy, a NIE z
+ * formularza, żeby nikt nie mógł użyć formularza do wysyłki na dowolny adres.
+ * Nie rzuca - przy błędzie mail idzie bez linku, jak wcześniej.
+ */
+async function resolveLeadOffer(
+  offerId: string | null,
+  galacticaId: string | null,
+): Promise<{ title: string; url: string; agentName: string | null; agentEmail: string | null } | null> {
+  const key = offerId || galacticaId;
+  if (!key) return null;
+  try {
+    const offer = await getOfferBySlug(key);
+    if (!offer) return null;
+    const agentEmail = offer.agentEmail?.trim() || null;
+    return {
+      title: offer.title,
+      url: `${SITE_URL}/oferty/${encodeURIComponent(offer.slug)}`,
+      agentName: offer.agentName?.trim() || null,
+      agentEmail: agentEmail && isValidEmail(agentEmail) ? agentEmail : null,
+    };
+  } catch (e) {
+    console.error("[leads] Nie udało się pobrać oferty do maila:", e);
+    return null;
+  }
 }
 
 function sha256Hex(input: string): string {
@@ -250,6 +286,9 @@ export async function POST(req: Request) {
   // Wysyłka maili. Świadomie await (na serverless praca po response bywa ubijana),
   // ale w try/catch + allSettled, żeby ŻADEN problem z mailem nie zepsuł zapisu leada
   // ani nie zwrócił błędu użytkownikowi - lead jest już bezpiecznie w bazie.
+  const isOfferLead = body.source === "offer_page" || body.source === "offer_page_mini";
+  const leadOffer = isOfferLead ? await resolveLeadOffer(offer_id, galactica_offer_id) : null;
+
   const emailData: LeadEmailData = {
     source: body.source,
     full_name,
@@ -259,17 +298,24 @@ export async function POST(req: Request) {
     offer_id,
     galactica_offer_id,
     newsletter_consent,
+    offer: leadOffer
+      ? { title: leadOffer.title, url: leadOffer.url, agentName: leadOffer.agentName }
+      : null,
   };
   try {
     const jobs: Promise<unknown>[] = [];
 
     // 1) Powiadomienie do biura - zawsze. Reply-To = e-mail klienta (jeśli jest),
-    //    żeby biuro mogło odpowiedzieć wprost do zgłaszającego. Dla wynajmu
-    //    dorzucamy bezpośrednio Arkadiusza - to on oddzwania do zgłaszających.
+    //    żeby biuro mogło odpowiedzieć wprost do zgłaszającego.
+    //    - wynajem: dorzucamy Arkadiusza (to on oddzwania),
+    //    - zapytanie z oferty: dorzucamy OFFER_LEAD_NOTIFY_TO (Roman) i agenta,
+    //      od którego jest ogłoszenie (adres z bazy).
     const officeRecipients =
       body.source === "rental_zamyslow"
-        ? Array.from(new Set([...LEAD_NOTIFY_RECIPIENTS, RENTAL_AGENT.email]))
-        : LEAD_NOTIFY_RECIPIENTS;
+        ? uniqueRecipients(LEAD_NOTIFY_RECIPIENTS, [RENTAL_AGENT.email])
+        : isOfferLead
+          ? uniqueRecipients(LEAD_NOTIFY_RECIPIENTS, OFFER_LEAD_EXTRA_RECIPIENTS, [leadOffer?.agentEmail])
+          : LEAD_NOTIFY_RECIPIENTS;
     const office = leadOfficeNotification(emailData);
     jobs.push(
       sendEmail({

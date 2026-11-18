@@ -25,6 +25,20 @@ export interface LeadEmailData {
   offer_id?: string | null;
   galactica_offer_id?: string | null;
   newsletter_consent?: boolean | null;
+  /**
+   * Dane oferty dociągnięte po stronie serwera (z bazy, nie z formularza).
+   * Jest tylko dla zapytań z /oferty/[slug]. Daje klikalny link zamiast numeru FIB.
+   */
+  offer?: {
+    title: string;
+    url: string;
+    agentName?: string | null;
+  } | null;
+}
+
+/** Link HTML do oferty (tytuł jako tekst linku). */
+function offerLinkHtml(o: NonNullable<LeadEmailData["offer"]>): string {
+  return `<a href="${esc(o.url)}" target="_blank" style="color:#005a94;text-decoration:underline;">${esc(o.title)}</a>`;
 }
 
 function firstName(full?: string | null): string {
@@ -77,15 +91,17 @@ const CLIENT_COPY: Record<LeadSource, ClientCopy> = {
     heading: "Dziękujemy za zainteresowanie",
     body: (d) => {
       const ref = offerRef(d);
+      const what = d.offer ? ` ${offerLinkHtml(d.offer)}` : ref ? ` <strong>${esc(ref)}</strong>` : "";
       return (
-        p(`${greeting(d.full_name)} Dotarło do nas Twoje zapytanie o ofertę${ref ? ` <strong>${esc(ref)}</strong>` : ""}.`) +
+        p(`${greeting(d.full_name)} Dotarło do nas Twoje zapytanie o ofertę${what}.`) +
         p("Odezwiemy się, żeby odpowiedzieć na pytania i, jeśli zechcesz, umówić oglądanie. Zwykle kontaktujemy się w ciągu kilku godzin w dni robocze.") +
         pMuted("Jeśli chcesz coś dopowiedzieć wcześniej, po prostu odpowiedz na tę wiadomość.")
       );
     },
     textBody: (d) => {
       const ref = offerRef(d);
-      return `${greetingText(d.full_name)}\n\nDotarło do nas Twoje zapytanie o ofertę${ref ? ` ${ref}` : ""}. Odezwiemy się, żeby odpowiedzieć na pytania i umówić oglądanie. Zwykle kontaktujemy się w ciągu kilku godzin w dni robocze.\n\nMożesz też po prostu odpowiedzieć na tę wiadomość.`;
+      const what = d.offer ? ` „${d.offer.title}” (${d.offer.url})` : ref ? ` ${ref}` : "";
+      return `${greetingText(d.full_name)}\n\nDotarło do nas Twoje zapytanie o ofertę${what}. Odezwiemy się, żeby odpowiedzieć na pytania i umówić oglądanie. Zwykle kontaktujemy się w ciągu kilku godzin w dni robocze.\n\nMożesz też po prostu odpowiedzieć na tę wiadomość.`;
     },
   },
   offer_page_mini: {
@@ -93,14 +109,16 @@ const CLIENT_COPY: Record<LeadSource, ClientCopy> = {
     heading: "Dziękujemy za zainteresowanie",
     body: (d) => {
       const ref = offerRef(d);
+      const what = d.offer ? ` ${offerLinkHtml(d.offer)}` : ref ? ` <strong>${esc(ref)}</strong>` : "";
       return (
-        p(`${greeting(d.full_name)} Mamy Twoje zapytanie o ofertę${ref ? ` <strong>${esc(ref)}</strong>` : ""} i wkrótce się odezwiemy.`) +
+        p(`${greeting(d.full_name)} Mamy Twoje zapytanie o ofertę${what} i wkrótce się odezwiemy.`) +
         pMuted("Jeśli chcesz coś dopowiedzieć, odpowiedz na tę wiadomość.")
       );
     },
     textBody: (d) => {
       const ref = offerRef(d);
-      return `${greetingText(d.full_name)}\n\nMamy Twoje zapytanie o ofertę${ref ? ` ${ref}` : ""} i wkrótce się odezwiemy.`;
+      const what = d.offer ? ` „${d.offer.title}” (${d.offer.url})` : ref ? ` ${ref}` : "";
+      return `${greetingText(d.full_name)}\n\nMamy Twoje zapytanie o ofertę${what} i wkrótce się odezwiemy.`;
     },
   },
   contact_page: {
@@ -204,17 +222,29 @@ export function leadClientConfirmation(d: LeadEmailData): RenderedEmail {
 export function leadOfficeNotification(d: LeadEmailData): RenderedEmail {
   const label = SOURCE_LABEL[d.source];
   const ref = offerRef(d);
+  const offer = d.offer ?? null;
   const subject =
     d.source === "newsletter_footer"
       ? `Newsletter: nowy zapis${d.email ? ` (${d.email})` : ""}`
-      : `Nowy lead: ${label}${ref ? ` · ${ref}` : ""}`;
+      : offer
+        ? `Zapytanie o ofertę: ${offer.title}`
+        : `Nowy lead: ${label}${ref ? ` | ${ref}` : ""}`;
+
+  // Przy zapytaniu z oferty: tytuł jako link + przycisk na górze, żeby każdy
+  // odbiorca (biuro, Roman, agent) wszedł w ogłoszenie jednym kliknięciem.
+  // Numer FIB zostaje niżej jako pomocniczy (wyszukiwanie w VIRGO).
+  const offerBlock = offer
+    ? p(`Zapytanie dotyczy oferty: <strong>${offerLinkHtml(offer)}</strong>`) +
+      button("Otwórz ofertę", offer.url)
+    : "";
 
   const rows = dataRows([
     { label: "Źródło", value: label },
     { label: "Imię i nazwisko", value: d.full_name ?? null },
     { label: "Telefon", value: d.phone ?? null },
     { label: "E-mail", value: d.email ?? null },
-    { label: "Oferta", value: ref },
+    { label: offer ? "Numer oferty" : "Oferta", value: ref },
+    { label: "Agent", value: offer?.agentName ?? null },
     { label: "Wiadomość", value: d.message ?? null },
     { label: "Newsletter", value: d.newsletter_consent ? "Tak, wyraził zgodę" : null },
   ]);
@@ -227,11 +257,13 @@ export function leadOfficeNotification(d: LeadEmailData): RenderedEmail {
 
   const text = [
     `Nowe zgłoszenie: ${label}`,
+    offer ? `Oferta: ${offer.title}\n${offer.url}` : null,
     "",
     d.full_name ? `Imię i nazwisko: ${d.full_name}` : null,
     d.phone ? `Telefon: ${d.phone}` : null,
     d.email ? `E-mail: ${d.email}` : null,
-    ref ? `Oferta: ${ref}` : null,
+    ref ? `${offer ? "Numer oferty" : "Oferta"}: ${ref}` : null,
+    offer?.agentName ? `Agent: ${offer.agentName}` : null,
     d.message ? `\nWiadomość:\n${d.message}` : null,
     d.newsletter_consent ? "\nZgoda na newsletter: tak" : null,
   ]
@@ -242,8 +274,8 @@ export function leadOfficeNotification(d: LeadEmailData): RenderedEmail {
     subject,
     html: emailShell({
       preheader: subject,
-      heading: "Nowe zgłoszenie ze strony",
-      contentHtml: rows + divider() + replyHint,
+      heading: offer ? "Nowe zapytanie o ofertę" : "Nowe zgłoszenie ze strony",
+      contentHtml: offerBlock + rows + divider() + replyHint,
     }),
     text,
   };
